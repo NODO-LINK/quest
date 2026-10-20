@@ -8,7 +8,7 @@
 
   EN LA LAPTOP DEL PROYECTOR
    · Los botones están ocultos: mueve el mouse para verlos (desaparecen solos).
-   · Espacio o flecha derecha: comenzar / siguiente pregunta.
+   · Espacio o flecha derecha: comenzar / siguiente pregunta (con cuenta 3, 2, 1).
    · Cada pregunta se cierra sola al acabar el tiempo y muestra los porcentajes.
    · R: ranking por generación · F: pantalla completa.
 
@@ -1898,6 +1898,162 @@ h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-he
 .genopt[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); }
 .banner { padding: 10px 14px; border-radius: 12px; background: rgba(244, 194, 13, .12); border: 1px solid rgba(244, 194, 13, .45); font-size: 14px; }
 
+/* ================= SHOW ANIMATIONS (projector) ================= */
+#waves { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 35; pointer-events: none; }
+.stage { position: relative; z-index: 1; }
+.wipe { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+.wipe i { position: absolute; top: 0; bottom: 0; left: -15vw; width: 130vw; transform: translateX(-120%) skewX(-12deg); will-change: transform; }
+.wipe i:nth-child(1) { background: var(--green); }
+.wipe i:nth-child(2) { background: #FFFFFF; }
+.wipe i:nth-child(3) { background: var(--blue); }
+
+/* question text, word by word */
+.qtext .w { display: inline-block; }
+.qtext .w.in { opacity: 0; animation: wordIn .5s cubic-bezier(.2, .8, .2, 1) forwards; }
+@keyframes wordIn { from { opacity: 0; transform: translateY(.55em) scale(.94); } to { opacity: 1; transform: none; } }
+/* answers, A to D one after another */
+.opt.enter { opacity: 0; animation: optIn .6s cubic-bezier(.2, .9, .25, 1.15) forwards; }
+@keyframes optIn { from { opacity: 0; transform: translateY(40px) scale(.9); } to { opacity: 1; transform: none; } }
+
+/* 3-2-1 before each question and 5-4-3-2-1 at the end of the clock */
+.countdown { flex: 1; display: grid; place-items: center; align-content: center; gap: 2vh; text-align: center; }
+.countdown .label { font-family: var(--display); font-weight: 800; font-size: clamp(22px, 2.6vw, 48px); color: var(--yellow); }
+.countdown .ready { font-family: var(--display); font-weight: 800; font-size: clamp(18px, 1.8vw, 34px); color: var(--muted); }
+.giant { font-family: var(--display); font-weight: 900; line-height: .9; font-size: min(46vh, 30vw); color: #fff; text-shadow: 0 24px 70px rgba(0, 0, 0, .45); }
+.giant.pop { animation: giantPop .95s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes giantPop { 0% { opacity: 0; transform: scale(1.9); } 22% { opacity: 1; transform: scale(1); } 78% { opacity: 1; transform: scale(.97); } 100% { opacity: 0; transform: scale(.82); } }
+.bigcount { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; pointer-events: none; }
+.bigcount span { font-family: var(--display); font-weight: 900; line-height: 1; font-size: min(52vh, 34vw); color: #fff; -webkit-text-stroke: 8px var(--red); paint-order: stroke fill; text-shadow: 0 24px 80px rgba(0, 0, 0, .55); opacity: 0; }
+.bigcount span.pop { animation: giantPop .95s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* answers counter that counts up */
+.counter { display: flex; align-items: baseline; gap: 12px; white-space: nowrap; }
+.counter b { font-family: var(--display); font-weight: 900; font-size: clamp(34px, 3.4vw, 64px); line-height: 1; color: var(--sky); font-variant-numeric: tabular-nums; display: inline-block; }
+.counter b.bump { animation: bump .45s cubic-bezier(.3, 1.6, .5, 1); }
+.counter span { font-weight: 700; color: var(--muted); font-size: clamp(14px, 1.2vw, 22px); }
+@keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* lobby: names drop in with a bounce, generation counters jump */
+.gcol li.in { animation: dropIn .7s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes dropIn { from { opacity: 0; transform: translateY(-30px) scale(.85); } to { opacity: 1; transform: none; } }
+.gcol .n.bump, .total span.bump { display: inline-block; animation: bump .5s cubic-bezier(.3, 1.6, .5, 1); }
+
+/* dato typed like a typewriter */
+.dato .caret { display: inline-block; width: .55ch; height: 1em; background: var(--yellow); vertical-align: -.12em; margin-left: 2px; animation: caret .8s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+/* ranking rows slide to their new place */
+.grow-row.flip { transition: transform 1s cubic-bezier(.5, 0, .2, 1); }
+
+/* podium: 3rd, 2nd, then 1st with a spotlight */
+.step .who, .step .sp { opacity: 0; animation: fadeUp .6s ease-out both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.step .block { opacity: 0; }
+.step .block.go { opacity: 1; animation: rise 1s cubic-bezier(.2, .9, .3, 1.12) both; }
+.step.p1 { position: relative; }
+.spot { position: absolute; left: 50%; bottom: 0; width: 160%; height: 160vh; transform: translateX(-50%); pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse 30% 70% at 50% 100%, rgba(255, 244, 200, .38), transparent 70%); animation: fadeUp 1s ease-out both; }
+.final-title.swap { animation: titleIn .8s cubic-bezier(.2, .9, .25, 1.2) both; }
+@keyframes titleIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+.rest.late { opacity: 0; animation: fadeUp .7s ease-out both; }
+
+/* phone: 3-2-1 */
+.pgiant { font-family: var(--display); font-weight: 900; font-size: clamp(110px, 40vw, 180px); line-height: 1; }
+.pgiant.pop { animation: giantPop .95s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* ================= LIQUID GLASS (iOS-style) ================= */
+:root {
+  --r: 30px;
+  --glass: linear-gradient(140deg, rgba(255, 255, 255, .17) 0%, rgba(255, 255, 255, .07) 45%, rgba(255, 255, 255, .04) 100%);
+  --glass-edge: rgba(255, 255, 255, .28);
+  --glass-blur: blur(22px) saturate(170%);
+  --glass-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .42), inset 0 -1px 0 rgba(255, 255, 255, .08), 0 18px 48px rgba(2, 10, 30, .35);
+}
+.glass, .chip, .gcol, .opt, .grow-row, .dato, .dock, .card, .phead, .genopt, .result, .url, .timer, .qrcard, .answered-bar, .progress, .ptimer, .banner, .confirm {
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+}
+/* specular sheen on the top edge of every glass surface */
+.chip, .gcol, .opt, .grow-row, .dato, .dock, .card, .phead, .genopt, .result, .tile, .qrcard, .step .block, .btn, .badge, .answer-chip { position: relative; }
+.chip::after, .gcol::after, .opt::after, .grow-row::after, .dato::after, .dock::after, .card::after, .phead::after, .genopt::after, .result::after,
+.tile::after, .qrcard::after, .step .block::after, .btn::after, .badge::after, .answer-chip::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .26) 0%, rgba(255, 255, 255, .06) 30%, rgba(255, 255, 255, 0) 55%);
+  mix-blend-mode: screen;
+}
+
+/* pills */
+.chip { background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); padding: 9px 18px; }
+.chip.demo { background: linear-gradient(140deg, rgba(244, 194, 13, .30), rgba(244, 194, 13, .10)); border-color: rgba(244, 194, 13, .55); }
+.btn { border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); }
+.btn-primary { background: linear-gradient(160deg, #F0485C 0%, #D7263D 60%, #B81D33 100%); border-color: rgba(255, 255, 255, .35); }
+.btn-yellow { background: linear-gradient(160deg, #FFD95A 0%, #F4C20D 60%, #D9A900 100%); border-color: rgba(255, 255, 255, .45); }
+.url { border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); padding: 10px 22px; }
+
+/* lobby */
+.qrcard { border-radius: 40px; padding: 2.2vh; background: linear-gradient(140deg, rgba(255, 255, 255, .30), rgba(255, 255, 255, .10)); border: 1px solid rgba(255, 255, 255, .45); box-shadow: var(--glass-shadow); }
+.qrcard canvas { border-radius: 26px; background: #fff; }
+.gcol { border-radius: 30px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+.gcol header { background: linear-gradient(160deg, color-mix(in srgb, var(--c) 55%, transparent), color-mix(in srgb, var(--c) 18%, transparent)); border-bottom: 1px solid rgba(255, 255, 255, .18); border-radius: 30px 30px 0 0; }
+.gcol li { border-radius: 999px; background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .14); padding: 5px 12px; }
+
+/* question */
+.progress, .answered-bar { border-radius: 999px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .16); height: 12px; }
+.progress i, .answered-bar i { border-radius: 999px; }
+.timer { background:
+    radial-gradient(closest-side, rgba(10, 35, 70, .55) 79%, transparent 81% 100%),
+    conic-gradient(var(--tc) calc(var(--p) * 360deg), rgba(255, 255, 255, .14) 0);
+  box-shadow: var(--glass-shadow); }
+.opt { border-radius: 32px; border: 1px solid rgba(255, 255, 255, .26);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--c) 34%, rgba(255, 255, 255, .10)) 0%, color-mix(in srgb, var(--c) 12%, rgba(255, 255, 255, .04)) 60%, rgba(255, 255, 255, .03) 100%);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); }
+.opt .fill { border-radius: inherit; opacity: .38; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 90%, #fff), var(--c)); }
+.badge { border-radius: 24px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 70%, #fff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 80%, #000) 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 8px 20px rgba(0, 0, 0, .25); }
+.opts.revealed .opt.correct { border-color: rgba(255, 255, 255, .5); box-shadow: 0 0 0 4px var(--ok), 0 0 50px rgba(34, 197, 94, .45), var(--glass-shadow); }
+.check { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 6px 16px rgba(0, 0, 0, .25); }
+.dato { border-radius: 26px; background: linear-gradient(140deg, rgba(244, 194, 13, .26), rgba(244, 194, 13, .07)); border: 1px solid rgba(244, 194, 13, .5); box-shadow: var(--glass-shadow); }
+
+/* ranking + podium */
+.grow-row { border-radius: 30px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+.grow-row .bar { border-radius: 999px; background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .12); }
+.grow-row .bar i { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); }
+.step .block { border-radius: 32px 32px 14px 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 75%, #fff) 0%, var(--c) 45%, color-mix(in srgb, var(--c) 75%, #000) 100%);
+  border: 1px solid rgba(255, 255, 255, .4); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 24px 60px rgba(0, 0, 0, .35); }
+
+/* hidden dock */
+.dock { border-radius: 32px; background: linear-gradient(140deg, rgba(20, 50, 95, .62), rgba(8, 25, 55, .55)); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); padding: 12px 14px; }
+.dock select { border-radius: 999px; background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .2); padding: 7px 12px; }
+.confirm { border-radius: 999px; }
+
+/* cards (login / join) */
+.card { border-radius: 34px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+.field input { border-radius: 18px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .22); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12); }
+
+/* ================= phone glass ================= */
+body:not(:has(.stage)) { background-image:
+    radial-gradient(60vmax 50vmax at 110% 105%, rgba(30, 158, 79, .45), transparent 60%),
+    radial-gradient(55vmax 45vmax at -15% 20%, rgba(42, 100, 180, .55), transparent 60%),
+    radial-gradient(40vmax 30vmax at 80% -10%, rgba(244, 194, 13, .25), transparent 60%),
+    linear-gradient(165deg, #0E3366 0%, #0A2346 50%, #061730 100%); }
+.phead { border-radius: 26px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); padding: 12px 16px; }
+.ptimer { border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-edge); }
+.tile { border-radius: 34px; border: 1px solid rgba(255, 255, 255, .35);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--c) 72%, #fff) 0%, var(--c) 42%, color-mix(in srgb, var(--c) 78%, #000) 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), inset 0 -3px 0 rgba(0, 0, 0, .18), 0 10px 0 rgba(0, 0, 0, .22), 0 18px 40px rgba(0, 0, 0, .3); }
+.tile:active { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 3px 0 rgba(0, 0, 0, .22), 0 8px 20px rgba(0, 0, 0, .3); }
+.tiles.sent .tile.mine { outline: 0; box-shadow: 0 0 0 5px #fff, 0 0 40px rgba(255, 255, 255, .45), inset 0 2px 0 rgba(255, 255, 255, .55); }
+.genopt { border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25); }
+.genopt[aria-pressed="true"] { background: linear-gradient(140deg, color-mix(in srgb, var(--c) 45%, transparent), color-mix(in srgb, var(--c) 15%, transparent)); border-color: color-mix(in srgb, var(--c) 80%, #fff); }
+.result { border-radius: 34px; box-shadow: var(--glass-shadow); }
+.result.ok { background: linear-gradient(140deg, rgba(34, 197, 94, .32), rgba(34, 197, 94, .08)); border: 1px solid rgba(134, 239, 172, .7); }
+.result.bad { background: linear-gradient(140deg, rgba(215, 38, 61, .32), rgba(215, 38, 61, .08)); border: 1px solid rgba(252, 165, 165, .6); }
+.result.none { background: var(--glass); border: 1px solid var(--glass-edge); }
+.answer-chip { border-radius: 18px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c) 55%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 6px 16px rgba(0, 0, 0, .25); }
+.banner { border-radius: 20px; }
+.toast { position: fixed; top: max(16px, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 60; max-width: min(760px, calc(100vw - 32px)); padding: 14px 22px; border-radius: 22px; background: rgba(215, 38, 61, .92); color: #fff; font-weight: 700; box-shadow: 0 18px 50px rgba(0, 0, 0, .45); backdrop-filter: blur(12px); }
+.card::after { background: linear-gradient(180deg, rgba(255, 255, 255, .12) 0%, rgba(255, 255, 255, 0) 30%); }
+.word b { text-shadow: 0 1px 0 rgba(0, 0, 0, .35), 0 0 12px rgba(0, 0, 0, .25); }
+
 @media (max-width: 900px) {
   .stage { height: auto; min-height: 100dvh; }
   .lobby { grid-template-columns: 1fr; }
@@ -1999,7 +2155,7 @@ async function firebaseStore() {
     import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
     import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
   ]);
-  const fb = A.initializeApp(CFG.firebase);
+  const fb = A.initializeApp(CFG.firebase, IS_HOST ? "presentador" : "participante");
   const auth = U.getAuth(fb), db = F.getFirestore(fb);
   const sala = F.doc(db, "trivia", CFG.sala), votos = F.collection(sala, "votos"), jug = F.collection(sala, "jugadores");
   const ms = t => (t && t.toMillis) ? t.toMillis() : (typeof t === "number" ? t : null);
@@ -2078,6 +2234,9 @@ function demoStore() {
   };
 }
 
+let toastT = 0;
+function toast(msg) { let el = document.getElementById("toast"); if (!el) { el = h("div", { id: "toast", class: "toast", role: "alert" }); document.body.append(el); } el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(hideToast, 12000); }
+function hideToast() { const el = document.getElementById("toast"); if (el) el.hidden = true; }
 let bannerText = "";
 function showBanner(t) { bannerText = t; const b = document.getElementById("banner"); if (b) { b.textContent = t; b.hidden = !t; } }
 
@@ -2086,55 +2245,99 @@ function showBanner(t) { bannerText = t; const b = document.getElementById("bann
    ===================================================================== */
 async function presenter(store) {
   if (store.mode === "firebase") { await store.ready(); if (!store.isHostUser()) return hostLogin(store); }
-  const S = { state: null, players: [], votes: [], unVotes: null, votesQ: null, live: false, limite: CFG.tiempo, confirmReset: false, closing: false, now: Date.now(), viewKey: "", prevW: {}, idleT: 0 };
+  const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const S = { state: null, players: [], votes: [], unVotes: null, votesQ: null, live: false, limite: CFG.tiempo, confirmReset: false,
+    closing: false, opening: false, now: Date.now(), viewKey: "", screen: "", prevW: {}, idleT: 0, prepStart: 0, prepQ: null,
+    lastBig: null, lastPrep: null, cntShown: 0, cntTarget: 0, wiping: false, pendingRender: false, award: Promise.resolve(),
+    rankPrev: { order: GENS.map((_, i) => i), avg: {} }, gcount: {}, openAt: {} };
   try { S.live = localStorage.getItem("trivia_live") === "1"; const l = localStorage.getItem("trivia_limite2"); if (l !== null) S.limite = +l; } catch {}
 
+  /* ---------- layers that live outside #app (survive redraws) ---------- */
+  const waves = h("canvas", { id: "waves", "aria-hidden": "true" });
+  const confettiCv = h("canvas", { id: "confetti", "aria-hidden": "true" });
+  const bigcount = h("div", { class: "bigcount", "aria-hidden": "true" }, h("span", { id: "bignum" }));
+  document.body.prepend(waves); document.body.append(bigcount, confettiCv);
+  startWaves(waves, RM);
+  const confetti = makeConfetti(confettiCv);
+
   store.watchState(st => {
-    S.state = st;
+    const prev = S.state; S.state = st;
     if (!st) { store.reset(); return; }
     const vq = `${st.partida}-${st.q}`;
-    if (vq !== S.votesQ) { if (S.unVotes) S.unVotes(); S.votes = []; S.votesQ = vq; if (st.q >= 0) S.unVotes = store.watchVotes(st.q, v => { S.votes = v; update(); }); }
+    if (vq !== S.votesQ) { if (S.unVotes) S.unVotes(); S.votes = []; S.votesQ = vq; S.cntShown = 0; S.cntTarget = 0; if (st.q >= 0) S.unVotes = store.watchVotes(st.q, v => { S.votes = v; update(); }); }
+    if (st.fase !== "votando") S.opening = false;
+    if (st.fase === "votando" && !S.openAt[vq]) S.openAt[vq] = Date.now();
+    if (prev && prev.fase === "votando" && st.fase === "cerrada" && prev.q === st.q && !RM) setTimeout(() => confetti("reveal"), 250);
     update();
   });
   store.watchPlayers(p => { S.players = p; update(); });
 
-  setInterval(() => {
-    S.now = Date.now(); const st = S.state;
-    if (st && st.fase === "votando") { const left = remaining(st); if (left !== null && left <= 0 && !S.closing) close(); updateTimer(); }
-  }, 250);
-  const remaining = st => (!st.limite || !st.abiertaEn) ? null : Math.max(0, st.limite - (S.now - st.abiertaEn) / 1000);
+  setInterval(tick, 100);
+  function tick() {
+    S.now = Date.now(); const st = S.state; if (!st) return;
+    if (st.fase === "preparando" && S.prepQ === `${st.partida}-${st.q}`) {
+      const el = S.now - S.prepStart, n = 3 - Math.floor(el / 1000);
+      const g = document.getElementById("prepnum");
+      if (g && n >= 1 && n !== S.lastPrep) { S.lastPrep = n; g.textContent = n; g.classList.remove("pop"); void g.offsetWidth; g.classList.add("pop"); }
+      if (el >= 3000 && !S.opening) { S.opening = true; openVoting(st.q); }
+    }
+    if (st.fase === "votando") { const left = remaining(st); if (left !== null && left <= 0 && !S.closing) close(); }
+    updateTimer();
+  }
+  /* the laptop's own clock: when it first saw this question open (server time can differ from the laptop's) */
+  const remaining = st => { const t0 = S.openAt[`${st.partida}-${st.q}`]; return (!st.limite || !t0) ? null : Math.max(0, st.limite - (S.now - t0) / 1000); };
 
-  async function openQuestion(qi) {
-    const p = shuffled(qi); S.closing = false;
-    await store.setState({ fase: "votando", q: qi, total: REAL, pregunta: { texto: p.texto, opciones: p.opciones, practica: p.practica }, correcta: null, dato: "", limite: S.limite }, true);
+  async function prepare(qi) {
+    S.closing = false;
+    await guard(() => store.setState({ fase: "preparando", q: qi, total: REAL, pregunta: null, correcta: null, dato: "", limite: S.limite }));
+  }
+  async function openVoting(qi) {
+    const p = shuffled(qi);
+    await guard(() => store.setState({ fase: "votando", q: qi, total: REAL, pregunta: { texto: p.texto, opciones: p.opciones, practica: p.practica }, correcta: null, dato: "", limite: S.limite }, true));
   }
   async function close() {
     const st = S.state; if (!st || st.fase !== "votando" || S.closing) return;
     S.closing = true;
     const p = shuffled(st.q), q = st.q, done = (st.calificadas || []).includes(q);
-    await store.setState({ fase: "cerrada", correcta: p.correcta, dato: p.dato, calificadas: done ? (st.calificadas || []) : [...(st.calificadas || []), q] });
+    if (!await guard(() => store.setState({ fase: "cerrada", correcta: p.correcta, dato: p.dato, calificadas: done ? (st.calificadas || []) : [...(st.calificadas || []), q] }))) { S.closing = false; return; }
     if (done || p.practica) return;
-    await new Promise(r => setTimeout(r, 1200));           // let in-flight answers land before scoring
-    const votes = await store.getVotes(q), lim = (st.limite || 30) * 1000, t0 = st.abiertaEn || Date.now();
-    const aw = votes.filter(v => v.opcion === p.correcta).map(v => ({ uid: v.uid, pts: 100 + Math.round(50 * Math.max(0, Math.min(1, 1 - (v.t - t0) / lim))) }));
-    if (aw.length) await store.award(aw);
+    S.award = (async () => {
+      await new Promise(r => setTimeout(r, 1200));         // let in-flight answers land before scoring
+      const votes = await store.getVotes(q), lim = (st.limite || 30) * 1000, t0 = st.abiertaEn || Date.now();
+      const aw = votes.filter(v => v.opcion === p.correcta).map(v => ({ uid: v.uid, pts: 100 + Math.round(50 * Math.max(0, Math.min(1, 1 - (v.t - t0) / lim))) }));
+      if (aw.length) await store.award(aw);
+    })();
+    await S.award;
+  }
+  async function guard(fn) {
+    try { await fn(); hideToast(); return true; }
+    catch (e) {
+      console.error(e);
+      toast(e && e.code === "permission-denied"
+        ? "Firebase no deja avanzar: el correo con el que entraste no es el que está en las reglas de Firestore."
+        : "No se pudo avanzar: " + (e && (e.code || e.message)) + ". Revisa la conexión a internet.");
+      return false;
+    }
   }
   async function next() {
     const st = S.state; if (!st) return;
-    if (st.fase === "lobby") return openQuestion(0);
-    if (st.fase === "votando" || st.fase === "final") return;      // the clock closes each question
-    if (st.q + 1 >= BANK.length) return store.setState({ fase: "final" });
-    return openQuestion(st.q + 1);
+    if (st.fase === "lobby") return prepare(0);
+    if (["votando", "preparando", "final"].includes(st.fase)) return;   // the clock closes each question
+    if (st.q + 1 >= BANK.length) { await S.award; return store.setState({ fase: "final" }); }
+    return prepare(st.q + 1);
   }
-  const toggleRanking = () => { const f = S.state && S.state.fase; if (f === "cerrada" || f === "ranking") store.setState({ fase: f === "ranking" ? "cerrada" : "ranking" }); };
+  async function toggleRanking() {
+    const f = S.state && S.state.fase; if (f !== "cerrada" && f !== "ranking") return;
+    if (f === "cerrada") await S.award;
+    store.setState({ fase: f === "ranking" ? "cerrada" : "ranking" });
+  }
 
   document.addEventListener("keydown", e => {
-    if (e.target.closest("input,select,textarea,button")) return;
+    if (e.target.closest && e.target.closest("input,select,textarea,button")) return;
     if (e.key === " " || e.key === "ArrowRight" || e.key === "Enter" || e.key === "PageDown") { e.preventDefault(); next(); }
     else if (e.key === "r" || e.key === "R") toggleRanking();
     else if (e.key === "f" || e.key === "F") document.documentElement.requestFullscreen?.().catch(() => {});
   });
-  /* controls stay hidden; moving the mouse shows them for 3 seconds */
   const wake = () => {
     const d = document.getElementById("dock"), stg = document.querySelector(".stage");
     if (d) d.classList.remove("hide"); if (stg) stg.classList.remove("idle");
@@ -2158,7 +2361,7 @@ async function presenter(store) {
     const live = h("input", { type: "checkbox", id: "live", onchange: e => { S.live = e.target.checked; try { localStorage.setItem("trivia_live", S.live ? "1" : "0"); } catch {} update(); } });
     live.checked = S.live;
     const reset = S.confirmReset
-      ? h("span", { class: "confirm" }, "¿Borrar respuestas y participantes?", h("button", { class: "btn btn-primary", onclick: async () => { S.confirmReset = false; await store.reset(); } }, "Sí, reiniciar"), h("button", { class: "btn", onclick: () => { S.confirmReset = false; render(); } }, "Cancelar"))
+      ? h("span", { class: "confirm" }, "¿Borrar respuestas y participantes?", h("button", { class: "btn btn-primary", onclick: async () => { S.confirmReset = false; S.rankPrev = { order: GENS.map((_, i) => i), avg: {} }; await store.reset(); } }, "Sí, reiniciar"), h("button", { class: "btn", onclick: () => { S.confirmReset = false; render(); } }, "Cancelar"))
       : h("button", { class: "btn", onclick: () => { S.confirmReset = true; render(); } }, "Reiniciar");
     return h("div", { class: "dock hide", id: "dock" },
       label ? h("button", { class: "btn btn-primary", id: "primary", onclick: next }, label) : null,
@@ -2172,7 +2375,7 @@ async function presenter(store) {
       h("span", { class: "kbd" }, "Espacio: avanzar · R: ranking · F: pantalla completa"));
   }
 
-  /* ---------- lobby: giant QR + five generation columns ---------- */
+  /* ---------- lobby ---------- */
   function lobbyView() {
     return h("section", { class: "lobby" },
       h("div", { class: "qrside" },
@@ -2187,11 +2390,14 @@ async function presenter(store) {
           h("header", {}, h("b", {}, g.nombre), h("span", {}, g.edades), h("div", { class: "n", id: "gn" + i }, "0")),
           h("ul", { id: "gl" + i }))))));
   }
+  const bump = el => { if (!el || RM) return; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); };
   function updateLobby() {
-    const t = document.getElementById("ltotal"); if (t) t.textContent = S.players.length;
+    const t = document.getElementById("ltotal");
+    if (t && t.textContent !== String(S.players.length)) { t.textContent = S.players.length; bump(t); }
     GENS.forEach((_, i) => {
       const ps = S.players.filter(p => p.gen === i), n = document.getElementById("gn" + i), ul = document.getElementById("gl" + i);
-      if (n) n.textContent = ps.length;
+      if (n && n.textContent !== String(ps.length)) { n.textContent = ps.length; if (S.gcount[i] !== undefined) bump(n); }
+      S.gcount[i] = ps.length;
       if (!ul) return;
       const ids = new Set(ps.map(p => p.id));
       [...ul.children].forEach(li => { if (!ids.has(li.dataset.id)) li.remove(); });
@@ -2200,19 +2406,34 @@ async function presenter(store) {
     });
   }
 
+  /* ---------- 3-2-1 ---------- */
+  function prepView() {
+    const st = S.state, practice = !!(BANK[st.q] && BANK[st.q].practica);
+    return h("section", { class: "countdown" },
+      h("div", { class: "label" }, practice ? "Pregunta de práctica" : `Pregunta ${realNum(st.q)} de ${REAL}`),
+      h("div", { class: "giant", id: "prepnum" }, ""),
+      h("div", { class: "ready" }, "¡Prepárate! Ten tu celular a la mano"));
+  }
+
   /* ---------- question ---------- */
   function questionView() {
     const st = S.state, p = st.pregunta || { texto: "", opciones: [] }, revealed = st.fase === "cerrada", k = `${st.partida}-${st.q}`;
     const practice = !!(BANK[st.q] && BANK[st.q].practica);
     const doneN = BANK.slice(0, st.q).filter(x => !x.practica).length + (revealed && !practice ? 1 : 0);
+    const animate = !RM && !revealed && once("q-" + k) !== "";
+    const words = p.texto.split(/\s+/);
+    const wordStep = Math.min(70, 1400 / Math.max(1, words.length));
+    const textEnd = words.length * wordStep + 250;
+    const title = h("h2", { class: "qtext" + (p.texto.length > 95 ? " long" : "") });
+    words.forEach((w, i) => { title.append(h("span", { class: "w" + (animate ? " in" : ""), style: animate ? `animation-delay:${Math.round(i * wordStep)}ms` : null }, w)); if (i < words.length - 1) title.append(" "); });
     return h("section", { class: "body" },
       h("div", { class: "qbar" },
         h("span", { class: "qnum" + (practice ? " practice" : "") }, qLabel(st.q) + (practice ? " · no suma puntos" : "")),
         h("span", { class: "progress", "aria-hidden": "true" }, h("i", { style: `width:${doneN * 100 / REAL}%` })),
         h("span", { class: "timer" + (revealed ? " done" : ""), id: "timer" }, revealed ? "Cerrada" : "")),
-      h("h2", { class: "qtext" + (p.texto.length > 95 ? " long" : "") }, p.texto),
+      title,
       h("div", { class: "opts" + (revealed ? " revealed" : "") },
-        p.opciones.map((o, i) => h("div", { class: "opt" + (revealed && i === st.correcta ? " correct" : ""), "data-i": i, style: `--c:var(--a${i})` },
+        p.opciones.map((o, i) => h("div", { class: "opt" + (revealed && i === st.correcta ? " correct" : "") + (animate ? " enter" : ""), "data-i": i, style: `--c:var(--a${i})` + (animate ? `;animation-delay:${Math.round(textEnd + i * 180)}ms` : "") },
           h("span", { class: "fill", id: "fill" + i, style: `width:${S.prevW[k + "-" + i] || 0}%` }),
           h("span", { class: "badge" }, shape(i), h("b", {}, LETTERS[i])),
           h("span", { class: "label" }, o),
@@ -2220,51 +2441,111 @@ async function presenter(store) {
           h("span", { class: "stat", id: "stat" + i, hidden: true }, h("b"), h("small"))))),
       h("div", { class: "foot" },
         revealed && st.dato
-          ? h("div", { class: "dato" + once("dato-" + k) }, h("b", {}, "Dato: "), st.dato)
-          : [h("span", { class: "answered", id: "answered" }), h("span", { class: "answered-bar" }, h("i", { id: "answeredBar", style: "width:0" })), h("span", { class: "hint" }, revealed ? "" : "Responde desde tu celular")]));
+          ? h("div", { class: "dato" }, h("b", {}, "Dato: "), h("span", { id: "datoTxt" }))
+          : [h("span", { class: "counter" }, h("b", { id: "cnt" }, String(S.cntShown)), h("span", { id: "cntOf" })), h("span", { class: "answered-bar" }, h("i", { id: "answeredBar", style: "width:0" })), h("span", { class: "hint" }, revealed ? "" : "Responde desde tu celular")]));
+  }
+  function tweenNum(el, from, to, ms, fmt) {
+    if (!el) return; if (RM || from === to) { el.textContent = fmt(to); return; }
+    const t0 = performance.now();
+    const step = t => { const u = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - u, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (u < 1 && el.isConnected) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
   }
   function updateQuestion() {
-    const st = S.state, p = st.pregunta || { opciones: [] }, k = `${st.partida}-${st.q}`;
-    const total = S.votes.length, showPct = st.fase === "cerrada" || S.live;
-    const a = document.getElementById("answered"); if (a) a.textContent = `${total} de ${S.players.length} respondieron`;
+    const st = S.state, p = st.pregunta || { opciones: [] }, k = `${st.partida}-${st.q}`, revealed = st.fase === "cerrada";
+    const total = S.votes.length, showPct = revealed || S.live;
+    const of = document.getElementById("cntOf"); if (of) of.textContent = `de ${S.players.length} respondieron`;
+    const cnt = document.getElementById("cnt");
+    if (cnt && total !== S.cntTarget) { const from = S.cntShown; S.cntTarget = total; S.cntShown = total; tweenNum(cnt, from, total, 450, String); bump(cnt); }
+    else if (cnt) cnt.textContent = S.cntShown;
     const ab = document.getElementById("answeredBar"); if (ab) ab.style.width = pct(total, S.players.length) + "%";
+    const firstReveal = revealed && once("rev-" + k) !== "";
     p.opciones.forEach((_, i) => {
       const n = S.votes.filter(v => v.opcion === i).length, w = showPct ? pct(n, total) : 0;
       const fill = document.getElementById("fill" + i), stat = document.getElementById("stat" + i);
       if (fill) requestAnimationFrame(() => { fill.style.width = w + "%"; });
       S.prevW[k + "-" + i] = w;
-      if (stat) { stat.hidden = !showPct; stat.firstChild.textContent = pct(n, total) + "%"; stat.lastChild.textContent = n === 1 ? "1 voto" : `${n} votos`; }
+      if (stat) {
+        stat.hidden = !showPct; stat.lastChild.textContent = n === 1 ? "1 voto" : `${n} votos`;
+        if (firstReveal) tweenNum(stat.firstChild, 0, pct(n, total), 900, v => v + "%"); else stat.firstChild.textContent = pct(n, total) + "%";
+      }
     });
+    const dt = document.getElementById("datoTxt");
+    if (dt && st.dato) {
+      if (firstReveal && !RM) typewriter(dt, st.dato, 900);
+      else if (!dt.dataset.typing) dt.textContent = st.dato;
+    }
+  }
+  function typewriter(el, text, delay) {
+    el.dataset.typing = "1"; el.textContent = "";
+    const caret = h("span", { class: "caret" }); el.append(caret);
+    let i = 0;
+    setTimeout(function typeNext() {
+      if (!el.isConnected) return;
+      i++; el.textContent = text.slice(0, i); el.append(caret);
+      if (i < text.length) setTimeout(typeNext, 24); else setTimeout(() => { caret.remove(); delete el.dataset.typing; }, 1200);
+    }, delay);
   }
 
-  /* ---------- ranking by generation / final podium ---------- */
+  /* ---------- ranking by generation (rows slide to their new place) / final podium ---------- */
   function rankingView(final) {
     const rows = genStandings(S.players), top = Math.max(1, ...rows.map(r => r.avg)), k = `${S.state.partida}-${S.state.q}-${final}`;
-    const row = (r, pos) => h("div", { class: "grow-row" + (r.n ? "" : " empty") + once(`gr-${k}-${r.i}`), style: `--c:var(--g${r.i});animation-delay:${pos * 80}ms` },
+    const row = (r, pos) => h("div", { class: "grow-row" + (r.n ? "" : " empty"), "data-g": r.i, style: `--c:var(--g${r.i})` },
       h("span", { class: "pos" }, r.n ? pos + 1 : "–"),
       h("span", { class: "who" }, h("b", {}, r.nombre), h("span", {}, `${r.edades} · ${personas(r.n)}`)),
-      h("span", { class: "bar" }, h("i", { style: `width:${r.n ? r.avg * 100 / top : 0}%` })),
-      h("span", { class: "avg" }, r.n ? r.avg : "—", h("small", {}, "pts promedio")));
+      h("span", { class: "bar" }, h("i", { "data-w": r.n ? r.avg * 100 / top : 0, style: `width:${r.n ? r.avg * 100 / top : 0}%` })),
+      h("span", { class: "avg" }, h("span", { class: "num", "data-v": r.n ? r.avg : "" }, r.n ? r.avg : "—"), h("small", {}, "pts promedio")));
     if (!final) return h("section", { class: "board" },
       h("div", {}, h("div", { class: "eyebrow" }, BANK[S.state.q] && BANK[S.state.q].practica ? "Después de la práctica" : `Después de la pregunta ${realNum(S.state.q)} de ${REAL}`), h("h1", {}, "Ranking por generación")),
-      h("div", { class: "grows" }, rows.map(row)));
-    const step = (r, n) => h("div", { class: "step p" + n, style: r ? `--c:var(--g${r.i})` : "--c:rgba(255,255,255,.12)" },
-      h("div", { class: "who" }, r ? r.nombre : "—"),
-      h("div", { class: "sp" }, r ? `${r.avg} pts promedio · ${personas(r.n)}` : ""),
-      h("div", { class: "block" + (r && r.i === 3 ? " dark" : "") + once(`pod-${k}-${n}`) }, n));
+      h("div", { class: "grows", id: "grows", "data-k": k }, rows.map(row)));
     const ranked = rows.filter(r => r.n);
+    const anim = !RM && once("final-" + k) !== "";
+    const delays = { 3: 600, 2: 1900, 1: 3400 };
+    const step = (r, n) => h("div", { class: "step p" + n, style: r ? `--c:var(--g${r.i})` : "--c:rgba(255,255,255,.12)" },
+      n === 1 && anim ? h("span", { class: "spot", style: `animation-delay:${delays[1] + 300}ms` }) : null,
+      h("div", { class: "who", style: anim ? `animation-delay:${delays[n] + 500}ms` : "animation:none;opacity:1" }, r ? r.nombre : "—"),
+      h("div", { class: "sp", style: anim ? `animation-delay:${delays[n] + 650}ms` : "animation:none;opacity:1" }, r ? `${r.avg} pts promedio · ${personas(r.n)}` : ""),
+      h("div", { class: "block go" + (r && r.i === 3 ? " dark" : ""), style: anim ? `animation-delay:${delays[n]}ms` : "animation:none" }, n));
+    if (anim) setTimeout(() => {
+      const t = document.getElementById("finalTitle");
+      if (t) { t.textContent = "¡Ganó la Generación " + (ranked[0] ? ranked[0].nombre : "—") + "!"; t.classList.add("swap"); }
+      confetti("podium");
+    }, delays[1] + 450);
     return h("section", { class: "board" },
-      h("div", {}, h("div", { class: "eyebrow" }, `Resultados finales · ${personas(S.players.length)}`), h("h1", {}, "¡Ganó la Generación " + (ranked[0] ? ranked[0].nombre : "—") + "!")),
+      h("div", {}, h("div", { class: "eyebrow" }, `Resultados finales · ${personas(S.players.length)}`),
+        h("h1", { class: "final-title", id: "finalTitle" }, anim ? "Y la generación ganadora es…" : "¡Ganó la Generación " + (ranked[0] ? ranked[0].nombre : "—") + "!")),
       h("div", { class: "podium" }, step(ranked[1], 2), step(ranked[0], 1), step(ranked[2], 3)),
-      h("div", { class: "rest" }, rows.slice(3).map((r, j) => row(r, j + 3))));
+      h("div", { class: "rest" + (anim ? " late" : ""), style: anim ? `animation-delay:${delays[1] + 1200}ms` : null }, rows.slice(3).map((r, j) => row(r, j + 3))));
+  }
+  /* FLIP: rows start where they were last time, then slide to their new place while bars grow */
+  function animateRanking() {
+    const box = document.getElementById("grows"); if (!box) return;
+    const rows = [...box.children], k = box.dataset.k, first = once("rank-" + k) !== "";
+    const order = rows.map(r => +r.dataset.g);
+    if (first && !RM && rows.length > 1) {
+      const stepH = rows[1].offsetTop - rows[0].offsetTop;
+      rows.forEach((r, newIdx) => {
+        const g = +r.dataset.g, oldIdx = S.rankPrev.order.indexOf(g), bar = r.querySelector(".bar i"), num = r.querySelector(".num");
+        const oldAvg = S.rankPrev.avg[g] || 0, top = Math.max(1, ...Object.values(S.rankPrev.avg), ...rows.map(x => +(x.querySelector(".num").dataset.v || 0)));
+        r.style.transform = `translateY(${(oldIdx - newIdx) * stepH}px)`;
+        bar.style.transition = "none"; bar.style.width = (oldAvg * 100 / top) + "%";
+        if (num.dataset.v !== "") num.textContent = oldAvg;
+        setTimeout(() => {
+          r.classList.add("flip"); r.style.transform = "";
+          bar.style.transition = ""; bar.style.width = bar.dataset.w + "%";
+          if (num.dataset.v !== "") tweenNum(num, oldAvg, +num.dataset.v, 1000, String);
+        }, 650 + newIdx * 40);
+      });
+    }
+    S.rankPrev = { order, avg: Object.fromEntries(rows.map(r => [+r.dataset.g, +(r.querySelector(".num").dataset.v || 0)])) };
   }
 
   function updateTimer() {
-    const el = document.getElementById("timer"), st = S.state; if (!el || !st || st.fase !== "votando") return;
+    const st = S.state, el = document.getElementById("timer"), big = document.getElementById("bignum");
+    if (!st || st.fase !== "votando") { if (big && S.lastBig !== null) { S.lastBig = null; big.classList.remove("pop"); big.style.opacity = 0; } return; }
     const left = remaining(st); if (left === null) return;
-    el.textContent = String(Math.ceil(left));
-    el.style.setProperty("--p", Math.max(0, left / st.limite));
-    el.classList.toggle("low", left <= 5);
+    if (el) { el.textContent = String(Math.ceil(left)); el.style.setProperty("--p", Math.max(0, left / st.limite)); el.classList.toggle("low", left <= 5); }
+    const n = Math.ceil(left);
+    if (big && n <= 5 && n >= 1 && n !== S.lastBig) { S.lastBig = n; big.textContent = n; big.style.opacity = ""; big.classList.remove("pop"); void big.offsetWidth; big.classList.add("pop"); }
   }
   function fitOptions() {
     document.querySelectorAll(".opt .label").forEach(el => {
@@ -2275,6 +2556,23 @@ async function presenter(store) {
   }
   addEventListener("resize", fitOptions);
 
+  /* Mara-colored wipe between screens: green, white and blue bands cover, content swaps, bands leave */
+  function wipe(swap) {
+    confetti("clear");
+    if (RM) return swap();
+    S.wiping = true;
+    const layer = h("div", { class: "wipe", "aria-hidden": "true" }, h("i"), h("i"), h("i"));
+    document.body.append(layer);
+    const bands = [...layer.children], ease = "cubic-bezier(.7,0,.3,1)";
+    const ins = bands.map((b, i) => b.animate([{ transform: "translateX(-120%) skewX(-12deg)" }, { transform: "translateX(0) skewX(-12deg)" }], { duration: 420, delay: i * 80, easing: ease, fill: "forwards" }).finished);
+    Promise.all(ins).then(() => {
+      swap(); S.wiping = false;
+      if (S.pendingRender) { S.pendingRender = false; render(); }
+      const outs = bands.map((b, i) => b.animate([{ transform: "translateX(0) skewX(-12deg)" }, { transform: "translateX(120%) skewX(-12deg)" }], { duration: 420, delay: (2 - i) * 80, easing: ease, fill: "forwards" }).finished);
+      Promise.all(outs).then(() => layer.remove());
+    });
+  }
+
   /* full redraw only when the view changes; live numbers update in place (no flicker) */
   function update() {
     const st = S.state; if (!st) return;
@@ -2282,22 +2580,98 @@ async function presenter(store) {
     const key = ["ranking", "final"].includes(f)
       ? `${st.partida}|${f}|${st.q}|${S.players.map(p => p.id + ":" + p.puntos + ":" + p.gen).join(",")}|${S.confirmReset}`
       : `${st.partida}|${f}|${st.q}|${S.confirmReset}`;
-    if (key !== S.viewKey) { S.viewKey = key; render(); } else live();
+    if (key === S.viewKey) return live();
+    S.viewKey = key;
+    const screen = `${st.partida}|${f}|${st.q}`, prevScreen = S.screen; S.screen = screen;
+    const [, pf] = prevScreen.split("|");
+    const quiet = !prevScreen || prevScreen === screen || (pf === "preparando" && f === "votando") || (pf === "votando" && f === "cerrada");
+    if (S.wiping) { S.pendingRender = true; return; }
+    if (quiet) render(); else wipe(render);
   }
   function live() {
+    if (S.wiping) return;
     const c = document.getElementById("conn"); if (c) c.textContent = S.players.length;
     const f = S.state.fase;
     if (f === "lobby") updateLobby(); else if (f === "votando" || f === "cerrada") updateQuestion();
   }
   function render() {
     const st = S.state; if (!st) return;
-    const f = st.fase, dockWasOpen = document.getElementById("dock") && !document.getElementById("dock").classList.contains("hide");
-    const body = f === "lobby" ? lobbyView() : (f === "votando" || f === "cerrada") ? questionView() : rankingView(f === "final");
+    const f = st.fase, d0 = document.getElementById("dock"), dockWasOpen = d0 && !d0.classList.contains("hide");
+    const body = f === "lobby" ? lobbyView() : f === "preparando" ? prepView() : (f === "votando" || f === "cerrada") ? questionView() : rankingView(f === "final");
     mount(h("div", { class: "stage" + (dockWasOpen ? "" : " idle") }, top(), h("main", { class: "body" }, body)), dock());
     if (dockWasOpen) wake();
     const big = document.getElementById("bigqr"); if (big) drawQR(big, PLAYER_URL, 12);
-    live(); updateTimer(); fitOptions();
+    S.lastPrep = null;
+    if (f === "preparando" && S.prepQ !== `${st.partida}-${st.q}`) { S.prepQ = `${st.partida}-${st.q}`; S.prepStart = Date.now(); }
+    live(); tick(); fitOptions();
+    if (f === "ranking") animateRanking();
   }
+}
+
+/* ---------- animated background: slow waves in the colors of the Mara flag ---------- */
+function startWaves(cv, still) {
+  const ctx = cv.getContext("2d");
+  const bands = [
+    { c: "30,158,79", a: .30, y: .70, amp: .055, len: 1.05, sp: .00018, ph: 0 },
+    { c: "255,255,255", a: .13, y: .78, amp: .045, len: 1.35, sp: -.00013, ph: 2 },
+    { c: "42,100,180", a: .38, y: .86, amp: .05, len: .85, sp: .00022, ph: 4 },
+    { c: "244,194,13", a: .10, y: .10, amp: .04, len: 1.6, sp: -.0001, ph: 1, top: true },
+  ];
+  let W = 0, H = 0, last = 0;
+  const size = () => { W = cv.width = Math.round(innerWidth / 2); H = cv.height = Math.round(innerHeight / 2); };
+  size(); addEventListener("resize", size);
+  function frame(t) {
+    if (t - last > 33 || still) {
+      last = t; ctx.clearRect(0, 0, W, H);
+      for (const b of bands) {
+        ctx.beginPath();
+        const base = H * b.y;
+        for (let x = 0; x <= W; x += 6) {
+          const y = base + Math.sin(x / (W * b.len) * Math.PI * 2 + t * b.sp * 6 + b.ph) * H * b.amp + Math.sin(x / (W * b.len * .37) + t * b.sp * 9) * H * b.amp * .35;
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        if (b.top) { ctx.lineTo(W, 0); ctx.lineTo(0, 0); } else { ctx.lineTo(W, H); ctx.lineTo(0, H); }
+        ctx.closePath(); ctx.fillStyle = `rgba(${b.c},${b.a})`; ctx.fill();
+      }
+    }
+    if (!still) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- confetti in the Alcaldía colors ---------- */
+function makeConfetti(cv) {
+  const ctx = cv.getContext("2d"), colors = ["#1E9E4F", "#FFFFFF", "#2A64B4", "#F4C20D", "#D7263D"];
+  let parts = [], running = false;
+  const size = () => { cv.width = innerWidth; cv.height = innerHeight; };
+  size(); addEventListener("resize", size);
+  function loop() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts = parts.filter(p => p.y < cv.height + 40 && p.life > 0);
+    for (const p of parts) {
+      p.vy += .18; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(1, Math.cos(p.r * 2.2));
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    }
+    if (parts.length) requestAnimationFrame(loop); else { running = false; ctx.clearRect(0, 0, cv.width, cv.height); }
+  }
+  const fire = kind => {
+    if (kind === "clear") { parts = []; ctx.clearRect(0, 0, cv.width, cv.height); return; }
+    const W = cv.width, H = cv.height, n = kind === "podium" ? 320 : 140;
+    for (let i = 0; i < n; i++) {
+      const fromLeft = i % 2 === 0, podium = kind === "podium";
+      parts.push({
+        x: podium ? W / 2 + (Math.random() - .5) * W * .25 : (fromLeft ? -10 : W + 10),
+        y: podium ? H * .55 : H * (.55 + Math.random() * .25),
+        vx: podium ? (Math.random() - .5) * 16 : (fromLeft ? 1 : -1) * (6 + Math.random() * 9),
+        vy: podium ? -(10 + Math.random() * 12) : -(8 + Math.random() * 10),
+        w: 8 + Math.random() * 8, h: 12 + Math.random() * 10, r: Math.random() * 6, vr: (Math.random() - .5) * .3,
+        c: colors[i % colors.length], life: 260,
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(loop); }
+  };
+  return fire;
 }
 
 function hostLogin(store) {
@@ -2323,7 +2697,7 @@ async function participant(store) {
   let uid;
   try { uid = await store.anon(); }
   catch (e) { return mount(h("div", { class: "center" }, h("div", { class: "card" }, h("h2", {}, "No se pudo conectar"), h("p", { class: "muted" }, "Revisa tu conexión a internet y vuelve a abrir el enlace."), h("p", { class: "note" }, e.code || e.message)))); }
-  const S = { uid, me: undefined, state: null, players: [], myVotes: {}, sending: false, joining: false, err: "", viewKey: "", gen: null, name: "", lastQ: null, lastFase: null };
+  const S = { uid, me: undefined, state: null, players: [], myVotes: {}, sending: false, joining: false, err: "", viewKey: "", gen: null, name: "", prepKey: null, prepStart: 0, lastPrep: null, openAt: {} };
   const vk = (st, q) => `trivia_v2_${CFG.sala}_${st.partida}_${uid}_${q}`;
   const remember = (st, q, o) => { S.myVotes[vk(st, q)] = o; try { localStorage.setItem(vk(st, q), o); } catch {} };
   const forget = (st, q) => { delete S.myVotes[vk(st, q)]; try { localStorage.removeItem(vk(st, q)); } catch {} };
@@ -2333,6 +2707,8 @@ async function participant(store) {
   store.watchPlayers(p => { S.players = p; update(); });
   store.watchState(async st => {
     const prev = S.state; S.state = st;
+    if (st && st.fase === "votando" && !S.openAt[`${st.partida}-${st.q}`]) S.openAt[`${st.partida}-${st.q}`] = Date.now();
+    if (st && st.fase === "preparando" && S.prepKey !== `${st.partida}-${st.q}`) { S.prepKey = `${st.partida}-${st.q}`; S.prepStart = Date.now() + 600; S.lastPrep = null; }
     if (st && st.q >= 0 && recall(st, st.q) === undefined) { const v = await store.myVote(uid, st.q); if (v !== null && v !== undefined) remember(st, st.q, v); }
     if (st && st.fase !== "votando") S.err = "";
     if (st && S.me && prev && (prev.q !== st.q || prev.fase !== st.fase)) {
@@ -2342,8 +2718,13 @@ async function participant(store) {
     update();
   });
   setInterval(() => {
+    const pc = document.getElementById("pcount");
+    if (pc && S.state && S.state.fase === "preparando") { const n = Math.min(3, Math.max(1, 3 - Math.floor((Date.now() - S.prepStart) / 1000))); if (n !== S.lastPrep) { S.lastPrep = n; pc.textContent = n; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop"); } }
+  }, 100);
+  setInterval(() => {
     const el = document.getElementById("ptimer"), st = S.state;
-    if (el && st && st.fase === "votando" && st.limite && st.abiertaEn) { const s = Math.max(0, Math.ceil(st.limite - (Date.now() - st.abiertaEn) / 1000)); el.textContent = s + " s"; el.classList.toggle("low", s <= 5); }
+    const t0 = st && S.openAt[`${st.partida}-${st.q}`];
+    if (el && st && st.fase === "votando" && st.limite && t0) { const s = Math.max(0, Math.ceil(st.limite - (Date.now() - t0) / 1000)); el.textContent = s + " s"; el.classList.toggle("low", s <= 5); }
   }, 300);
 
   async function vote(i) {
@@ -2380,6 +2761,7 @@ async function participant(store) {
     const st = S.state, me = S.me, g = GENS[me.gen] || { nombre: "" };
     if (!st || st.fase === "lobby") return h("div", { class: "pcenter" }, h("div", { class: "eyebrow" }, "Ya estás dentro"), h("h1", {}, `¡Hola, ${me.nombre}!`), h("p", { class: "muted" }, `Generación ${g.nombre}. Mira la pantalla: la trivia empieza en un momento.`), h("div", { class: "waitdots" }, h("i"), h("i"), h("i")));
     const p = st.pregunta || { opciones: [] }, mine = recall(st, st.q), k = `${st.partida}-${st.q}`, practice = !!(BANK[st.q] && BANK[st.q].practica);
+    if (st.fase === "preparando") { S.lastPrep = null; return h("div", { class: "pcenter" }, h("div", { class: "eyebrow" }, practice ? "Pregunta de práctica" : `Pregunta ${realNum(st.q)} de ${REAL}`), h("div", { class: "pgiant", id: "pcount" }), h("h2", {}, "¡Prepárate!"), h("p", { class: "muted" }, "Mira la pantalla: la pregunta sale ahí.")); }
     const meta = h("div", { class: "pmeta" }, h("span", { class: practice ? "practice" : "" }, practice ? "Práctica" : `Pregunta ${realNum(st.q)} de ${REAL}`), st.fase === "votando" ? h("span", { class: "ptimer", id: "ptimer" }, "") : null);
     if (st.fase === "votando") {
       return [meta, h("p", { class: "look" }, mine === undefined ? "Lee la pregunta en la pantalla y toca tu respuesta" : `Respuesta enviada: ${LETTERS[mine]}. Espera el resultado.`),
