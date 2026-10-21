@@ -8,9 +8,14 @@
 
   EN LA LAPTOP DEL PROYECTOR
    · Los botones están ocultos: mueve el mouse para verlos (desaparecen solos).
-   · Espacio o flecha derecha: comenzar / siguiente pregunta (con cuenta 3, 2, 1).
-   · Cada pregunta se cierra sola al acabar el tiempo y muestra los porcentajes.
-   · R: ranking por generación · F: pantalla completa.
+   · Espacio: comenzar → (3, 2, 1) → la gente responde.
+   · Espacio mientras responden: cierra la pregunta para todos y muestra los porcentajes
+     (si no lo presionas, se cierra sola al acabar el tiempo).
+   · Espacio otra vez: siguiente pregunta. R: ranking por generación · F: pantalla completa.
+   · Cada partida usa 10 preguntas al azar (más la de práctica). "Reiniciar" sortea otras 10
+     sin repetir las anteriores mientras queden preguntas nuevas.
+   · Salas separadas: agrega ?sala=nombre al enlace, por ejemplo
+       tu-sitio/?pantalla&sala=grupo2   (el QR ya lleva a esa misma sala)
 
   PASOS EN FIREBASE (una vez)
    1. Authentication → Sign-in method: activa "Anónimo" y "Correo/contraseña".
@@ -106,8 +111,13 @@ window.TRIVIA_CONFIG = {
   // Nombre de la sala. Cámbialo para hacer otra trivia aparte, con sus propios votos.
   sala: "formacion-mara",
 
-  // Segundos para responder cada pregunta. La pregunta se cierra sola al llegar a cero.
+  // Segundos para responder cada pregunta. La pregunta se cierra sola al llegar a cero
+  // (o antes, si el presentador presiona Espacio).
   tiempo: 30,
+
+  // Cuántas preguntas al azar tiene cada partida. Cada vez que presionas "Reiniciar" se sortean otras,
+  // sin repetir las de la partida anterior mientras queden preguntas nuevas.
+  preguntasPorPartida: 10,
 
   // Mezclar el orden de las opciones para que la correcta no sea siempre la misma letra.
   mezclarOpciones: true,
@@ -146,17 +156,6 @@ window.PREGUNTAS = [
     ],
     correcta: 0,
     dato: "Así se juega: lees la pregunta en la pantalla y tocas tu letra en el celular."
-  },
-  {
-    texto: "El concepto de «Bloque Histórico» que fundamenta el plan proviene principalmente de…",
-    opciones: [
-      "Antonio Gramsci",
-      "Adam Smith",
-      "Max Weber",
-      "John Locke"
-    ],
-    correcta: 0,
-    dato: "Gramsci, desde la tradición marxista, lo definió como la unión entre estructura y superestructura."
   },
   {
     texto: "Según el plan, el Bloque Histórico es la alianza orgánica entre…",
@@ -2069,19 +2068,37 @@ body:not(:has(.stage)) { background-image:
 <div id="app"><div class="center"><div class="waitdots" aria-label="Cargando"><i></i><i></i><i></i></div></div></div>
 
 <script type="module">
-const CFG = Object.assign({ sala: "formacion-mara", tiempo: 30, mezclarOpciones: true, titulo: "Trivia", evento: "", logo: "" }, window.TRIVIA_CONFIG || {});
+const CFG = Object.assign({ sala: "formacion-mara", tiempo: 30, preguntasPorPartida: 10, mezclarOpciones: true, titulo: "Trivia", evento: "", logo: "" }, window.TRIVIA_CONFIG || {});
+/* optional ?sala=nombre in the link: separate room with its own players and answers */
+const URL_SALA = (new URLSearchParams(location.search).get("sala") || "").trim();
+if (/^[\w-]{1,40}$/.test(URL_SALA)) CFG.sala = URL_SALA;
 const GENS = window.GENERACIONES || [];
 const BANK = (window.PREGUNTAS || []).filter(p => p && p.texto && Array.isArray(p.opciones) && p.opciones.length >= 2 && p.opciones.length <= 4);
 const REAL = BANK.filter(p => !p.practica).length;
 const LETTERS = ["A", "B", "C", "D"];
 const IS_HOST = new URLSearchParams(location.search).has("pantalla") || location.hash === "#pantalla";
 const DEMO = !CFG.firebase || !CFG.firebase.apiKey || CFG.firebase.apiKey === "PEGA_AQUI";
-const PLAYER_URL = location.origin + location.pathname;
+const PLAYER_URL = location.origin + location.pathname + (/^[\w-]{1,40}$/.test(URL_SALA) ? "?sala=" + encodeURIComponent(URL_SALA) : "");
 const app = document.getElementById("app");
 
-/* number shown for a question: practice ones say "Práctica"; the rest count 1..REAL */
-const realNum = qi => BANK.slice(0, qi + 1).filter(p => !p.practica).length;
-const qLabel = qi => BANK[qi] && BANK[qi].practica ? "Pregunta de práctica" : `Pregunta ${realNum(qi)} de ${REAL}`;
+/* each game uses its own random order (state.orden); numbers count only real questions */
+const orderOf = st => (st && Array.isArray(st.orden) && st.orden.length) ? st.orden : BANK.map((_, i) => i);
+const posOf = st => (st && typeof st.pos === "number") ? st.pos : Math.max(0, orderOf(st).indexOf(st ? st.q : 0));
+const totalOf = st => orderOf(st).filter(i => BANK[i] && !BANK[i].practica).length;
+const numOf = st => orderOf(st).slice(0, posOf(st) + 1).filter(i => BANK[i] && !BANK[i].practica).length;
+const isPractice = st => !!(st && BANK[st.q] && BANK[st.q].practica);
+const labelOf = st => isPractice(st) ? "Pregunta de práctica" : `Pregunta ${numOf(st)} de ${totalOf(st)}`;
+const PER_GAME = Math.max(1, Math.min(CFG.preguntasPorPartida || 10, REAL));
+function drawOrder(prev) {
+  const practice = BANK.map((_, i) => i).filter(i => BANK[i].practica);
+  const pool = BANK.map((_, i) => i).filter(i => !BANK[i].practica);
+  let used = new Set((prev && prev.usadas) || []);
+  let fresh = pool.filter(i => !used.has(i));
+  if (fresh.length < PER_GAME) { used = new Set(); fresh = pool.slice(); }
+  for (let i = fresh.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
+  const pick = fresh.slice(0, PER_GAME);
+  return { orden: [...practice, ...pick], usadas: [...used, ...pick] };
+}
 const aciertosTxt = n => n === 1 ? "1 acierto" : `${n} aciertos`;
 const personas = n => n === 1 ? "1 participante" : `${n} participantes`;
 
@@ -2156,7 +2173,7 @@ async function firebaseStore() {
     import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
   ]);
   const fb = A.initializeApp(CFG.firebase, IS_HOST ? "presentador" : "participante");
-  const auth = U.getAuth(fb), db = F.getFirestore(fb);
+  const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
   const sala = F.doc(db, "trivia", CFG.sala), votos = F.collection(sala, "votos"), jug = F.collection(sala, "jugadores");
   const ms = t => (t && t.toMillis) ? t.toMillis() : (typeof t === "number" ? t : null);
   const ready = new Promise(r => { const off = U.onAuthStateChanged(auth, () => { off(); r(); }); });
@@ -2171,6 +2188,7 @@ async function firebaseStore() {
     isHostUser() { const u = auth.currentUser; return !!(u && !u.isAnonymous); },
     watchState(cb) { return F.onSnapshot(sala, s => { if (!s.exists()) return cb(null); const d = s.data({ serverTimestamps: "estimate" }); cb({ ...d, abiertaEn: ms(d.abiertaEn) }); }, onErr); },
     async setState(patch, openNow) { const p = { ...patch }; if (openNow) p.abiertaEn = F.serverTimestamp(); await F.setDoc(sala, p, { merge: true }); },
+    async fetchState() { const s = await F.getDocFromServer(sala); if (!s.exists()) return null; const d = s.data({ serverTimestamps: "estimate" }); return { ...d, abiertaEn: ms(d.abiertaEn) }; },
     async join(uid, nombre, gen) { await F.setDoc(F.doc(jug, uid), { nombre, gen, puntos: 0, aciertos: 0, creado: F.serverTimestamp() }); },
     watchPlayer(uid, cb) { return F.onSnapshot(F.doc(jug, uid), s => cb(s.exists() ? s.data() : null), onErr); },
     watchPlayers(cb) { return F.onSnapshot(jug, s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), onErr); },
@@ -2185,16 +2203,16 @@ async function firebaseStore() {
         await b.commit();
       }
     },
-    async reset() {
+    async reset(next) {
       for (const col of [votos, jug]) {
         const s = await F.getDocs(col);
         for (let i = 0; i < s.docs.length; i += 400) { const b = F.writeBatch(db); s.docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); }
       }
-      await F.setDoc(sala, freshState());
+      await F.setDoc(sala, next);
     },
   };
 }
-const freshState = () => ({ fase: "lobby", q: -1, pregunta: null, correcta: null, dato: "", calificadas: [], abiertaEn: null, limite: CFG.tiempo, partida: String(Date.now()) });
+const freshState = prev => ({ fase: "lobby", q: -1, pos: -1, ...drawOrder(prev), pregunta: null, correcta: null, dato: "", calificadas: [], abiertaEn: null, limite: CFG.tiempo, partida: String(Date.now()) });
 
 function demoStore() {
   const KEY = "trivia_demo2_" + CFG.sala;
@@ -2230,7 +2248,8 @@ function demoStore() {
     watchVotes(q, cb) { return sub(() => cb(votesOf(q))); },
     async getVotes(q) { mem = load(); return votesOf(q); },
     async award(list) { for (const a of list) if (mem.players[a.uid]) { mem.players[a.uid].puntos += a.pts; mem.players[a.uid].aciertos += 1; } save(); },
-    async reset() { mem = blank(); mem.state = freshState(); save(); },
+    async reset(next) { mem = blank(); mem.state = next; save(); },
+    async fetchState() { mem = load(); return mem.state; },
   };
 }
 
@@ -2260,17 +2279,22 @@ async function presenter(store) {
   startWaves(waves, RM);
   const confetti = makeConfetti(confettiCv);
 
-  store.watchState(st => {
+  const onState = st => {
     const prev = S.state; S.state = st;
-    if (!st) { store.reset(); return; }
+    if (!st) { store.reset(freshState(null)); return; }
     const vq = `${st.partida}-${st.q}`;
     if (vq !== S.votesQ) { if (S.unVotes) S.unVotes(); S.votes = []; S.votesQ = vq; S.cntShown = 0; S.cntTarget = 0; if (st.q >= 0) S.unVotes = store.watchVotes(st.q, v => { S.votes = v; update(); }); }
     if (st.fase !== "votando") S.opening = false;
     if (st.fase === "votando" && !S.openAt[vq]) S.openAt[vq] = Date.now();
     if (prev && prev.fase === "votando" && st.fase === "cerrada" && prev.q === st.q && !RM) setTimeout(() => confetti("reveal"), 250);
     update();
-  });
+  };
+  store.watchState(onState);
   store.watchPlayers(p => { S.players = p; update(); });
+  /* the laptop may sleep or lose signal: on return, read the latest state straight from the server */
+  const resync = async () => { try { const st = await store.fetchState(); if (st) onState(st); } catch {} };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) resync(); });
+  addEventListener("online", resync);
 
   setInterval(tick, 100);
   function tick() {
@@ -2287,13 +2311,14 @@ async function presenter(store) {
   /* the laptop's own clock: when it first saw this question open (server time can differ from the laptop's) */
   const remaining = st => { const t0 = S.openAt[`${st.partida}-${st.q}`]; return (!st.limite || !t0) ? null : Math.max(0, st.limite - (S.now - t0) / 1000); };
 
-  async function prepare(qi) {
+  async function prepare(pos) {
     S.closing = false;
-    await guard(() => store.setState({ fase: "preparando", q: qi, total: REAL, pregunta: null, correcta: null, dato: "", limite: S.limite }));
+    const order = orderOf(S.state);
+    await guard(() => store.setState({ fase: "preparando", pos, q: order[pos], total: totalOf(S.state), pregunta: null, correcta: null, dato: "", limite: S.limite }));
   }
   async function openVoting(qi) {
     const p = shuffled(qi);
-    await guard(() => store.setState({ fase: "votando", q: qi, total: REAL, pregunta: { texto: p.texto, opciones: p.opciones, practica: p.practica }, correcta: null, dato: "", limite: S.limite }, true));
+    await guard(() => store.setState({ fase: "votando", q: qi, total: totalOf(S.state), pregunta: { texto: p.texto, opciones: p.opciones, practica: p.practica }, correcta: null, dato: "", limite: S.limite }, true));
   }
   async function close() {
     const st = S.state; if (!st || st.fase !== "votando" || S.closing) return;
@@ -2322,9 +2347,10 @@ async function presenter(store) {
   async function next() {
     const st = S.state; if (!st) return;
     if (st.fase === "lobby") return prepare(0);
-    if (["votando", "preparando", "final"].includes(st.fase)) return;   // the clock closes each question
-    if (st.q + 1 >= BANK.length) { await S.award; return store.setState({ fase: "final" }); }
-    return prepare(st.q + 1);
+    if (st.fase === "votando") return close();                          // Espacio cierra el debate para todos y revela
+    if (["preparando", "final"].includes(st.fase)) return;
+    if (posOf(st) + 1 >= orderOf(st).length) { await S.award; return guard(() => store.setState({ fase: "final" })); }
+    return prepare(posOf(st) + 1);
   }
   async function toggleRanking() {
     const f = S.state && S.state.fase; if (f !== "cerrada" && f !== "ranking") return;
@@ -2354,25 +2380,24 @@ async function presenter(store) {
   }
 
   function dock() {
-    const st = S.state || {}, f = st.fase, last = st.q + 1 >= BANK.length;
-    const label = { lobby: "Comenzar", cerrada: last ? "Resultados finales" : "Siguiente pregunta", ranking: last ? "Resultados finales" : "Siguiente pregunta" }[f];
+    const st = S.state || {}, f = st.fase, last = posOf(st) + 1 >= orderOf(st).length;
+    const label = { lobby: "Comenzar", votando: "Cerrar y revelar", cerrada: last ? "Resultados finales" : "Siguiente pregunta", ranking: last ? "Resultados finales" : "Siguiente pregunta" }[f];
     const time = h("select", { id: "limite", "aria-label": "Segundos por pregunta", onchange: e => { S.limite = +e.target.value; try { localStorage.setItem("trivia_limite2", S.limite); } catch {} } },
       [15, 20, 30, 45, 60].map(s => { const o = h("option", { value: s }, `${s} s`); if (s === S.limite) o.selected = true; return o; }));
     const live = h("input", { type: "checkbox", id: "live", onchange: e => { S.live = e.target.checked; try { localStorage.setItem("trivia_live", S.live ? "1" : "0"); } catch {} update(); } });
     live.checked = S.live;
     const reset = S.confirmReset
-      ? h("span", { class: "confirm" }, "¿Borrar respuestas y participantes?", h("button", { class: "btn btn-primary", onclick: async () => { S.confirmReset = false; S.rankPrev = { order: GENS.map((_, i) => i), avg: {} }; await store.reset(); } }, "Sí, reiniciar"), h("button", { class: "btn", onclick: () => { S.confirmReset = false; render(); } }, "Cancelar"))
+      ? h("span", { class: "confirm" }, "¿Borrar respuestas y participantes?", h("button", { class: "btn btn-primary", onclick: async () => { S.confirmReset = false; S.rankPrev = { order: GENS.map((_, i) => i), avg: {} }; await guard(() => store.reset(freshState(S.state))); } }, "Sí, reiniciar"), h("button", { class: "btn", onclick: () => { S.confirmReset = false; render(); } }, "Cancelar"))
       : h("button", { class: "btn", onclick: () => { S.confirmReset = true; render(); } }, "Reiniciar");
     return h("div", { class: "dock hide", id: "dock" },
       label ? h("button", { class: "btn btn-primary", id: "primary", onclick: next }, label) : null,
-      f === "votando" ? h("button", { class: "btn", onclick: close }, "Cerrar ahora") : null,
       ["cerrada", "ranking"].includes(f) ? h("button", { class: "btn btn-yellow", onclick: toggleRanking }, f === "ranking" ? "Volver a la pregunta" : "Ranking por generación") : null,
       h("label", {}, "Tiempo", time),
       h("label", {}, live, "% en vivo"),
       h("button", { class: "btn", onclick: () => document.documentElement.requestFullscreen?.().catch(() => {}) }, "Pantalla completa"),
       reset,
       store.mode === "firebase" ? h("button", { class: "btn", onclick: async () => { await store.logout(); location.reload(); } }, "Salir") : null,
-      h("span", { class: "kbd" }, "Espacio: avanzar · R: ranking · F: pantalla completa"));
+      h("span", { class: "kbd" }, "Espacio: comenzar / cerrar y revelar / siguiente · R: ranking · F: pantalla completa"));
   }
 
   /* ---------- lobby ---------- */
@@ -2384,7 +2409,7 @@ async function presenter(store) {
         h("div", { class: "url" }, PLAYER_URL.replace(/^https?:\/\//, "").replace(/\/$/, ""))),
       h("div", { class: "gens" },
         h("div", { class: "gens-head" },
-          h("div", {}, h("div", { class: "eyebrow" }, `${REAL} preguntas · legado, historia y futuro`), h("h2", {}, "Participantes por generación")),
+          h("div", {}, h("div", { class: "eyebrow" }, `${PER_GAME} preguntas al azar` + (URL_SALA ? ` · sala ${CFG.sala}` : " · legado, historia y futuro")), h("h2", {}, "Participantes por generación")),
           h("div", { class: "total" }, h("span", { id: "ltotal" }, "0"), h("small", {}, "conectados"))),
         h("div", { class: "gcols" }, GENS.map((g, i) => h("div", { class: "gcol", style: `--c:var(--g${i})` },
           h("header", {}, h("b", {}, g.nombre), h("span", {}, g.edades), h("div", { class: "n", id: "gn" + i }, "0")),
@@ -2410,7 +2435,7 @@ async function presenter(store) {
   function prepView() {
     const st = S.state, practice = !!(BANK[st.q] && BANK[st.q].practica);
     return h("section", { class: "countdown" },
-      h("div", { class: "label" }, practice ? "Pregunta de práctica" : `Pregunta ${realNum(st.q)} de ${REAL}`),
+      h("div", { class: "label" }, labelOf(st)),
       h("div", { class: "giant", id: "prepnum" }, ""),
       h("div", { class: "ready" }, "¡Prepárate! Ten tu celular a la mano"));
   }
@@ -2419,7 +2444,7 @@ async function presenter(store) {
   function questionView() {
     const st = S.state, p = st.pregunta || { texto: "", opciones: [] }, revealed = st.fase === "cerrada", k = `${st.partida}-${st.q}`;
     const practice = !!(BANK[st.q] && BANK[st.q].practica);
-    const doneN = BANK.slice(0, st.q).filter(x => !x.practica).length + (revealed && !practice ? 1 : 0);
+    const doneN = practice ? 0 : numOf(st) - 1 + (revealed ? 1 : 0);
     const animate = !RM && !revealed && once("q-" + k) !== "";
     const words = p.texto.split(/\s+/);
     const wordStep = Math.min(70, 1400 / Math.max(1, words.length));
@@ -2428,8 +2453,8 @@ async function presenter(store) {
     words.forEach((w, i) => { title.append(h("span", { class: "w" + (animate ? " in" : ""), style: animate ? `animation-delay:${Math.round(i * wordStep)}ms` : null }, w)); if (i < words.length - 1) title.append(" "); });
     return h("section", { class: "body" },
       h("div", { class: "qbar" },
-        h("span", { class: "qnum" + (practice ? " practice" : "") }, qLabel(st.q) + (practice ? " · no suma puntos" : "")),
-        h("span", { class: "progress", "aria-hidden": "true" }, h("i", { style: `width:${doneN * 100 / REAL}%` })),
+        h("span", { class: "qnum" + (practice ? " practice" : "") }, labelOf(st) + (practice ? " · no suma puntos" : "")),
+        h("span", { class: "progress", "aria-hidden": "true" }, h("i", { style: `width:${doneN * 100 / Math.max(1, totalOf(st))}%` })),
         h("span", { class: "timer" + (revealed ? " done" : ""), id: "timer" }, revealed ? "Cerrada" : "")),
       title,
       h("div", { class: "opts" + (revealed ? " revealed" : "") },
@@ -2495,7 +2520,7 @@ async function presenter(store) {
       h("span", { class: "bar" }, h("i", { "data-w": r.n ? r.avg * 100 / top : 0, style: `width:${r.n ? r.avg * 100 / top : 0}%` })),
       h("span", { class: "avg" }, h("span", { class: "num", "data-v": r.n ? r.avg : "" }, r.n ? r.avg : "—"), h("small", {}, "pts promedio")));
     if (!final) return h("section", { class: "board" },
-      h("div", {}, h("div", { class: "eyebrow" }, BANK[S.state.q] && BANK[S.state.q].practica ? "Después de la práctica" : `Después de la pregunta ${realNum(S.state.q)} de ${REAL}`), h("h1", {}, "Ranking por generación")),
+      h("div", {}, h("div", { class: "eyebrow" }, isPractice(S.state) ? "Después de la práctica" : `Después de la pregunta ${numOf(S.state)} de ${totalOf(S.state)}`), h("h1", {}, "Ranking por generación")),
       h("div", { class: "grows", id: "grows", "data-k": k }, rows.map(row)));
     const ranked = rows.filter(r => r.n);
     const anim = !RM && once("final-" + k) !== "";
@@ -2697,7 +2722,7 @@ async function participant(store) {
   let uid;
   try { uid = await store.anon(); }
   catch (e) { return mount(h("div", { class: "center" }, h("div", { class: "card" }, h("h2", {}, "No se pudo conectar"), h("p", { class: "muted" }, "Revisa tu conexión a internet y vuelve a abrir el enlace."), h("p", { class: "note" }, e.code || e.message)))); }
-  const S = { uid, me: undefined, state: null, players: [], myVotes: {}, sending: false, joining: false, err: "", viewKey: "", gen: null, name: "", prepKey: null, prepStart: 0, lastPrep: null, openAt: {} };
+  const S = { uid, me: undefined, state: null, players: [], myVotes: {}, sending: false, joining: false, err: "", viewKey: "", gen: null, name: "", prepKey: null, prepStart: 0, lastPrep: null, openAt: {}, timeUp: {} };
   const vk = (st, q) => `trivia_v2_${CFG.sala}_${st.partida}_${uid}_${q}`;
   const remember = (st, q, o) => { S.myVotes[vk(st, q)] = o; try { localStorage.setItem(vk(st, q), o); } catch {} };
   const forget = (st, q) => { delete S.myVotes[vk(st, q)]; try { localStorage.removeItem(vk(st, q)); } catch {} };
@@ -2705,18 +2730,30 @@ async function participant(store) {
 
   store.watchPlayer(uid, p => { S.me = p; update(); });
   store.watchPlayers(p => { S.players = p; update(); });
-  store.watchState(async st => {
+  const onState = st => {
     const prev = S.state; S.state = st;
     if (st && st.fase === "votando" && !S.openAt[`${st.partida}-${st.q}`]) S.openAt[`${st.partida}-${st.q}`] = Date.now();
     if (st && st.fase === "preparando" && S.prepKey !== `${st.partida}-${st.q}`) { S.prepKey = `${st.partida}-${st.q}`; S.prepStart = Date.now() + 600; S.lastPrep = null; }
-    if (st && st.q >= 0 && recall(st, st.q) === undefined) { const v = await store.myVote(uid, st.q); if (v !== null && v !== undefined) remember(st, st.q, v); }
     if (st && st.fase !== "votando") S.err = "";
     if (st && S.me && prev && (prev.q !== st.q || prev.fase !== st.fase)) {
       if (st.fase === "votando") vibrate(180);
       else if (st.fase === "cerrada" && !(BANK[st.q] && BANK[st.q].practica)) vibrate(recall(st, st.q) === st.correcta ? [70, 60, 70] : 320);
     }
-    update();
-  });
+    update();                                  // draw the new question right away
+    if (st && st.q >= 0 && recall(st, st.q) === undefined)   // then check (in the background) if this phone already answered it
+      store.myVote(uid, st.q).then(v => { if (v !== null && v !== undefined && S.state === st) { remember(st, st.q, v); update(); } });
+  };
+  store.watchState(onState);
+  /* if the phone slept, lost signal or the live connection stalled, read the latest state from the server */
+  let resyncing = false;
+  const resync = async () => { if (resyncing) return; resyncing = true; try { const st = await store.fetchState(); if (st && (!S.state || st.partida !== S.state.partida || st.fase !== S.state.fase || st.q !== S.state.q)) onState(st); } catch {} resyncing = false; };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) resync(); });
+  addEventListener("online", resync); addEventListener("focus", resync);
+  setInterval(() => {                          // watchdog: a question that should already be over means this phone fell behind
+    const st = S.state; if (document.hidden || !st) return;
+    const t0 = S.openAt[`${st.partida}-${st.q}`];
+    if ((st.fase === "votando" && t0 && Date.now() - t0 > ((st.limite || 30) + 4) * 1000) || (st.fase === "preparando" && Date.now() - S.prepStart > 7000)) resync();
+  }, 3000);
   setInterval(() => {
     const pc = document.getElementById("pcount");
     if (pc && S.state && S.state.fase === "preparando") { const n = Math.min(3, Math.max(1, 3 - Math.floor((Date.now() - S.prepStart) / 1000))); if (n !== S.lastPrep) { S.lastPrep = n; pc.textContent = n; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop"); } }
@@ -2724,14 +2761,18 @@ async function participant(store) {
   setInterval(() => {
     const el = document.getElementById("ptimer"), st = S.state;
     const t0 = st && S.openAt[`${st.partida}-${st.q}`];
-    if (el && st && st.fase === "votando" && st.limite && t0) { const s = Math.max(0, Math.ceil(st.limite - (Date.now() - t0) / 1000)); el.textContent = s + " s"; el.classList.toggle("low", s <= 5); }
+    if (el && st && st.fase === "votando" && st.limite && t0) {
+      const s = Math.max(0, Math.ceil(st.limite - (Date.now() - t0) / 1000)); el.textContent = s + " s"; el.classList.toggle("low", s <= 5);
+      const k = `${st.partida}-${st.q}`;
+      if (s === 0 && !S.timeUp[k] && recall(st, st.q) === undefined) { S.timeUp[k] = true; update(); }   // time is up: hide the buttons
+    }
   }, 300);
 
   async function vote(i) {
     const st = S.state; if (!st || st.fase !== "votando" || S.sending || recall(st, st.q) !== undefined) return;
     S.sending = true; remember(st, st.q, i); vibrate(40); update();
     try { await store.vote(uid, st.q, i); }
-    catch { forget(st, st.q); S.err = "Tu respuesta no llegó: el tiempo ya se había acabado."; }
+    catch { forget(st, st.q); S.err = "Esa pregunta ya se cerró. Mira la pantalla."; resync(); }
     S.sending = false; update();
   }
 
@@ -2761,8 +2802,10 @@ async function participant(store) {
     const st = S.state, me = S.me, g = GENS[me.gen] || { nombre: "" };
     if (!st || st.fase === "lobby") return h("div", { class: "pcenter" }, h("div", { class: "eyebrow" }, "Ya estás dentro"), h("h1", {}, `¡Hola, ${me.nombre}!`), h("p", { class: "muted" }, `Generación ${g.nombre}. Mira la pantalla: la trivia empieza en un momento.`), h("div", { class: "waitdots" }, h("i"), h("i"), h("i")));
     const p = st.pregunta || { opciones: [] }, mine = recall(st, st.q), k = `${st.partida}-${st.q}`, practice = !!(BANK[st.q] && BANK[st.q].practica);
-    if (st.fase === "preparando") { S.lastPrep = null; return h("div", { class: "pcenter" }, h("div", { class: "eyebrow" }, practice ? "Pregunta de práctica" : `Pregunta ${realNum(st.q)} de ${REAL}`), h("div", { class: "pgiant", id: "pcount" }), h("h2", {}, "¡Prepárate!"), h("p", { class: "muted" }, "Mira la pantalla: la pregunta sale ahí.")); }
-    const meta = h("div", { class: "pmeta" }, h("span", { class: practice ? "practice" : "" }, practice ? "Práctica" : `Pregunta ${realNum(st.q)} de ${REAL}`), st.fase === "votando" ? h("span", { class: "ptimer", id: "ptimer" }, "") : null);
+    if (st.fase === "preparando") { S.lastPrep = null; return h("div", { class: "pcenter" }, h("div", { class: "eyebrow" }, labelOf(st)), h("div", { class: "pgiant", id: "pcount" }), h("h2", {}, "¡Prepárate!"), h("p", { class: "muted" }, "Mira la pantalla: la pregunta sale ahí.")); }
+    const meta = h("div", { class: "pmeta" }, h("span", { class: practice ? "practice" : "" }, practice ? "Práctica" : `Pregunta ${numOf(st)} de ${totalOf(st)}`), st.fase === "votando" ? h("span", { class: "ptimer", id: "ptimer" }, "") : null);
+    if (st.fase === "votando" && mine === undefined && S.timeUp[k])
+      return [meta, h("div", { class: "pcenter" }, h("div", { class: "result none" }, h("h2", {}, "Se acabó el tiempo"), h("p", { class: "muted" }, "Mira los resultados en la pantalla. La próxima pregunta aparece aquí sola.")))];
     if (st.fase === "votando") {
       return [meta, h("p", { class: "look" }, mine === undefined ? "Lee la pregunta en la pantalla y toca tu respuesta" : `Respuesta enviada: ${LETTERS[mine]}. Espera el resultado.`),
         h("div", { class: "tiles" + (mine !== undefined ? " sent" : "") + (p.opciones.length === 2 ? " n2" : "") },
@@ -2794,7 +2837,7 @@ async function participant(store) {
   function update() {
     if (S.me === undefined) return;
     const st = S.state || {};
-    const key = !S.me ? "join" : `${st.partida}|${st.fase}|${st.q}|${recall(st, st.q)}|${S.err}|${bannerText}`;
+    const key = !S.me ? "join" : `${st.partida}|${st.fase}|${st.q}|${recall(st, st.q)}|${S.err}|${bannerText}|${!!S.timeUp[`${st.partida}-${st.q}`]}`;
     if (key !== S.viewKey) { S.viewKey = key; render(); } else live();
   }
   function render() {
