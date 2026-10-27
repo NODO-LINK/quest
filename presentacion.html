@@ -8,7 +8,7 @@
 <!--
   PRESENTACIÓN WEB — Plan de Formación Filosófico-Político · Alcaldía Bolivariana de Mara
   · Avanzar: clic, flecha →, Av Pág (puntero/clicker) o Espacio.   · Volver: flecha ←, Re Pág.
-  · F: pantalla completa.   · Inicio / Fin: primera / última diapositiva.
+  · F: pantalla completa.   · D (o el botón ☰ Diapositivas): elegir y saltar a cualquier diapositiva.   · Inicio / Fin: primera / última diapositiva.
   · En la diapositiva del sorteo la ruleta funciona aquí mismo: Espacio o clic en GIRAR para girar;
     las flechas y el clicker siguen cambiando de diapositiva.
   · Atajos (abajo a la izquierda, siempre visibles): 1–6 videos · Ruleta · Trivia (pantalla del presentador).
@@ -86,7 +86,7 @@ body.idle #dock{opacity:0;transform:translateY(12px);pointer-events:none}
 #dock button{font:700 15px var(--body);color:#fff;background:rgba(255,255,255,.1);border:0;border-radius:999px;min-width:40px;height:40px;padding:0 12px;cursor:pointer}
 #dock button:hover{background:rgba(255,255,255,.24)}
 #dock button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-#count{font:700 15px var(--body);padding:0 8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#dock #count{background:transparent;padding:0 8px;font-variant-numeric:tabular-nums;white-space:nowrap}
 #hint{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:6;font:600 15px var(--body);padding:10px 18px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;white-space:nowrap;transition:opacity .8s ease;pointer-events:none}
 #hint.gone{opacity:0}
 @media (max-width:600px){#hint{display:none}}
@@ -120,6 +120,23 @@ body.trivia #tClose{display:block}
 #jump button[aria-current=true]{outline:2px solid #fff;outline-offset:1px}
 body.idle #jump{cursor:default}
 @media (max-width:600px){#jump button{min-width:34px;height:34px;font-size:14px;padding:0 8px}#jump{gap:4px;padding:4px}}
+
+/* slide picker: jump straight to any slide */
+#pick{position:fixed;inset:0;z-index:18;display:grid;place-items:center;background:rgba(3,6,13,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s;padding:16px}
+#pick.open{opacity:1;visibility:visible;transition:opacity .3s ease}
+#pickCard{width:min(980px,100%);max-height:100%;overflow:auto;padding:26px;border-radius:30px;background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.28);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 20px 60px rgba(0,0,0,.5)}
+#pickCard h2{margin:0 0 4px;font:700 28px var(--head)}
+#pickCard p{margin:0 0 18px;color:var(--lt2);font-size:16px}
+#pickGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+#pickGrid button{display:flex;align-items:center;gap:12px;text-align:left;font:600 16px var(--body);color:#fff;cursor:pointer;padding:10px 14px 10px 10px;border-radius:18px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
+#pickGrid button:hover,#pickGrid button:focus-visible{background:rgba(255,255,255,.2);outline:none}
+#pickGrid button[aria-current=true]{border-color:var(--gold);background:rgba(242,193,46,.18)}
+#pickGrid b{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 20px var(--head);background:rgba(255,255,255,.14)}
+#pickGrid button[aria-current=true] b{background:var(--gold);color:#1B1500}
+#jump button.sl{padding:0 14px}
 
 /* full-screen video player */
 #player{position:fixed;inset:0;z-index:20;background:rgba(2,5,12,.94);display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
@@ -215,7 +232,7 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
 <div id="bar"></div>
 <nav id="dock" aria-label="Controles de la presentación">
   <button id="prev" type="button" aria-label="Diapositiva anterior">‹</button>
-  <span id="count">1 / 14</span>
+  <button id="count" type="button" aria-label="Elegir diapositiva">1 / 14</button>
   <button id="next" type="button" aria-label="Diapositiva siguiente">›</button>
   <button id="full" type="button" aria-label="Pantalla completa">Pantalla completa</button>
 </nav>
@@ -228,7 +245,11 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   <button class="v" type="button" data-v="6" aria-label="Video 6">6</button>
   <button class="rul" type="button" id="toRuleta">Ruleta</button>
   <button class="triv" type="button" id="toTrivia">Trivia</button>
+  <button class="sl" type="button" id="toPick" aria-label="Elegir diapositiva">☰ Diapositivas</button>
 </nav>
+<div id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div id="pickCard">
+  <h2 id="pickTitle">Ir a la diapositiva…</h2><p>Toca una para saltar directo. También: tecla D para abrir esta lista, Esc para cerrarla.</p>
+  <div id="pickGrid"></div></div></div>
 <div id="trivia" aria-label="Trivia"><iframe id="tFrame" title="Trivia" allow="fullscreen; clipboard-write"></iframe></div>
 <button id="tClose" type="button">✕ Volver a la presentación</button>
 <div id="player" role="dialog" aria-modal="true" aria-label="Video">
@@ -355,7 +376,27 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   $('toTrivia').addEventListener('click', e => { e.stopPropagation(); triviaOpen ? closeTrivia() : openTrivia(); });
   $('tClose').addEventListener('click', closeTrivia);
 
+  /* ---------- slide picker ---------- */
+  const pick = $('pick'), grid = $('pickGrid');
+  slides.forEach((sl, i) => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = `<b>${i + 1}</b><span></span>`; b.lastChild.textContent = sl.dataset.name;
+    b.addEventListener('click', e => { e.stopPropagation(); closePick(); closeVideo(); closeTrivia(); go(i); });
+    grid.appendChild(b);
+  });
+  let pickOpen = false;
+  function openPick() {
+    closeVideo(); pickOpen = true; pick.classList.add('open');
+    [...grid.children].forEach((b, i) => b.setAttribute('aria-current', String(i === cur)));
+    grid.children[cur].focus(); wake();
+  }
+  function closePick() { if (!pickOpen) return; pickOpen = false; pick.classList.remove('open'); const f = triviaOpen ? tFrame : slides[cur].querySelector('iframe'); if (f) f.focus(); else document.activeElement && document.activeElement.blur && document.activeElement.blur(); }
+  pick.addEventListener('click', e => { if (e.target === pick) closePick(); });
+  $('toPick').addEventListener('click', e => { e.stopPropagation(); pickOpen ? closePick() : openPick(); });
+  $('count').addEventListener('click', e => { e.stopPropagation(); openPick(); });
+
   function shortcut(k) {
+    if (k === 'd' || k === 'D') { pickOpen ? closePick() : openPick(); return true; }
     if (k >= '1' && k <= '6' && k.length === 1) { openVideo(+k); return true; }
     if (k === 'r' || k === 'R') { closeVideo(); closeTrivia(); go(ruletaIdx); return true; }
     if (k === 't' || k === 'T') { triviaOpen ? closeTrivia() : openTrivia(); return true; }
@@ -363,6 +404,17 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   }
 
   document.addEventListener('keydown', e => {
+    if (pickOpen) {                                   // arrows move through the list, Enter opens, Esc closes
+      if (e.key === 'Escape' || e.key === 'd' || e.key === 'D') { e.preventDefault(); closePick(); }
+      else if (/^Arrow/.test(e.key)) {
+        e.preventDefault();
+        const items = [...grid.children], at = Math.max(0, items.indexOf(document.activeElement));
+        const cols = Math.max(1, Math.round(grid.clientWidth / items[0].offsetWidth));
+        const d = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols }[e.key];
+        items[Math.max(0, Math.min(items.length - 1, at + d))].focus();
+      }
+      return;
+    }
     if (playing) {                                   // while a video plays: Esc closes, Space pauses, 1–6 switch video
       if (e.key === 'Escape') { e.preventDefault(); closeVideo(); }
       else if (e.key === ' ' && e.target !== pv) { e.preventDefault(); pv.paused ? pv.play() : pv.pause(); }
@@ -385,6 +437,7 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   // the roulette (inside its slide) passes the presenter's navigation keys back here
   addEventListener('message', e => {
     const a = e.data && e.data.ruletaNav;
+    if (a === 'pick') { openPick(); return; }
     if ((playing || triviaOpen) && a !== 'wake') return;
     if (a === 'next') next(); else if (a === 'prev') prev(); else if (a === 'first') go(0); else if (a === 'last') go(N - 1); else if (a === 'full') full();
     else if (typeof a === 'string' && a[0] === 'v') openVideo(+a.slice(1));

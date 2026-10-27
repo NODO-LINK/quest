@@ -573,7 +573,7 @@ html.embed .stage{max-width:700px}
   if (new URLSearchParams(location.search).has('embed') && window.parent !== window) {
     document.documentElement.classList.add('embed');
     // the presenter's arrows / clicker keep changing slides; Space still spins here
-    const NAV = { ArrowRight: 'next', PageDown: 'next', ArrowDown: 'next', ArrowLeft: 'prev', PageUp: 'prev', ArrowUp: 'prev', Home: 'first', End: 'last', f: 'full', F: 'full', 1: 'v1', 2: 'v2', 3: 'v3', 4: 'v4', 5: 'v5', 6: 'v6' };
+    const NAV = { ArrowRight: 'next', PageDown: 'next', ArrowDown: 'next', ArrowLeft: 'prev', PageUp: 'prev', ArrowUp: 'prev', Home: 'first', End: 'last', f: 'full', F: 'full', 1: 'v1', 2: 'v2', 3: 'v3', 4: 'v4', 5: 'v5', 6: 'v6', d: 'pick', D: 'pick' };
     document.addEventListener('keydown', e => {
       if (e.target.closest && e.target.closest('input')) return;
       const a = NAV[e.key];
