@@ -143,6 +143,10 @@ kbd{font-family:var(--body); font-size:11px; font-weight:800; padding:2px 8px; b
   .titles{border-left:0; padding-left:0}
 }
 @media (hover:none), (max-width:600px){ kbd{display:none} }
+/* inside the web presentation: fill the 16:9 slide */
+html.embed body{min-height:100vh; display:flex; align-items:center; padding-block:18px}
+html.embed .app{width:100%; max-width:1300px; grid-template-columns:minmax(0,1fr) 360px}
+html.embed .stage{max-width:700px}
 @media (prefers-reduced-motion: reduce){
   .reveal-num, .last-num.bump, .reveal{animation-duration:.01s}
 }
@@ -564,6 +568,21 @@ kbd{font-family:var(--body); font-size:11px; font-weight:800; padding:2px 8px; b
     if (e.key === 'Escape' && !reveal.hidden) { closeReveal(); return; }
     if (e.code === 'Space' && !(e.target.closest && e.target.closest('button, input, textarea, label'))) { e.preventDefault(); startSpin(); }
   });
+
+  /* ---------- inside the web presentation (ruleta.html?embed=1 in an iframe) ---------- */
+  if (new URLSearchParams(location.search).has('embed') && window.parent !== window) {
+    document.documentElement.classList.add('embed');
+    // the presenter's arrows / clicker keep changing slides; Space still spins here
+    const NAV = { ArrowRight: 'next', PageDown: 'next', ArrowDown: 'next', ArrowLeft: 'prev', PageUp: 'prev', ArrowUp: 'prev', Home: 'first', End: 'last', f: 'full', F: 'full', 1: 'v1', 2: 'v2', 3: 'v3', 4: 'v4', 5: 'v5', 6: 'v6' };
+    document.addEventListener('keydown', e => {
+      if (e.target.closest && e.target.closest('input')) return;
+      const a = NAV[e.key];
+      if (a) { e.preventDefault(); parent.postMessage({ ruletaNav: a }, '*'); }
+    });
+    let lastWake = 0;
+    addEventListener('pointermove', () => { const t = Date.now(); if (t - lastWake > 600) { lastWake = t; parent.postMessage({ ruletaNav: 'wake' }, '*'); } });
+    addEventListener('message', e => { if (e.data && e.data.ruleta === 'spin') startSpin(); });
+  }
 
   new ResizeObserver(resize).observe(stage);
   resize();
