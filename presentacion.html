@@ -75,6 +75,20 @@ body.idle{cursor:none}
 .coltxt{margin-top:30px;line-height:1.12}
 .coltxt b{display:block;margin-bottom:14px}
 .coltxt span{color:var(--lt2);display:block}
+/* charts: bars grow from the baseline, rings fill, numbers count up */
+.a[data-a=grow]{opacity:1;transform:scaleY(0);transform-origin:50% 100%}
+.a[data-a=growX]{opacity:1;transform:scaleX(0);transform-origin:0 50%}
+.on .a[data-a=grow],.on .a[data-a=growX]{transform:none}
+.bar{border-radius:6px 6px 0 0}
+.ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring .rbg{fill:none;stroke:rgba(255,255,255,.14)}
+.ring .rfg{fill:none;stroke-linecap:round;stroke-dasharray:var(--c);stroke-dashoffset:var(--c);transition:stroke-dashoffset 1.8s cubic-bezier(.2,.7,.2,1) var(--rd)}
+.on .ring .rfg{stroke-dashoffset:calc(var(--c) * (1 - var(--p)))}
+.reset .ring .rfg{transition:none!important}
+.chip{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:0 20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  font-weight:700;white-space:nowrap;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.glass{background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.22);border-radius:22px;
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 12px 34px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .live iframe{position:absolute;inset:0;width:1600px;height:900px;border:0;display:block;background:#0A2346}
 
 /* presenter chrome (outside the 16:9 stage) */
@@ -298,7 +312,7 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
     clearTimeout(timers.get(sl));
     sl.classList.add('reset'); sl.classList.remove('on'); void sl.offsetWidth; sl.classList.remove('reset');
     sl.classList.add('cur');
-    requestAnimationFrame(() => requestAnimationFrame(() => sl.classList.add('on')));
+    requestAnimationFrame(() => requestAnimationFrame(() => { sl.classList.add('on'); sl.querySelectorAll('[data-count]').forEach(countUp); }));
     sl.querySelectorAll('video').forEach(v => { try { v.currentTime = 0; } catch (e) {} const p = v.play(); if (p && p.catch) p.catch(() => {}); });
     const frame = sl.querySelector('iframe');
     if (frame) setTimeout(() => { if (slides[cur] === sl) frame.focus(); }, 400);
@@ -308,6 +322,22 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
     $('bar').style.width = `${(i + 1) / N * 100}%`;
     $('prev').disabled = i === 0; $('next').disabled = i === N - 1;
     try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+  }
+  // numbers that count up when their slide appears: <span data-count="396" data-cd="600" data-suf="%">
+  function countUp(el) {
+    const to = +el.dataset.count, suf = el.dataset.suf || '', delay = +(el.dataset.cd || 0), dur = 1500, tok = (el._tok = (el._tok || 0) + 1);
+    const fmt = v => v.toLocaleString('es-VE') + suf;
+    el.textContent = fmt(0);
+    setTimeout(() => {
+      const t0 = performance.now();
+      const step = now => {
+        if (el._tok !== tok) return;
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(Math.round(to * e));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, delay);
   }
   const next = () => go(cur + 1), prev = () => go(cur - 1);
   function full() {
@@ -458,6 +488,7 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   addEventListener('mousemove', wake); wake();
   setTimeout(() => $('hint').classList.add('gone'), 4500);
 
+  addEventListener('hashchange', () => { const h = parseInt(location.hash.slice(1), 10); if (Number.isFinite(h) && h - 1 !== cur) go(h - 1); });
   const start = parseInt((location.hash || '').slice(1), 10);
   const begin = () => go(Number.isFinite(start) ? start - 1 : 0);
   // wait for the bundled fonts so titles do not jump while animating in
