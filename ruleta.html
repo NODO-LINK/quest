@@ -129,7 +129,8 @@ kbd{font-family:var(--body); font-size:11px; font-weight:800; padding:2px 8px; b
 @keyframes fade{from{opacity:0}}
 .reveal-card{position:relative; z-index:1; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; padding:28px 40px 30px; border-radius:40px}
 .reveal-kicker{font-family:var(--display); font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); font-size:14px}
-.reveal-num{font-family:var(--display); font-weight:900; font-size:clamp(130px, 38vw, 290px); line-height:.95; color:#fff; text-shadow:0 18px 60px rgba(0,0,0,.4);
+.reveal-kicker{font-size:22px!important}
+.reveal-num{font-family:var(--display); font-weight:900; font-size:clamp(150px, 42vw, 340px); line-height:.95; color:#fff; text-shadow:0 0 40px rgba(244,194,13,.55), 0 18px 60px rgba(0,0,0,.4);
   animation:pop .7s cubic-bezier(.18,1.6,.4,1) both}
 @keyframes pop{from{transform:scale(.2); opacity:0}to{transform:none; opacity:1}}
 .reveal-sub{color:var(--muted); font-weight:700}
@@ -221,7 +222,7 @@ html.embed .stage{max-width:700px}
 
 <div class="reveal" id="reveal" hidden role="dialog" aria-modal="true" aria-labelledby="revealNum">
   <div class="reveal-card glass">
-    <div class="reveal-kicker">¡Salió el número!</div>
+    <div class="reveal-kicker">🏆 ¡Tenemos ganador!</div>
     <div class="reveal-num" id="revealNum">7</div>
     <div class="reveal-sub" id="revealSub">Sorteo n.º 1</div>
     <div class="reveal-actions">
@@ -383,6 +384,37 @@ html.embed .stage{max-width:700px}
     const o = blip(2300, t, 0.045, 0.09, 'triangle');
     o.frequency.exponentialRampToValueAtTime(900, t + 0.035);
   }
+  // drum roll while the wheel turns: snare hits that speed up and swell, then a cymbal crash on the result
+  let rollNext = 0, rollT0 = 0;
+  function drumHit(t, vol) {
+    const len = 0.09, b = ac.createBuffer(1, Math.floor(ac.sampleRate * len), ac.sampleRate), x = b.getChannelData(0);
+    for (let k = 0; k < x.length; k++) x[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / x.length, 2.2);
+    const s = ac.createBufferSource(); s.buffer = b;
+    const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1700 + Math.random() * 300; f.Q.value = 0.9;
+    const g = ac.createGain(); g.gain.value = vol;
+    s.connect(f).connect(g).connect(ac.destination); s.start(t);
+    const o = ac.createOscillator(), og = ac.createGain();               // a little body under the snare
+    o.type = 'sine'; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(110, t + 0.06);
+    og.gain.setValueAtTime(vol * 0.5, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    o.connect(og).connect(ac.destination); o.start(t); o.stop(t + 0.1);
+  }
+  function drumRoll(progress) {
+    if (!soundOn || !ac) return;
+    const now = ac.currentTime;
+    if (!rollNext || rollNext < now) rollNext = now;
+    const gap = 0.11 - 0.065 * Math.min(1, progress), vol = 0.05 + 0.13 * Math.min(1, progress);
+    while (rollNext < now + 0.12) { drumHit(rollNext, vol * (0.85 + Math.random() * 0.3)); rollNext += gap; }
+  }
+  function crash() {
+    if (!soundOn || !ac) return;
+    const t = ac.currentTime + 0.01, len = 1.8, b = ac.createBuffer(1, Math.floor(ac.sampleRate * len), ac.sampleRate), x = b.getChannelData(0);
+    for (let k = 0; k < x.length; k++) x[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / x.length, 3);
+    const s = ac.createBufferSource(); s.buffer = b;
+    const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3500;
+    const g = ac.createGain(); g.gain.value = 0.16;
+    s.connect(f).connect(g).connect(ac.destination); s.start(t);
+  }
+  const tellParent = m => { try { if (window.parent !== window) parent.postMessage({ ruletaSound: m }, '*'); } catch (e) {} };
   function fanfare() {
     if (!soundOn || !ac) return;
     const t = ac.currentTime + 0.02;
@@ -415,6 +447,34 @@ html.embed .stage{max-width:700px}
     if (parts.length) requestAnimationFrame(cLoop); else { cRun = false; cctx.clearRect(0, 0, ccv.width, ccv.height); }
   }
 
+  /* ---------- fireworks for the winner ---------- */
+  let sparks = [], fwRun = false;
+  function fireworks() {
+    if (reduce.matches) return;
+    ccv.width = innerWidth; ccv.height = innerHeight;
+    const cols = [GREEN, '#ffffff', BLUE, YELLOW, RED];
+    for (let b = 0; b < 6; b++) setTimeout(() => {
+      const cx = ccv.width * (0.15 + Math.random() * 0.7), cy = ccv.height * (0.15 + Math.random() * 0.35), c = cols[b % cols.length];
+      for (let i = 0; i < 70; i++) {
+        const a = Math.random() * Math.PI * 2, v = 2.5 + Math.random() * 5.5;
+        sparks.push({ x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 70 + Math.random() * 40, c });
+      }
+      if (soundOn && ac) { const t = ac.currentTime; const o = blip(90 + Math.random() * 40, t, 0.35, 0.12, 'sine'); o.frequency.exponentialRampToValueAtTime(40, t + 0.3); }
+      if (!fwRun) { fwRun = true; requestAnimationFrame(fwLoop); }
+    }, b * 420);
+  }
+  function fwLoop() {
+    if (!cRun) cctx.clearRect(0, 0, ccv.width, ccv.height);
+    sparks = sparks.filter(p => p.life > 0);
+    for (const p of sparks) {
+      p.vx *= 0.97; p.vy = p.vy * 0.97 + 0.06; p.x += p.vx; p.y += p.vy; p.life--;
+      cctx.globalAlpha = Math.max(0, Math.min(1, p.life / 50));
+      cctx.fillStyle = p.c; cctx.beginPath(); cctx.arc(p.x, p.y, 2.6, 0, 6.283); cctx.fill();
+    }
+    cctx.globalAlpha = 1;
+    if (sparks.length) requestAnimationFrame(fwLoop); else { fwRun = false; if (!cRun) cctx.clearRect(0, 0, ccv.width, ccv.height); }
+  }
+
   /* ---------- spin ---------- */
   function kick() { if (!running) { running = true; requestAnimationFrame(loop); } }
   function startSpin() {
@@ -431,7 +491,8 @@ html.embed .stage{max-width:700px}
     spinDelta = mod(base - rot, TAU) + spins * TAU;
     windAmt = reduce.matches ? 0 : 0.16; windDur = reduce.matches ? 0 : 320;
     spinDur = reduce.matches ? 1300 : 6200 + rand() * 1300;
-    spinStart = performance.now(); spinning = true; winIdx = -1; lastIdx = idxAt(rot);
+    spinStart = performance.now(); spinning = true; winIdx = -1; lastIdx = idxAt(rot); rollNext = 0;
+    tellParent('duck');
     updateUI();
     kick();
   }
@@ -448,8 +509,9 @@ html.embed .stage{max-width:700px}
     history.push(targetN); save();
     updateUI(true);
     $('#live').textContent = `Salió el número ${targetN}`;
-    fanfare();
-    setTimeout(() => { showReveal(targetN); confetti(); }, 380);
+    crash(); fanfare();
+    setTimeout(() => { showReveal(targetN); confetti(); fireworks(); }, 380);
+    setTimeout(() => tellParent('unduck'), 4500);
   }
 
   // Runs only while something moves; stops itself when the wheel and pointer are still.
@@ -463,6 +525,7 @@ html.embed .stage{max-width:700px}
         pAng = Math.min(pAng, -4) - 16; pVel = 0;
         if (now - lastTick > 28) { tickSound(); lastTick = now; }
       }
+      drumRoll(Math.max(0, (t - windDur) / spinDur));
       if (t >= windDur + spinDur) finish();
     }
     pVel += -pAng * 0.3; pVel *= 0.6; pAng += pVel;
