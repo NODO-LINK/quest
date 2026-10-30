@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0A2346">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Control remoto · Alcaldía de Mara</title>
+<!--
+  CONTROL REMOTO DESDE EL TELÉFONO
+  · Abre esta página en tu teléfono e inicia sesión con el correo de presentador (el mismo de la trivia).
+  · En la laptop abre la presentación (presentacion.html o diagnostico.html) con internet.
+  · Los botones del teléfono mueven las diapositivas, la ruleta, los videos, la trivia, el sonido y el aplausómetro.
+  · Prueba sin internet: control.html?demo=1 y presentacion.html?demo=1 en la misma computadora.
+-->
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0A2346; --ink:#fff; --muted:#B8C7DD;
+  --green:#1E9E4F; --blue:#2A64B4; --yellow:#F4C20D; --red:#D7263D;
+  --glass:linear-gradient(140deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,.07) 45%,rgba(255,255,255,.04) 100%);
+  --edge:rgba(255,255,255,.26);
+  --shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 14px 36px rgba(2,10,30,.35);
+  --blur:blur(20px) saturate(170%);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);
+  background-image:radial-gradient(60vmax 45vmax at 110% 110%,rgba(30,158,79,.35),transparent 60%),radial-gradient(55vmax 40vmax at -10% 0%,rgba(42,100,180,.45),transparent 60%),linear-gradient(170deg,#0E3366,#0A2346 55%,#061730);
+  background-attachment:fixed;padding:max(14px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  -webkit-user-select:none;user-select:none}
+[hidden]{display:none!important}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.flag{display:grid;grid-template-rows:repeat(3,1fr);width:8px;height:34px;border-radius:3px;overflow:hidden}
+.flag i:nth-child(1){background:var(--green)}.flag i:nth-child(2){background:#fff}.flag i:nth-child(3){background:var(--blue)}
+.brand b{display:block;font-size:17px}.brand small{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.status{font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;background:var(--glass);border:1px solid var(--edge);white-space:nowrap}
+.status.ok{color:#7BE0A3}.status.bad{color:#FF8A96}.status.busy{color:var(--yellow)}
+.glass{background:var(--glass);border:1px solid var(--edge);box-shadow:var(--shadow);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-radius:26px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;border-radius:999px}
+.tabs button{font:700 15px var(--font);color:var(--muted);background:transparent;border:0;border-radius:999px;height:42px}
+.tabs button[aria-pressed=true]{background:rgba(255,255,255,.2);color:#fff}
+.now{padding:16px 18px}
+.now small{display:block;color:var(--yellow);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.now b{display:block;font-size:20px;margin-top:4px;line-height:1.2}
+.now span{color:var(--muted);font-size:13px}
+.nav{display:grid;grid-template-columns:1fr 1.6fr;gap:12px}
+.big{font:800 20px var(--font);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:26px;height:112px;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 12px 30px rgba(0,0,0,.35);transition:transform .08s}
+.big:active,.btn:active{transform:scale(.96)}
+.prev{background:rgba(255,255,255,.12)}
+.next{background:linear-gradient(160deg,#2F7BE0,#2A64B4 60%,#1E4F94)}
+.sec{padding:14px}
+.sec h2{margin:0 0 10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:700 15px var(--font);color:#fff;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);border-radius:18px;min-height:52px;padding:0 14px;flex:1 1 auto;transition:transform .08s}
+.btn.red{background:linear-gradient(160deg,#F0485C,#D7263D 60%,#B81D33)}
+.btn.green{background:linear-gradient(160deg,#2BB673,#1E9E4F 60%,#16803F)}
+.btn.vid{flex:1 1 0;min-width:0;font-size:19px}
+.vid:nth-child(1){box-shadow:inset 0 -4px 0 #1E9E4F}.vid:nth-child(2){box-shadow:inset 0 -4px 0 #2A64B4}.vid:nth-child(3){box-shadow:inset 0 -4px 0 #F4C20D}
+.vid:nth-child(4){box-shadow:inset 0 -4px 0 #D7263D}.vid:nth-child(5){box-shadow:inset 0 -4px 0 #19C3E6}.vid:nth-child(6){box-shadow:inset 0 -4px 0 #C8743A}
+.list{display:flex;flex-direction:column;gap:6px;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}
+.list button{display:flex;align-items:center;gap:12px;text-align:left;font:600 15px var(--font);color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:9px 12px}
+.list button i{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;background:rgba(255,255,255,.14)}
+.list button[aria-current=true]{border-color:var(--yellow);background:rgba(244,194,13,.16)}
+.list button[aria-current=true] i{background:var(--yellow);color:#1B1500}
+.login{padding:22px;display:flex;flex-direction:column;gap:12px}
+.login h1{margin:0;font-size:22px}.login p{margin:0;color:var(--muted);font-size:14px;line-height:1.4}
+.login input{font:600 17px var(--font);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:16px;height:52px;padding:0 14px;-webkit-user-select:text;user-select:text}
+.login input:focus{outline:3px solid var(--yellow);outline-offset:1px}
+.msg{font-size:14px;color:#FF8A96;min-height:18px}
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;transition:all .25s;z-index:9;
+  font:700 15px var(--font);padding:12px 18px;border-radius:999px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.foot{text-align:center;color:var(--muted);font-size:12px}
+.foot button{font:600 12px var(--font);color:var(--muted);background:none;border:0;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="flag"><i></i><i></i><i></i></span><div><small>Alcaldía de Mara</small><b>Control remoto</b></div></div>
+    <div class="status busy" id="status">Conectando…</div>
+  </header>
+
+  <form class="login glass" id="login" hidden>
+    <h1>Inicia sesión</h1>
+    <p>Usa el mismo correo y contraseña de presentador de la trivia. Solo hace falta una vez en este teléfono.</p>
+    <input id="email" type="email" autocomplete="username" placeholder="Correo de presentador" required>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="Contraseña" required>
+    <button class="btn green" type="submit" id="loginBtn">Entrar</button>
+    <div class="msg" id="loginMsg"></div>
+  </form>
+
+  <main id="app" hidden>
+    <div class="wrap">
+      <div class="tabs glass" role="group" aria-label="Presentación">
+        <button type="button" data-deck="presentacion" aria-pressed="true">Plan de Formación</button>
+        <button type="button" data-deck="diagnostico" aria-pressed="false">Diagnóstico</button>
+      </div>
+      <div class="now glass"><small>En pantalla (aprox.)</small><b id="nowName">—</b><span id="nowNum">Toca una diapositiva de la lista para sincronizar</span></div>
+      <div class="nav">
+        <button class="big prev" type="button" data-cmd="prev">◀</button>
+        <button class="big next" type="button" data-cmd="next">Siguiente ▶</button>
+      </div>
+      <section class="sec glass"><h2>Ruleta</h2>
+        <div class="row">
+          <button class="btn red" type="button" data-cmd="spin">🎡 Girar</button>
+          <button class="btn" type="button" data-cmd="closeReveal">Cerrar resultado</button>
+          <button class="btn" type="button" data-cmd="ruleta">Ir a la ruleta</button>
+        </div>
+      </section>
+      <section class="sec glass"><h2>Videos</h2>
+        <div class="row">
+          <button class="btn vid" type="button" data-cmd="video" data-arg="1">1</button><button class="btn vid" type="button" data-cmd="video" data-arg="2">2</button>
+          <button class="btn vid" type="button" data-cmd="video" data-arg="3">3</button><button class="btn vid" type="button" data-cmd="video" data-arg="4">4</button>
+          <button class="btn vid" type="button" data-cmd="video" data-arg="5">5</button><button class="btn vid" type="button" data-cmd="video" data-arg="6">6</button>
+        </div>
+        <div class="row" style="margin-top:8px"><button class="btn" type="button" data-cmd="closeVideo">✕ Cerrar video</button></div>
+      </section>
+      <section class="sec glass"><h2>Más</h2>
+        <div class="row">
+          <button class="btn green" type="button" data-cmd="trivia" data-arg="open">Abrir trivia</button>
+          <button class="btn" type="button" data-cmd="trivia" data-arg="close">Volver de la trivia</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" type="button" data-cmd="aplauso" data-arg="open">👏 Aplausómetro</button>
+          <button class="btn" type="button" data-cmd="aplauso" data-arg="close">Cerrar aplausos</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" type="button" data-cmd="sound" data-arg="on">🔊 Sonido</button>
+          <button class="btn" type="button" data-cmd="sound" data-arg="off">🔇 Silencio</button>
+        </div>
+      </section>
+      <section class="sec glass"><h2>Ir a la diapositiva</h2><div class="list" id="list"></div></section>
+      <div class="foot"><button type="button" id="logout">Cerrar sesión</button></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const FB = {
+    apiKey: "AIzaSyDDLY42OYezFcDUkb-x3vQO3fCq6FfZG6k",
+    authDomain: "quest-35aa0.firebaseapp.com",
+    projectId: "quest-35aa0",
+    storageBucket: "quest-35aa0.firebasestorage.app",
+    messagingSenderId: "226578437399",
+    appId: "1:226578437399:web:982321847804b3c9991352"
+  };
+  const DEMO = new URLSearchParams(location.search).has('demo');
+  const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido' };
+  let deck = new URLSearchParams(location.search).get('d') === 'diagnostico' ? 'diagnostico' : 'presentacion';
+  try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && saved) deck = saved; } catch (e) {}
+  let names = [], pos = -1, send = null;
+
+  function status(t, cls) { const s = $('status'); s.textContent = t; s.className = 'status ' + cls; }
+  let toastT; function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 1300); }
+
+  /* slide names straight from the presentation file */
+  async function loadNames() {
+    names = []; pos = -1; renderList(); renderNow();
+    try {
+      const html = await (await fetch(deck + '.html', { cache: 'no-store' })).text();
+      const docu = new DOMParser().parseFromString(html, 'text/html');
+      names = [...docu.querySelectorAll('section.slide')].map(s => s.dataset.name || '');
+    } catch (e) { names = []; }
+    renderList(); renderNow();
+  }
+  function renderList() {
+    const L = $('list'); L.innerHTML = '';
+    names.forEach((n, i) => {
+      const b = document.createElement('button'); b.type = 'button';
+      b.innerHTML = `<i>${i + 1}</i><span></span>`; b.lastChild.textContent = n;
+      b.setAttribute('aria-current', String(i === pos));
+      b.addEventListener('click', () => command('go', i));
+      L.appendChild(b);
+    });
+  }
+  function renderNow() {
+    $('nowName').textContent = pos >= 0 && names[pos] ? names[pos] : '—';
+    $('nowNum').textContent = pos >= 0 ? `Diapositiva ${pos + 1} de ${names.length}` : 'Toca una diapositiva de la lista para sincronizar';
+    [...$('list').children].forEach((b, i) => b.setAttribute('aria-current', String(i === pos)));
+  }
+
+  async function command(cmd, arg) {
+    if (!send) return;
+    if (navigator.vibrate) navigator.vibrate(18);
+    // keep a local estimate of the slide on screen
+    if (cmd === 'next' && pos >= 0) pos = Math.min(names.length - 1, pos + 1);
+    if (cmd === 'prev' && pos >= 0) pos = Math.max(0, pos - 1);
+    if (cmd === 'go') pos = arg;
+    if (cmd === 'ruleta' || cmd === 'spin') { const r = names.findIndex(n => /sorteo/i.test(n)); if (r >= 0) pos = r; }
+    renderNow();
+    status('Enviando…', 'busy');
+    try {
+      await send({ seq: Date.now() + Math.random(), cmd, arg: arg === undefined ? null : arg });
+      status('Conectado ✓', 'ok');
+      toast(cmd === 'video' ? `▶ Video ${arg}` : cmd === 'go' ? `Diapositiva ${arg + 1}` : LABEL[cmd] + (cmd === 'sound' ? (arg === 'on' ? ' activado' : ' apagado') : ''));
+    } catch (e) {
+      status('Sin conexión', 'bad');
+      toast(/permission/i.test(String(e && e.code || e)) ? 'Esta cuenta no es de presentador' : 'No se pudo enviar. Revisa el internet.');
+    }
+  }
+  document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => command(b.dataset.cmd, b.dataset.arg)));
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    deck = b.dataset.deck; try { localStorage.setItem('remote-deck', deck); } catch (e) {}
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (sendFor) send = sendFor(deck);
+    loadNames();
+  }));
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.deck === deck)));
+
+  let sendFor = null;
+  async function start() {
+    if (DEMO) {           // same computer, no internet: BroadcastChannel
+      sendFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage(m); };
+      send = sendFor(deck); $('app').hidden = false; status('Modo demo', 'ok'); loadNames(); return;
+    }
+    try {
+      const V = '10.12.2';
+      const [A, U, F] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
+      ]);
+      const fb = A.initializeApp(FB, 'presentador');
+      const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
+      sendFor = d => m => F.setDoc(F.doc(db, 'trivia', 'remote-' + d), Object.assign(m, { at: F.serverTimestamp() }));
+      U.onAuthStateChanged(auth, user => {
+        if (user && !user.isAnonymous) {
+          $('login').hidden = true; $('app').hidden = false; send = sendFor(deck); status('Conectado ✓', 'ok');
+          if (!names.length) loadNames();
+        } else {
+          $('app').hidden = true; $('login').hidden = false; send = null; status('Sin sesión', 'busy');
+        }
+      });
+      $('login').addEventListener('submit', async e => {
+        e.preventDefault(); $('loginMsg').textContent = ''; $('loginBtn').disabled = true;
+        try { await U.signInWithEmailAndPassword(auth, $('email').value.trim(), $('pass').value); }
+        catch (err) { $('loginMsg').textContent = 'Correo o contraseña incorrectos.'; }
+        $('loginBtn').disabled = false;
+      });
+      $('logout').addEventListener('click', () => U.signOut(auth));
+    } catch (e) {
+      status('Sin conexión', 'bad');
+      $('login').hidden = false; $('loginMsg').textContent = 'No se pudo conectar. Revisa el internet del teléfono y recarga.';
+    }
+  }
+  start();
+})();
+</script>
+</body>
+</html>

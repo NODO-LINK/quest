@@ -645,7 +645,7 @@ html.embed .stage{max-width:700px}
     });
     let lastWake = 0;
     addEventListener('pointermove', () => { const t = Date.now(); if (t - lastWake > 600) { lastWake = t; parent.postMessage({ ruletaNav: 'wake' }, '*'); } });
-    addEventListener('message', e => { if (e.data && e.data.ruleta === 'spin') startSpin(); });
+    addEventListener('message', e => { if (e.data && e.data.ruleta === 'spin') startSpin(); if (e.data && e.data.ruleta === 'close' && !reveal.hidden) closeReveal(); });
   }
 
   new ResizeObserver(resize).observe(stage);

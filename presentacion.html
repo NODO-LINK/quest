@@ -176,6 +176,9 @@ body.idle #jump{cursor:default}
 #pickGrid button[aria-current=true] b{background:var(--gold);color:#1B1500}
 #jump button.sl{padding:0 14px}
 #jump button.ap{font-size:19px;padding:0 10px}
+#rtoast{position:fixed;left:50%;top:16px;z-index:30;transform:translate(-50%,-14px);opacity:0;transition:all .25s ease;pointer-events:none;
+  font:700 16px var(--body);padding:10px 18px;border-radius:999px;background:rgba(11,20,38,.78);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+#rtoast.show{opacity:1;transform:translate(-50%,0)}
 /* applause meter */
 #aplauso{position:fixed;inset:0;z-index:19;display:grid;place-items:center;background:rgba(3,6,13,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s;padding:16px}
@@ -409,6 +412,7 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   <div id="pMsg" hidden></div>
   <button id="pClose" type="button">✕ Cerrar</button>
 </div>
+<div id="rtoast" aria-live="polite"></div>
 <div id="hint">Clic o → para avanzar · F pantalla completa</div>
 <script>
 (() => {
@@ -750,6 +754,60 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
   $('apClose').addEventListener('click', closeAplauso);
   $('apReset').addEventListener('click', () => { apRec = 0; $('apRec').textContent = '0'; });
   $('aplauso').addEventListener('click', e => { if (e.target === $('aplauso')) closeAplauso(); });
+
+  /* ---------- phone remote (control.html): commands arrive through Firebase ---------- */
+  const FBCFG = {
+    apiKey: "AIzaSyDDLY42OYezFcDUkb-x3vQO3fCq6FfZG6k",
+    authDomain: "quest-35aa0.firebaseapp.com",
+    projectId: "quest-35aa0",
+    storageBucket: "quest-35aa0.firebasestorage.app",
+    messagingSenderId: "226578437399",
+    appId: "1:226578437399:web:982321847804b3c9991352"
+  };
+  const DECK = ((location.pathname.split('/').pop() || '').replace(/\.html$/, '')) || 'presentacion';
+  let rT;
+  function rtoast(t) { const el = $('rtoast'); el.textContent = '📱 ' + t; el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
+  function remote(cmd, arg) {
+    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); };
+    switch (cmd) {
+      case 'next': calm(); next(); rtoast('Siguiente'); break;
+      case 'prev': calm(); prev(); rtoast('Anterior'); break;
+      case 'go': calm(); go(+arg); rtoast(`Diapositiva ${+arg + 1}`); break;
+      case 'ruleta': calm(); go(ruletaIdx); rtoast('Ruleta'); break;
+      case 'spin': calm(); if (!isLive()) { go(ruletaIdx); setTimeout(spin, 1800); } else spin(); rtoast('Girando la ruleta'); break;
+      case 'closeReveal': { const f = slides[ruletaIdx] && slides[ruletaIdx].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage({ ruleta: 'close' }, '*'); rtoast('Resultado cerrado'); break; }
+      case 'video': closePick(); closeAplauso(); openVideo(+arg); rtoast(`Video ${arg}`); break;
+      case 'closeVideo': closeVideo(); rtoast('Video cerrado'); break;
+      case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
+      case 'aplauso': closePick(); arg === 'close' ? closeAplauso() : openAplauso(); rtoast('Aplausómetro'); break;
+      case 'sound': setSound(arg !== 'off'); rtoast(arg === 'off' ? 'Sonido apagado' : 'Sonido activado'); break;
+    }
+  }
+  window.__remote = remote;
+  (async () => {
+    if (new URLSearchParams(location.search).has('demo')) {
+      try { const ch = new BroadcastChannel('remote-' + DECK); ch.onmessage = e => e.data && remote(e.data.cmd, e.data.arg); } catch (e) {}
+      return;
+    }
+    if (!FBCFG) return;
+    try {
+      const V = '10.12.2';
+      const [A, U, F] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
+      ]);
+      const fb = A.initializeApp(FBCFG, 'control');
+      const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
+      if (!auth.currentUser) await U.signInAnonymously(auth);
+      let first = true, last = null;
+      F.onSnapshot(F.doc(db, 'trivia', 'remote-' + DECK), snap => {
+        const d = snap.data();
+        if (first) { first = false; last = d ? d.seq : null; return; }   // never replay an old command when the page opens
+        if (d && d.seq !== last) { last = d.seq; remote(d.cmd, d.arg); }
+      }, () => {});
+    } catch (e) { /* offline: the presentation works the same, just without the phone */ }
+  })();
 
   // some browsers hold back autoplay until the first touch or key: start the current videos then
   const kick = () => { slides[cur] && slides[cur].querySelectorAll('video').forEach(v => { if (v.paused) { const p = v.play(); if (p && p.catch) p.catch(() => {}); } }); };
