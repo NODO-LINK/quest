@@ -11,6 +11,7 @@
   · Abre esta página en tu teléfono e inicia sesión con el correo de presentador (el mismo de la trivia).
   · En la laptop abre la presentación (presentacion.html o diagnostico.html) con internet.
   · Los botones del teléfono mueven las diapositivas, la ruleta, los videos, la trivia, el sonido y el aplausómetro.
+  · También: notas del presentador, puntero láser y pantallas de espera con cronómetro para dinámicas y juegos.
   · Prueba sin internet: control.html?demo=1 y presentacion.html?demo=1 en la misma computadora.
 -->
 <style>
@@ -67,6 +68,15 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .list button i{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;background:rgba(255,255,255,.14)}
 .list button[aria-current=true]{border-color:var(--yellow);background:rgba(244,194,13,.16)}
 .list button[aria-current=true] i{background:var(--yellow);color:#1B1500}
+.notes{padding:14px 16px;font-size:16px;line-height:1.45;color:#E8EEF8}
+.notes small{display:block;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:700 14px var(--font);color:#fff;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);border-radius:999px;height:40px;padding:0 14px}
+.chip[aria-pressed=true]{background:#fff;color:#0A2346;border-color:#fff}
+.lbl{font-size:12px;color:var(--muted);margin:10px 2px 6px}
+.pad{position:relative;width:100%;aspect-ratio:16/9;border-radius:18px;border:1px dashed rgba(255,255,255,.35);background:rgba(0,0,0,.2);touch-action:none;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:14px;text-align:center;padding:10px}
+.pad .dot{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ff3048 32%,transparent 70%);box-shadow:0 0 14px 4px rgba(255,48,72,.6);opacity:0;pointer-events:none}
+.pad.on .dot{opacity:1}
 .login{padding:22px;display:flex;flex-direction:column;gap:12px}
 .login h1{margin:0;font-size:22px}.login p{margin:0;color:var(--muted);font-size:14px;line-height:1.4}
 .login input{font:600 17px var(--font);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:16px;height:52px;padding:0 14px;-webkit-user-select:text;user-select:text}
@@ -102,6 +112,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
         <button type="button" data-deck="diagnostico" aria-pressed="false">Diagnóstico</button>
       </div>
       <div class="now glass"><small>En pantalla (aprox.)</small><b id="nowName">—</b><span id="nowNum">Toca una diapositiva de la lista para sincronizar</span></div>
+      <div class="notes glass" id="notesBox"><small>Notas del presentador</small><span id="notes">Toca una diapositiva de la lista y aquí verás qué decir.</span></div>
       <div class="nav">
         <button class="big prev" type="button" data-cmd="prev">◀</button>
         <button class="big next" type="button" data-cmd="next">Siguiente ▶</button>
@@ -111,7 +122,31 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn red" type="button" data-cmd="spin">🎡 Girar</button>
           <button class="btn" type="button" data-cmd="closeReveal">Cerrar resultado</button>
           <button class="btn" type="button" data-cmd="ruleta">Ir a la ruleta</button>
+          <button class="btn" type="button" data-cmd="salirRuleta">↩ Salir de la ruleta</button>
         </div>
+      </section>
+      <section class="sec glass"><h2>Pantalla de espera (dinámicas y juegos)</h2>
+        <div class="chips" id="eqKind">
+          <button class="chip" type="button" data-kind="equipo" aria-pressed="true">Trabajo en equipo</button>
+          <button class="chip" type="button" data-kind="dinamica" aria-pressed="false">Dinámica</button>
+          <button class="chip" type="button" data-kind="juego" aria-pressed="false">Juego</button>
+          <button class="chip" type="button" data-kind="pausa" aria-pressed="false">Pausa</button>
+        </div>
+        <div class="lbl">Minutos</div>
+        <div class="chips" id="eqMin">
+          <button class="chip" type="button" data-min="1" aria-pressed="false">1</button><button class="chip" type="button" data-min="3" aria-pressed="false">3</button>
+          <button class="chip" type="button" data-min="5" aria-pressed="true">5</button><button class="chip" type="button" data-min="10" aria-pressed="false">10</button>
+          <button class="chip" type="button" data-min="15" aria-pressed="false">15</button><button class="chip" type="button" data-min="20" aria-pressed="false">20</button>
+        </div>
+        <div class="row" style="margin-top:10px"><button class="btn green" type="button" id="eqStart">▶ Mostrar pantalla</button></div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" type="button" data-eq="add">+1 min</button>
+          <button class="btn" type="button" data-eq="pause">⏯ Pausar / Seguir</button>
+          <button class="btn" type="button" data-eq="close">✕ Cerrar</button>
+        </div>
+      </section>
+      <section class="sec glass"><h2>Puntero láser</h2>
+        <div class="pad" id="pad"><span>Desliza el dedo aquí:<br>el punto rojo se mueve en la pantalla</span><i class="dot" id="padDot"></i></div>
       </section>
       <section class="sec glass"><h2>Videos</h2>
         <div class="row">
@@ -155,10 +190,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera' };
   let deck = new URLSearchParams(location.search).get('d') === 'diagnostico' ? 'diagnostico' : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && saved) deck = saved; } catch (e) {}
-  let names = [], pos = -1, send = null;
+  let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
 
   function status(t, cls) { const s = $('status'); s.textContent = t; s.className = 'status ' + cls; }
   let toastT; function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 1300); }
@@ -169,7 +204,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     try {
       const html = await (await fetch(deck + '.html', { cache: 'no-store' })).text();
       const docu = new DOMParser().parseFromString(html, 'text/html');
-      names = [...docu.querySelectorAll('section.slide')].map(s => s.dataset.name || '');
+      const secs = [...docu.querySelectorAll('section.slide')];
+      names = secs.map(s => s.dataset.name || ''); notes = secs.map(s => s.dataset.notes || '');
     } catch (e) { names = []; }
     renderList(); renderNow();
   }
@@ -187,6 +223,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     $('nowName').textContent = pos >= 0 && names[pos] ? names[pos] : '—';
     $('nowNum').textContent = pos >= 0 ? `Diapositiva ${pos + 1} de ${names.length}` : 'Toca una diapositiva de la lista para sincronizar';
     [...$('list').children].forEach((b, i) => b.setAttribute('aria-current', String(i === pos)));
+    $('notes').textContent = pos >= 0 && notes[pos] ? notes[pos] : 'Toca una diapositiva de la lista y aquí verás qué decir.';
   }
 
   async function command(cmd, arg) {
@@ -196,7 +233,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     if (cmd === 'next' && pos >= 0) pos = Math.min(names.length - 1, pos + 1);
     if (cmd === 'prev' && pos >= 0) pos = Math.max(0, pos - 1);
     if (cmd === 'go') pos = arg;
-    if (cmd === 'ruleta' || cmd === 'spin') { const r = names.findIndex(n => /sorteo/i.test(n)); if (r >= 0) pos = r; }
+    const r = names.findIndex(n => /sorteo/i.test(n));
+    if ((cmd === 'ruleta' || cmd === 'spin') && r >= 0) { if (pos !== r) beforeRul = pos; pos = r; }
+    if (cmd === 'salirRuleta' && pos === r) pos = beforeRul >= 0 ? beforeRul : Math.max(0, r - 1);
     renderNow();
     status('Enviando…', 'busy');
     try {
@@ -209,19 +248,45 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     }
   }
   document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => command(b.dataset.cmd, b.dataset.arg)));
+  const pickOne = (box, b) => box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  $('eqKind').querySelectorAll('button').forEach(b => b.addEventListener('click', () => pickOne($('eqKind'), b)));
+  $('eqMin').querySelectorAll('button').forEach(b => b.addEventListener('click', () => pickOne($('eqMin'), b)));
+  $('eqStart').addEventListener('click', () => {
+    const kind = $('eqKind').querySelector('[aria-pressed=true]').dataset.kind, min = +$('eqMin').querySelector('[aria-pressed=true]').dataset.min;
+    command('equipo', { a: 'start', kind, min });
+  });
+  document.querySelectorAll('[data-eq]').forEach(b => b.addEventListener('click', () => command('equipo', { a: b.dataset.eq, min: 1 })));
+
+  // laser: send the finger position about 6 times a second; the laptop smooths the motion
+  const pad = $('pad'), padDot = $('padDot'); let lastSent = 0, pend = null, padT = 0, k5 = 0;
+  function padPos(e) { const r = pad.getBoundingClientRect(), t = e.touches ? e.touches[0] : e; return { x: (t.clientX - r.left) / r.width, y: (t.clientY - r.top) / r.height }; }
+  function laserSend(p, on) {
+    if (!sendLaser) return;
+    const now = Date.now();
+    pend = { x: +Math.max(0, Math.min(1, p.x)).toFixed(4), y: +Math.max(0, Math.min(1, p.y)).toFixed(4), on, seq: now };
+    if (!on || now - lastSent >= 160) { lastSent = now; const m = pend; pend = null; sendLaser(m, k5++ % 5).catch(() => {}); }
+    else { clearTimeout(padT); padT = setTimeout(() => { if (pend) { lastSent = Date.now(); const m = pend; pend = null; sendLaser(m, k5++ % 5).catch(() => {}); } }, 170); }
+  }
+  function padMove(e) { e.preventDefault(); const p = padPos(e); padDot.style.left = (p.x * 100) + '%'; padDot.style.top = (p.y * 100) + '%'; pad.classList.add('on'); laserSend(p, true); }
+  pad.addEventListener('touchstart', padMove, { passive: false }); pad.addEventListener('touchmove', padMove, { passive: false });
+  pad.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch') { pad.setPointerCapture(e.pointerId); padMove(e); } });
+  pad.addEventListener('pointermove', e => { if (e.pointerType !== 'touch' && e.buttons) padMove(e); });
+  const padEnd = () => { pad.classList.remove('on'); laserSend({ x: 0, y: 0 }, false); };
+  pad.addEventListener('touchend', padEnd); pad.addEventListener('pointerup', e => { if (e.pointerType !== 'touch') padEnd(); });
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
     deck = b.dataset.deck; try { localStorage.setItem('remote-deck', deck); } catch (e) {}
     document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    if (sendFor) send = sendFor(deck);
+    if (sendFor && send) { send = sendFor(deck); sendLaser = laserFor(deck); }
     loadNames();
   }));
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.deck === deck)));
 
-  let sendFor = null;
+  let sendFor = null, laserFor = null;
   async function start() {
     if (DEMO) {           // same computer, no internet: BroadcastChannel
       sendFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage(m); };
-      send = sendFor(deck); $('app').hidden = false; status('Modo demo', 'ok'); loadNames(); return;
+      laserFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage({ laser: m }); };
+      send = sendFor(deck); sendLaser = laserFor(deck); $('app').hidden = false; status('Modo demo', 'ok'); loadNames(); return;
     }
     try {
       const V = '10.12.2';
@@ -233,12 +298,13 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       const fb = A.initializeApp(FB, 'presentador');
       const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
       sendFor = d => m => F.setDoc(F.doc(db, 'trivia', 'remote-' + d), Object.assign(m, { at: F.serverTimestamp() }));
+      laserFor = d => (m, k) => F.setDoc(F.doc(db, 'trivia', `remote-${d}-laser${k}`), m);
       U.onAuthStateChanged(auth, user => {
         if (user && !user.isAnonymous) {
-          $('login').hidden = true; $('app').hidden = false; send = sendFor(deck); status('Conectado ✓', 'ok');
+          $('login').hidden = true; $('app').hidden = false; send = sendFor(deck); sendLaser = laserFor(deck); status('Conectado ✓', 'ok');
           if (!names.length) loadNames();
         } else {
-          $('app').hidden = true; $('login').hidden = false; send = null; status('Sin sesión', 'busy');
+          $('app').hidden = true; $('login').hidden = false; send = null; sendLaser = null; status('Sin sesión', 'busy');
         }
       });
       $('login').addEventListener('submit', async e => {
