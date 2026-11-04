@@ -63,8 +63,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .btn.vid{flex:1 1 0;min-width:0;font-size:19px}
 .vid:nth-child(1){box-shadow:inset 0 -4px 0 #1E9E4F}.vid:nth-child(2){box-shadow:inset 0 -4px 0 #2A64B4}.vid:nth-child(3){box-shadow:inset 0 -4px 0 #F4C20D}
 .vid:nth-child(4){box-shadow:inset 0 -4px 0 #D7263D}.vid:nth-child(5){box-shadow:inset 0 -4px 0 #19C3E6}.vid:nth-child(6){box-shadow:inset 0 -4px 0 #C8743A}
-.list{display:flex;flex-direction:column;gap:6px;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}
+.list{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto;-webkit-overflow-scrolling:touch}
 .list button{display:flex;align-items:center;gap:12px;text-align:left;font:600 15px var(--font);color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:9px 12px}
+.list button img{flex:none;width:96px;height:54px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)}
+.list button span{flex:1;min-width:0}
 .list button i{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;background:rgba(255,255,255,.14)}
 .list button[aria-current=true]{border-color:var(--yellow);background:rgba(244,194,13,.16)}
 .list button[aria-current=true] i{background:var(--yellow);color:#1B1500}
@@ -124,6 +126,12 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn" type="button" data-cmd="closeReveal">Cerrar resultado</button>
           <button class="btn" type="button" data-cmd="ruleta">Ir a la ruleta</button>
           <button class="btn" type="button" data-cmd="salirRuleta">↩ Salir de la ruleta</button>
+        </div>
+      </section>
+      <section class="sec glass"><h2>Bienvenida (antes de empezar)</h2>
+        <div class="row">
+          <button class="btn green" type="button" data-cmd="bien" data-arg="open">👋 Mostrar bienvenida</button>
+          <button class="btn" type="button" data-cmd="bien" data-arg="close">Quitar</button>
         </div>
       </section>
       <section class="sec glass"><h2>Pantalla de espera (dinámicas y juegos)</h2>
@@ -191,8 +199,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
+  const THUMBV = '1793798258';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
@@ -215,7 +224,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     const L = $('list'); L.innerHTML = '';
     names.forEach((n, i) => {
       const b = document.createElement('button'); b.type = 'button';
-      b.innerHTML = `<i>${i + 1}</i><span></span>`; b.lastChild.textContent = n;
+      b.innerHTML = `<i>${i + 1}</i><img alt="" loading="lazy" src="presentacion/thumbs/${deck}/${i + 1}.jpg?v=${THUMBV}"><span></span>`; b.lastChild.textContent = n;
+      b.querySelector('img').addEventListener('error', e => e.target.remove());
       b.setAttribute('aria-current', String(i === pos));
       b.addEventListener('click', () => command('go', i));
       L.appendChild(b);

@@ -184,6 +184,26 @@ body.idle #jump{cursor:default}
   background:radial-gradient(circle,#fff 0 18%,#ff3048 30%,rgba(255,48,72,.55) 55%,transparent 72%);box-shadow:0 0 18px 6px rgba(255,48,72,.55)}
 #laser.on{opacity:1}
 /* waiting screen for group work, dynamics and games */
+/* welcome screen while people arrive */
+#bien{position:fixed;inset:0;z-index:19;display:grid;place-items:center;overflow:hidden;background:#0B1426;opacity:0;visibility:hidden;transition:opacity .6s ease,visibility 0s linear .6s}
+#bien.open{opacity:1;visibility:visible;transition:opacity .6s ease}
+#bien video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kb 26s ease-in-out infinite alternate}
+#bien .veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(11,20,38,.35),rgba(11,20,38,.8))}
+#bienBox{position:relative;text-align:center;padding:16px;width:min(1200px,100%)}
+#bienLogo{position:absolute;top:0;left:0;width:100%;height:auto;display:block}
+#bienBox{margin-top:12vh}
+#bienHi{font:700 clamp(54px,9vw,140px)/1 var(--head);margin:clamp(10px,2vh,24px) 0 6px;background:linear-gradient(90deg,#F2C12E,#FFE7A0 45%,#F2C12E 55%,#fff 75%,#F2C12E);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:bienShine 6s ease-in-out infinite}
+@keyframes bienShine{0%,100%{background-position:0 0}50%{background-position:100% 0}}
+#bienSub{font:700 clamp(18px,2.3vw,32px) var(--body);color:#fff}
+#bienWait{margin-top:clamp(12px,2.5vh,30px);font:400 clamp(16px,1.8vw,24px) var(--body);color:var(--lt2)}
+#bienWait span{display:inline-block;animation:bienDot 1.4s ease-in-out infinite}
+#bienWait span:nth-child(2){animation-delay:.2s}#bienWait span:nth-child(3){animation-delay:.4s}
+@keyframes bienDot{0%,100%{opacity:.2}50%{opacity:1}}
+#bienClock{margin-top:clamp(14px,3vh,34px);display:inline-flex;align-items:center;gap:12px;font:700 clamp(28px,3.6vw,52px) var(--head);font-variant-numeric:tabular-nums;padding:10px 26px;border-radius:999px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#bienDots{display:flex;justify-content:center;gap:14px;margin-top:clamp(14px,3vh,30px)}
+#bienDots i{width:16px;height:16px;border-radius:50%;animation:eqHop 2.4s ease-in-out infinite}
+#bienDots i:nth-child(2){animation-delay:.2s}#bienDots i:nth-child(3){animation-delay:.4s}#bienDots i:nth-child(4){animation-delay:.6s}#bienDots i:nth-child(5){animation-delay:.8s}
 #equipo{position:fixed;inset:0;z-index:18;display:grid;place-items:center;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s;
   background:radial-gradient(ellipse at 50% 40%,#123A73 0%,#0A2346 55%,#061730 100%)}
 #equipo.open{opacity:1;visibility:visible;transition:opacity .5s ease}
@@ -384,6 +404,17 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
 </div>
 <div id="rtoast" aria-live="polite"></div>
 <div id="laser" aria-hidden="true"></div>
+<div id="bien" role="dialog" aria-modal="true" aria-labelledby="bienHi">
+  <video muted loop playsinline preload="none" poster="presentacion/media/embers_poster.jpg" data-src="presentacion/media/embers.mp4"></video><div class="veil"></div>
+  <img id="bienLogo" src="presentacion/media/banner.png" alt="Alcaldía Bolivariana de Mara">
+  <div id="bienBox">
+    <div id="bienHi">¡Bienvenidos!</div>
+    <div id="bienSub"></div>
+    <div id="bienWait">Comenzaremos en breve<span>.</span><span>.</span><span>.</span></div>
+    <div id="bienClock">🕒 <span id="bienTime">--:--</span></div>
+    <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
+  </div>
+</div>
 <div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
   <i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i>
   <div id="eqBox">
@@ -624,6 +655,8 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
       else if (e.key === '+' || e.key === '=') { e.preventDefault(); eqAdd(1); }
       wake(); return;
     }
+    if (bienOpen) { if (e.key === 'Escape' || e.key === 'b' || e.key === 'B' || e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter' || e.key === 'PageDown') { e.preventDefault(); closeBien(); } return; }
+    if (e.key === 'b' || e.key === 'B') { e.preventDefault(); openBien(); return; }
     if (e.key === 'e' || e.key === 'E') { e.preventDefault(); openEquipo(5, 'equipo'); return; }
     if (apOpen && (e.key === 'Escape' || e.key === 'a' || e.key === 'A')) { e.preventDefault(); closeAplauso(); return; }
     if (apOpen) return;
@@ -779,7 +812,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   function openEquipo(min, kind) {
     const k = EQ_TITLES[kind] ? kind : 'equipo';
     $('eqTitle').textContent = EQ_TITLES[k][0]; $('eqSub').textContent = EQ_TITLES[k][1];
-    closePick(); closeVideo(); closeAplauso();
+    closePick(); closeVideo(); closeAplauso(); closeBien();
     eq.total = eq.remain = Math.max(1, +min || 5) * 60000; eq.end = Date.now() + eq.total; eq.paused = false; eq.done = false; eq.open = true;
     $('equipo').classList.remove('done', 'paused'); $('equipo').classList.add('open'); $('eqPause').textContent = 'Pausar';
     clearInterval(eq.t); eq.t = setInterval(eqRender, 250); eqRender(); wake();
@@ -796,6 +829,18 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     if (eq.paused) { eq.end = Date.now() + eq.remain; eq.paused = false; } else { eq.remain = Math.max(0, eq.end - Date.now()); eq.paused = true; }
     $('equipo').classList.toggle('paused', eq.paused); $('eqPause').textContent = eq.paused ? 'Seguir' : 'Pausar'; eqRender();
   }
+  /* welcome screen: logo, music, real clock — shown with B or from the phone */
+  let bienOpen = false, bienT = 0;
+  $('bienSub').textContent = document.title.split('·')[0].trim();
+  function bienClock() { const d = new Date(); let h = d.getHours(); const m = String(d.getMinutes()).padStart(2, '0'), ap = h >= 12 ? 'p. m.' : 'a. m.'; h = h % 12 || 12; $('bienTime').textContent = `${h}:${m} ${ap}`; }
+  function openBien() {
+    closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeTrivia();
+    const v = $('bien').querySelector('video'); if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); }
+    const p = v.play(); if (p && p.catch) p.catch(() => {});
+    bienOpen = true; $('bien').classList.add('open'); bienClock(); clearInterval(bienT); bienT = setInterval(bienClock, 5000); startMusic();
+  }
+  function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); }
+  $('bien').addEventListener('click', closeBien);
   function closeEquipo() { if (!eq.open) return; eq.open = false; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); }
   $('eqPlus').addEventListener('click', () => eqAdd(1));
   $('eqPause').addEventListener('click', eqPause);
@@ -830,7 +875,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   let rT;
   function rtoast(t) { const el = $('rtoast'); el.textContent = '📱 ' + t; el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
   function remote(cmd, arg) {
-    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); };
+    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); };
     switch (cmd) {
       case 'next': calm(); next(); rtoast('Siguiente'); break;
       case 'prev': calm(); prev(); rtoast('Anterior'); break;
@@ -838,6 +883,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
       case 'ruleta': calm(); go(ruletaIdx); rtoast('Ruleta'); break;
       case 'spin': calm(); if (!isLive()) { go(ruletaIdx); setTimeout(spin, 1800); } else spin(); rtoast('Girando la ruleta'); break;
       case 'salirRuleta': calm(); go(isLive() ? (beforeRuleta >= 0 && beforeRuleta !== ruletaIdx ? beforeRuleta : Math.max(0, ruletaIdx - 1)) : cur); rtoast('Saliendo de la ruleta'); break;
+      case 'bien': if (arg === 'close') { closeBien(); rtoast('Bienvenida cerrada'); } else { openBien(); rtoast('Pantalla de bienvenida'); } break;
       case 'equipo': {
         const a = arg || {};
         if (a.a === 'close') { closeEquipo(); rtoast('Pantalla de espera cerrada'); }
