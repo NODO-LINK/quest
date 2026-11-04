@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1426">
+<title>Mara en la prensa · Alcaldía de Mara</title>
+<!--
+  PRESENTACIÓN WEB — Plan de Formación Filosófico-Político · Alcaldía Bolivariana de Mara
+  · Avanzar: clic, flecha →, Av Pág (puntero/clicker) o Espacio.   · Volver: flecha ←, Re Pág.
+  · F: pantalla completa.   · D (o el botón ☰ Diapositivas): elegir y saltar a cualquier diapositiva.   · Inicio / Fin: primera / última diapositiva.
+  · En la diapositiva del sorteo la ruleta funciona aquí mismo: Espacio o clic en GIRAR para girar;
+    las flechas y el clicker siguen cambiando de diapositiva.
+  · Atajos (abajo a la izquierda, siempre visibles): 1–6 videos · Ruleta · Trivia (pantalla del presentador).
+  · Necesita esta página junto a index.html (trivia), ruleta.html y la carpeta presentacion/ (videos y letras).
+-->
+<style>
+@font-face{font-family:"Bookman Web";src:url(presentacion/fonts/texgyrebonum-bold.woff) format("woff");font-weight:700;font-display:block}
+@font-face{font-family:"Carlito Web";src:url(presentacion/fonts/Carlito-Regular.woff) format("woff");font-weight:400;font-display:block}
+@font-face{font-family:"Carlito Web";src:url(presentacion/fonts/Carlito-Bold.woff) format("woff");font-weight:700;font-display:block}
+@font-face{font-family:"Carlito Web";src:url(presentacion/fonts/Carlito-Italic.woff) format("woff");font-weight:400;font-style:italic;font-display:block}
+@font-face{font-family:"Carlito Web";src:url(presentacion/fonts/Carlito-BoldItalic.woff) format("woff");font-weight:700;font-style:italic;font-display:block}
+:root{
+  color-scheme:dark;
+  --head:"Bookman Web","Bookman Old Style",Georgia,serif;
+  --body:"Carlito Web",Calibri,"Segoe UI",sans-serif;
+  --gold:#F2C12E; --red:#D62839; --lt2:#DCE3EE; --dk1:#0B1426;
+  --s:1;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#03060d;overflow:hidden}
+body{font-family:var(--body);color:#fff;-webkit-font-smoothing:antialiased}
+body.idle{cursor:none}
+#stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform:translate(-50%,-50%) scale(var(--s));transform-origin:50% 50%;overflow:hidden;background:var(--dk1)}
+
+/* slides: calm cross-fade with a slight settle */
+.slide{position:absolute;inset:0;overflow:hidden;background:var(--dk1);opacity:0;visibility:hidden;transform:scale(1.025);
+  transition:opacity .9s ease, transform 1.4s cubic-bezier(.2,.7,.2,1), visibility 0s linear .9s}
+.slide.cur{opacity:1;visibility:visible;transform:none;z-index:2;transition:opacity .9s ease, transform 1.2s cubic-bezier(.2,.7,.2,1), clip-path 1.3s cubic-bezier(.5,0,.2,1), visibility 0s}
+/* per-section entrances (data-tr on the slide): zoom, slide, iris, wipe, curtain (Mara colours) */
+.slide.from-zoom{transform:scale(1.2)!important;opacity:0}
+.slide.from-slide{transform:translateX(100%)!important;opacity:1}
+.slide.from-slideback{transform:translateX(-100%)!important;opacity:1}
+.slide.out-l{transform:translateX(-22%)!important}
+.slide.out-r{transform:translateX(22%)!important}
+.slide[data-tr=iris].cur{clip-path:circle(150% at 50% 50%)}
+.slide.from-iris{clip-path:circle(0% at 50% 50%)!important;opacity:1}
+.slide[data-tr=wipe].cur{clip-path:inset(0 0 0 0)}
+.slide.from-wipe{clip-path:inset(0 0 0 100%)!important;opacity:1}
+#curtain{position:absolute;top:-10%;bottom:-10%;left:-10%;right:-10%;z-index:6;pointer-events:none;display:flex;transform:translateX(-140%) skewX(-14deg)}
+#curtain i{flex:1}
+#curtain i:nth-child(1){background:#1E9E4F}#curtain i:nth-child(2){background:#2A64B4}#curtain i:nth-child(3){background:#F4C20D}#curtain i:nth-child(4){background:#D7263D}
+#curtain.run{animation:curtain 1.25s cubic-bezier(.65,0,.3,1) forwards}
+@keyframes curtain{from{transform:translateX(-140%) skewX(-14deg)}to{transform:translateX(140%) skewX(-14deg)}}
+/* moving coloured lights over every slide */
+#lights{position:absolute;inset:0;z-index:3;pointer-events:none;mix-blend-mode:screen;opacity:.42;overflow:hidden}
+#lights i{position:absolute;width:760px;height:760px;border-radius:50%;filter:blur(70px);will-change:transform}
+#lights i:nth-child(1){background:radial-gradient(circle,rgba(242,193,46,.55),transparent 65%);left:-200px;top:-260px;animation:l1 38s ease-in-out infinite alternate}
+#lights i:nth-child(2){background:radial-gradient(circle,rgba(214,40,57,.5),transparent 65%);right:-260px;top:120px;animation:l2 46s ease-in-out infinite alternate}
+#lights i:nth-child(3){background:radial-gradient(circle,rgba(42,100,180,.55),transparent 65%);left:420px;bottom:-380px;animation:l3 54s ease-in-out infinite alternate}
+@keyframes l1{to{transform:translate(900px,380px)}}
+@keyframes l2{to{transform:translate(-820px,260px)}}
+@keyframes l3{to{transform:translate(520px,-420px)}}
+.slide>*{position:absolute}
+.bg{object-fit:cover;display:block}
+.shade{inset:0}
+.t{color:#fff;line-height:1.2;margin:0}
+
+/* entrance effects (same names as the .pptx): fade, float, zoom, flyR, flyB, wipe, words */
+.a{opacity:0;transition:opacity var(--t) ease var(--d), transform var(--t) cubic-bezier(.2,.75,.2,1) var(--d), clip-path var(--t) cubic-bezier(.4,0,.2,1) var(--d)}
+.a[data-a=float]{transform:translateY(26px)}
+.a[data-a=zoom]{transform:scale(.6)}
+.a[data-a=flyR]{transform:translateX(110px)}
+.a[data-a=flyB]{transform:translateY(110px)}
+.a[data-a=wipe]{opacity:1;clip-path:inset(0 100% 0 0)}
+.a[data-a=words]{opacity:1}
+.wd{display:inline-block;opacity:0;transform:translateY(.35em);transition:opacity .6s ease var(--wd), transform .8s cubic-bezier(.2,.75,.2,1) var(--wd)}
+.on .a{opacity:1;transform:none;clip-path:inset(0 0 0 0)}
+.on .wd{opacity:1;transform:none}
+.reset .a,.reset .wd{transition:none!important}
+
+.pill{display:flex;align-items:center;justify-content:center;border-radius:999px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.dot{border-radius:50%}
+.node{border-radius:50%;border:4px solid #fff;display:grid;place-items:center;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+.arrow{background:var(--gold);height:3px!important;margin-top:-1px}
+.a.arrow[data-a=wipe]{clip-path:inset(-12px 100% -12px 0)}
+.on .a.arrow[data-a=wipe]{clip-path:inset(-12px -20px -12px 0)}
+.arrow::after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:18px solid var(--gold);border-top:10px solid transparent;border-bottom:10px solid transparent}
+.foot{font-size:16.7px;color:var(--lt2);white-space:nowrap;opacity:.9}
+.foot.num{text-align:right}
+.ic{flex:none;border-radius:50%;display:grid;place-items:center}
+.card{border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.card.row{display:flex;align-items:center;gap:26px;padding:6px 24px 6px 26px;background:rgba(19,35,63,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.rowtxt{font-size:26.7px;line-height:1.12}
+.rowtxt span{font-size:23.3px;color:var(--lt2);display:inline-block;margin-top:4px}
+.card.col{background:rgba(11,20,38,.62);border:1.5px solid;border-radius:20px;padding:42px;display:flex;flex-direction:column;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.colhead{display:flex;justify-content:space-between;align-items:center}
+.big{font-family:var(--head);font-weight:700;font-size:66.7px;line-height:1}
+.coltxt{margin-top:30px;line-height:1.12}
+.coltxt b{display:block;margin-bottom:14px}
+.coltxt span{color:var(--lt2);display:block}
+/* charts: bars grow from the baseline, rings fill, numbers count up */
+.a[data-a=grow]{opacity:1;transform:scaleY(0);transform-origin:50% 100%}
+.a[data-a=growX]{opacity:1;transform:scaleX(0);transform-origin:0 50%}
+.on .a[data-a=grow],.on .a[data-a=growX]{transform:none}
+.bar{border-radius:6px 6px 0 0}
+.ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring .rbg{fill:none;stroke:rgba(255,255,255,.14)}
+.ring .rfg{fill:none;stroke-linecap:round;stroke-dasharray:var(--c);stroke-dashoffset:var(--c);transition:stroke-dashoffset 1.8s cubic-bezier(.2,.7,.2,1) var(--rd)}
+.on .ring .rfg{stroke-dashoffset:calc(var(--c) * (1 - var(--p)))}
+.reset .ring .rfg{transition:none!important}
+.chip{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:0 20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  font-weight:700;white-space:nowrap;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.glass{background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.22);border-radius:22px;
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 12px 34px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.live iframe{position:absolute;inset:0;width:1600px;height:900px;border:0;display:block;background:transparent}
+
+/* presenter chrome (outside the 16:9 stage) */
+#bar{position:fixed;left:0;bottom:0;height:4px;background:linear-gradient(90deg,#1E9E4F,#2A64B4,#F2C12E,#D62839);width:0;transition:width .6s ease;z-index:5}
+#dock{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:14px;z-index:6;display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 30px rgba(0,0,0,.4);transition:opacity .4s ease, transform .4s ease}
+body.idle #dock{opacity:0;transform:translateY(12px);pointer-events:none}
+#dock button{font:700 15px var(--body);color:#fff;background:rgba(255,255,255,.1);border:0;border-radius:999px;min-width:40px;height:40px;padding:0 12px;cursor:pointer}
+#dock button:hover{background:rgba(255,255,255,.24)}
+#dock button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#dock #count{background:transparent;padding:0 8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#hint{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:6;font:600 15px var(--body);padding:10px 18px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;white-space:nowrap;transition:opacity .8s ease;pointer-events:none}
+#hint.gone{opacity:0}
+@media (max-width:600px){#hint{display:none}}
+
+/* shortcut bar: always visible, bottom-left corner */
+#jump{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:14px;z-index:16;display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;
+  background:rgba(11,20,38,.45);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 10px 30px rgba(0,0,0,.4)}
+#jump button{font:700 16px var(--body);color:#fff;border:0;border-radius:999px;min-width:40px;height:40px;padding:0 10px;cursor:pointer;
+  background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s ease, background .2s}
+#jump button:hover{background:rgba(255,255,255,.26);transform:translateY(-2px)}
+#jump button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#jump button.v{background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08))}
+#jump button.v:nth-child(1){box-shadow:inset 0 -3px 0 #1E9E4F}
+#jump button.v:nth-child(2){box-shadow:inset 0 -3px 0 #2A64B4}
+#jump button.v:nth-child(3){box-shadow:inset 0 -3px 0 #F4C20D}
+#jump button.v:nth-child(4){box-shadow:inset 0 -3px 0 #D7263D}
+#jump button.v:nth-child(5){box-shadow:inset 0 -3px 0 #19C3E6}
+#jump button.v:nth-child(6){box-shadow:inset 0 -3px 0 #C8743A}
+#jump button.triv{background:linear-gradient(160deg,#2BB673,#1E9E4F 60%,#16803F);padding:0 16px}
+body.trivia #jump{bottom:auto;top:max(14px,env(safe-area-inset-top))}
+/* trivia (presenter screen) inside the same page */
+#trivia{position:fixed;inset:0;z-index:15;background:#0A2346;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+#trivia.open{opacity:1;visibility:visible;transition:opacity .35s ease}
+#trivia iframe{width:100%;height:100%;border:0;display:block}
+#tClose{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:17;font:700 16px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);
+  background:rgba(11,20,38,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:999px;height:44px;padding:0 18px;cursor:pointer;display:none}
+body.trivia #tClose{display:block}
+#tClose:hover{background:rgba(255,255,255,.22)}
+#jump button.rul{background:linear-gradient(160deg,#F0485C,#D7263D 60%,#B81D33);padding:0 16px}
+#jump button[aria-current=true]{outline:2px solid #fff;outline-offset:1px}
+body.idle #jump{cursor:default}
+@media (max-width:600px){#jump button{min-width:34px;height:34px;font-size:14px;padding:0 8px}#jump{gap:4px;padding:4px}}
+
+/* slide picker: jump straight to any slide */
+#pick{position:fixed;inset:0;z-index:18;display:grid;place-items:center;background:rgba(3,6,13,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s;padding:16px}
+#pick.open{opacity:1;visibility:visible;transition:opacity .3s ease}
+#pickCard{width:min(980px,100%);max-height:100%;overflow:auto;padding:26px;border-radius:30px;background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.28);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 20px 60px rgba(0,0,0,.5)}
+#pickCard h2{margin:0 0 4px;font:700 28px var(--head)}
+#pickCard p{margin:0 0 18px;color:var(--lt2);font-size:16px}
+#pickGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+#pickGrid button{display:flex;align-items:center;gap:12px;text-align:left;font:600 16px var(--body);color:#fff;cursor:pointer;padding:10px 14px 10px 10px;border-radius:18px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
+#pickGrid button:hover,#pickGrid button:focus-visible{background:rgba(255,255,255,.2);outline:none}
+#pickGrid button[aria-current=true]{border-color:var(--gold);background:rgba(242,193,46,.18)}
+#pickGrid b{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 20px var(--head);background:rgba(255,255,255,.14)}
+#pickGrid button[aria-current=true] b{background:var(--gold);color:#1B1500}
+#jump button.sl{padding:0 14px}
+#jump button.ap{font-size:19px;padding:0 10px}
+#rtoast{position:fixed;left:50%;top:16px;z-index:30;transform:translate(-50%,-14px);opacity:0;transition:all .25s ease;pointer-events:none;
+  font:700 16px var(--body);padding:10px 18px;border-radius:999px;background:rgba(11,20,38,.78);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+#rtoast.show{opacity:1;transform:translate(-50%,0)}
+/* laser pointer driven from the phone */
+#laser{position:fixed;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;z-index:40;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(circle,#fff 0 18%,#ff3048 30%,rgba(255,48,72,.55) 55%,transparent 72%);box-shadow:0 0 18px 6px rgba(255,48,72,.55)}
+#laser.on{opacity:1}
+/* waiting screen for group work, dynamics and games */
+#equipo{position:fixed;inset:0;z-index:18;display:grid;place-items:center;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s;
+  background:radial-gradient(ellipse at 50% 40%,#123A73 0%,#0A2346 55%,#061730 100%)}
+#equipo.open{opacity:1;visibility:visible;transition:opacity .5s ease}
+#equipo .blob{position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(60px);opacity:.38;mix-blend-mode:screen}
+#equipo .blob:nth-child(1){background:#C8743A;left:-12vmax;top:-14vmax;animation:eqb1 24s ease-in-out infinite alternate}
+#equipo .blob:nth-child(2){background:#D62839;right:-14vmax;top:-10vmax;animation:eqb2 28s ease-in-out infinite alternate}
+#equipo .blob:nth-child(3){background:#2F80ED;left:20vmax;bottom:-22vmax;animation:eqb3 32s ease-in-out infinite alternate}
+#equipo .blob:nth-child(4){background:#F2C12E;left:-16vmax;bottom:-20vmax;animation:eqb2 30s ease-in-out infinite alternate-reverse}
+#equipo .blob:nth-child(5){background:#19C3E6;right:-18vmax;bottom:-18vmax;animation:eqb1 26s ease-in-out infinite alternate-reverse}
+@keyframes eqb1{to{transform:translate(18vmax,12vmax) scale(1.15)}}
+@keyframes eqb2{to{transform:translate(-16vmax,14vmax) scale(.9)}}
+@keyframes eqb3{to{transform:translate(10vmax,-16vmax) scale(1.1)}}
+#eqBox{position:relative;text-align:center;padding:16px;width:min(1100px,100%)}
+#eqKicker{font:700 clamp(14px,1.6vw,20px) var(--body);letter-spacing:.4em;color:var(--gold);text-transform:uppercase}
+#eqTitle{font:700 clamp(40px,6.4vw,96px)/1.05 var(--head);margin:10px 0 4px;text-shadow:0 8px 30px rgba(0,0,0,.4)}
+#eqSub{font:400 clamp(16px,1.9vw,26px) var(--body);color:var(--lt2)}
+#eqPeople{display:flex;justify-content:center;gap:clamp(10px,2vw,28px);margin:clamp(14px,3vh,34px) 0}
+#eqPeople span{width:clamp(46px,6vw,86px);height:clamp(46px,6vw,86px);border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 10px 24px rgba(0,0,0,.4);animation:eqHop 2.4s ease-in-out infinite}
+#eqPeople span svg{width:56%;height:56%}
+#eqPeople span:nth-child(2){animation-delay:.2s}#eqPeople span:nth-child(3){animation-delay:.4s}#eqPeople span:nth-child(4){animation-delay:.6s}#eqPeople span:nth-child(5){animation-delay:.8s}
+@keyframes eqHop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-16px)}}
+#eqClock{position:relative;width:clamp(220px,30vmin,340px);aspect-ratio:1;margin:0 auto}
+#eqClock svg{position:absolute;inset:0;transform:rotate(-90deg)}
+#eqClock .bg{fill:none;stroke:rgba(255,255,255,.14);stroke-width:12}
+#eqClock .fg{fill:none;stroke:url(#eqGrad);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+#eqTime{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(54px,9vmin,104px) var(--head);font-variant-numeric:tabular-nums}
+#eqState{margin-top:12px;font:700 clamp(15px,1.7vw,22px) var(--body);color:var(--lt2);min-height:1.4em}
+#equipo.done #eqTime{color:var(--gold);animation:eqDone 1.2s ease-in-out infinite}
+@keyframes eqDone{50%{transform:scale(1.07)}}
+#equipo.paused #eqTime{opacity:.55}
+#eqBtns{position:fixed;right:16px;bottom:16px;display:flex;gap:8px;opacity:.85}
+#eqBtns button{font:700 15px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:999px;height:42px;padding:0 16px;cursor:pointer}
+body.idle #eqBtns{opacity:0;transition:opacity .4s}
+/* applause meter */
+#aplauso{position:fixed;inset:0;z-index:19;display:grid;place-items:center;background:rgba(3,6,13,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s;padding:16px}
+#aplauso.open{opacity:1;visibility:visible;transition:opacity .3s ease}
+#apCard{width:min(860px,100%);text-align:center;padding:30px 34px;border-radius:34px;background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.28);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 20px 60px rgba(0,0,0,.5)}
+#apTitle{font:700 18px var(--body);letter-spacing:6px;color:var(--gold)}
+#apEmoji{font-size:110px;line-height:1.1;margin:6px 0 10px;transform:scale(var(--k,1));transition:transform .08s linear}
+#apMeter{position:relative;height:54px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);overflow:hidden}
+#apFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#1E9E4F,#2A64B4 35%,#F4C20D 65%,#D7263D);transition:width .08s linear}
+#apPeak{position:absolute;top:4px;bottom:4px;width:5px;border-radius:3px;background:#fff;left:0;box-shadow:0 0 12px #fff}
+#apNums{display:flex;justify-content:center;gap:60px;margin-top:18px}
+#apNums b{display:block;font:700 64px var(--head);line-height:1;font-variant-numeric:tabular-nums}
+#apNums span{color:var(--lt2);font-size:16px}
+#apMsg{margin-top:14px;font-size:20px;color:var(--lt2);min-height:28px}
+#apBtns{display:flex;gap:12px;justify-content:center;margin-top:18px}
+#apBtns button{font:700 16px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:999px;height:44px;padding:0 20px;cursor:pointer}
+
+/* full-screen video player */
+#player{position:fixed;inset:0;z-index:20;background:rgba(2,5,12,.94);display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+#player.open{opacity:1;visibility:visible;transition:opacity .35s ease}
+#player video{width:100vw;height:100vh;object-fit:contain;background:#000;display:block}
+#pClose{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:21;font:700 16px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:999px;height:44px;padding:0 18px;cursor:pointer}
+#pClose:hover{background:rgba(255,255,255,.26)}
+#pLabel{position:fixed;top:max(14px,env(safe-area-inset-top));left:max(14px,env(safe-area-inset-left));z-index:21;font:700 16px var(--body);padding:11px 18px;border-radius:999px;background:rgba(0,0,0,.45)}
+#pMsg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:21;font:600 20px var(--body);text-align:center;max-width:80vw}
+body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
+/* ---- ambient motion: always something gently alive, never blinking ---- */
+/* full-screen background videos drift slowly (Ken Burns) */
+.slide.cur video.kb{animation:kb 26s ease-in-out infinite alternate;transform-origin:60% 40%}
+@keyframes kb{from{transform:scale(1.001)}to{transform:scale(1.09) translate(-1.2%,-1%)}}
+/* accent line under titles */
+.tline{border-radius:3px;background:linear-gradient(90deg,#F2C12E,#D62839 70%,transparent)}
+/* one soft light sweep over each card after it lands */
+.card::after,.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.16) 48%,transparent 62%);background-size:260% 100%;background-position:130% 0}
+.on .card.a::after,.on .glass.a::after{animation:sweep 1.5s ease-out forwards;animation-delay:calc(var(--d) + var(--t))}
+@keyframes sweep{0%{opacity:1;background-position:130% 0}100%{opacity:1;background-position:-30% 0}}
+/* icons breathe slowly once they are in */
+.on .ic,.on .node{animation:breathe 5s ease-in-out infinite;animation-delay:calc(var(--d, 0ms) + 1800ms)}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.on .node{animation-name:breatheN}
+@keyframes breatheN{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.03)}}
+/* cover: light sweep on the logo, golden fill on the title */
+.shine{pointer-events:none;-webkit-mask-image:url(presentacion/media/banner.png);mask-image:url(presentacion/media/banner.png);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.75) 50%,transparent 60%);background-size:300% 100%;background-position:150% 0;opacity:0}
+.on .shine{animation:logoShine 5.5s ease-in-out 1.6s infinite}
+@keyframes logoShine{0%{opacity:1;background-position:150% 0}35%{opacity:1;background-position:-50% 0}36%,100%{opacity:0;background-position:-50% 0}}
+.goldfill .wd{background-image:linear-gradient(90deg,#F2C12E 0%,#FFE7A0 42%,#F2C12E 49%,#fff 51%,#fff 100%);background-size:220% 100%;background-position:100% 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  transition:opacity .6s ease var(--wd),transform .8s cubic-bezier(.2,.75,.2,1) var(--wd),background-position 1.6s ease calc(var(--wd) + 600ms)}
+.on .goldfill .wd{background-position:0 0}
+.reset .goldfill .wd{transition:none!important}
+/* generation icons turn slowly in 3D */
+.spin3d{perspective:500px}
+.on .spin3d svg{animation:spinY 9s linear infinite;animation-delay:var(--sd,0s)}
+@keyframes spinY{to{transform:rotateY(360deg)}}
+.gicon{border-radius:50%;border:4px solid #fff;display:grid;place-items:center;box-shadow:0 10px 26px rgba(0,0,0,.45)}
+/* generation timeline */
+.tl{display:block}
+.tl-track{position:absolute;left:11px;right:11px;top:10px;height:3px;border-radius:2px;background:rgba(255,255,255,.25)}
+.tl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:linear-gradient(90deg,#C8743A,#D62839,#2F80ED,#F2C12E,#19C3E6)}
+.tl-dots{position:relative;display:flex;justify-content:space-between;align-items:center;height:23px}
+.tl-dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.tl-dot.later{opacity:.35}
+.tl-dot.now{width:23px;height:23px;border:3px solid #fff;box-shadow:0 0 0 0 rgba(255,255,255,.6)}
+.on .tl-dot.now{animation:nowPulse 2.4s ease-out 1.6s infinite}
+@keyframes nowPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}100%{box-shadow:0 0 0 14px rgba(255,255,255,0)}}
+.tl-label{margin-top:8px;font-size:15px;font-weight:700;letter-spacing:2px;color:var(--lt2);white-space:nowrap}
+/* closing: floating photo prints and rolling credits */
+.pola{width:100%;height:100%;background:#fff;padding:10px 10px 30px;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.55);transform:rotate(var(--r))}
+.pola img{width:100%;height:100%;object-fit:cover;display:block;border-radius:2px}
+.on .pola{animation:polaFloat 9s ease-in-out infinite alternate}
+@keyframes polaFloat{from{transform:rotate(var(--r)) translateY(0)}to{transform:rotate(calc(var(--r) * -0.4)) translateY(-10px)}}
+.credits{overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);text-align:center}
+.credits .roll{transform:translateY(260px)}
+.on .credits .roll{animation:roll 26s linear 2.8s infinite}
+@keyframes roll{from{transform:translateY(260px)}to{transform:translateY(-100%)}}
+.credits p{margin:0 0 6px;font-size:22px;color:#fff}
+.credits p.k{margin-top:18px;font-size:14px;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase}
+/* newspaper clippings: drop onto the slide, marker boxes draw over the key parts, zoom windows pan slowly */
+.a[data-a=drop]{opacity:0;transform:translateY(-120px) rotate(-10deg) scale(1.08)}
+.on .a[data-a=drop]{opacity:1;transform:none}
+.paperIn{position:relative;width:100%;height:100%;transform:rotate(var(--r));box-shadow:0 22px 50px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.25);background:#eee}
+.paperIn img{width:100%;height:100%;display:block;object-fit:cover;filter:sepia(.12) contrast(1.05)}
+.on .paperIn{animation:paperFloat 10s ease-in-out 1.4s infinite alternate}
+@keyframes paperFloat{to{transform:rotate(calc(var(--r) * .6)) translateY(-6px)}}
+.mark{position:absolute;border:3px solid #F4C20D;background:rgba(244,194,13,.18);border-radius:6px;box-shadow:0 0 0 3px rgba(0,0,0,.25);transform:scaleX(0);transform-origin:left center;transition:transform .8s cubic-bezier(.3,.7,.2,1) var(--md)}
+.on .mark{transform:none}
+.reset .mark{transition:none!important}
+.zoombox{overflow:hidden;border-radius:18px;border:2px solid rgba(255,255,255,.35);box-shadow:0 14px 36px rgba(0,0,0,.55);background:#ddd}
+.zoombox img{display:block;transform:translate(var(--from))}
+.on .zoombox img{animation:zoomPan 16s ease-in-out .8s infinite alternate}
+@keyframes zoomPan{from{transform:translate(var(--from))}to{transform:translate(var(--to))}}
+/* golden dust drifting over every slide */
+#dust{position:absolute;inset:0;width:1600px;height:900px;pointer-events:none;z-index:4;mix-blend-mode:screen;opacity:.8}
+.reset .card::after,.reset .glass::after{animation:none!important}
+@media (prefers-reduced-motion: reduce){.a,.wd,.slide{transition-duration:.01s!important;transition-delay:0s!important}
+  .slide.cur video.kb,.on .ic,.on .node,.on .card.a::after,.on .glass.a::after,.on .shine,.on .spin3d svg,.on .pola,.on .tl-dot.now,.on .paperIn,.on .zoombox img{animation:none!important}.on .credits .roll{animation-duration:60s!important}#dust,#lights,#curtain{display:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+<section class="slide" data-tr="zoom" data-name="Portada" data-notes="Presenta dos recortes de prensa regional sobre Mara: el hambre y la desnutrición infantil, y la respuesta con caneyes comunitarios. La prensa como memoria histórica del municipio." aria-label="Portada"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/embers_poster.jpg" data-src="presentacion/media/embers.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><img class="a" data-a="fade" style="--d:0ms;--t:1200ms;left:0px;top:0px;width:1600px;height:297.7px" src="presentacion/media/banner.png" alt="Alcaldía Bolivariana de Mara"><div class="paper a" data-a="drop" style="--d:900ms;--t:1100ms;left:66px;top:330px;width:311.6px;height:480px;"><div class="paperIn" style="--r:-7deg"><img src="presentacion/media/prensa/hambre_2001.jpg" alt="Recorte de periódico"></div></div><div class="paper a" data-a="drop" style="--d:1300ms;--t:1100ms;left:1206px;top:372px;width:340.7px;height:270px;"><div class="paperIn" style="--r:6deg"><img src="presentacion/media/prensa/caneyes.jpg" alt="Recorte de periódico"></div></div><div class="t a" data-a="float" style="--d:600ms;--t:700ms;left:360px;top:330px;width:876px;height:48px;font-size:25.0px;font-weight:700;color:var(--gold);text-align:center;letter-spacing:4px">MEMORIA HISTÓRICA  ·  PRENSA REGIONAL</div><div class="t a" data-a="words" style="--d:900ms;--t:600ms;left:348px;top:378px;width:900px;height:144px;font-size:65.0px;font-family:var(--head);font-weight:700;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap"><span class="goldfill"><span class="wds"><span class="wd" style="--wd:900ms">Mara</span> <span class="wd" style="--wd:1030ms">en</span> <span class="wd" style="--wd:1160ms">los</span> <span class="wd" style="--wd:1290ms">periódicos</span></span></span></div><div class="t a" data-a="flyB" style="--d:1800ms;--t:700ms;left:372px;top:534px;width:852px;height:108px;font-size:31.7px;color:var(--lt2);text-align:center;line-height:1.3">Lo que contaba la prensa sobre el hambre, la desnutrición y la respuesta comunitaria en el municipio</div><div class="pill a" data-a="zoom" style="--d:2300ms;--t:500ms;left:524px;top:672px;width:552px;height:67.2px;background:var(--red);font-size:25.0px;letter-spacing:3px">LA PRENSA COMO MEMORIA VIVA</div></section>
+<section class="slide" data-tr="slide" data-name="El hambre apaga la vida de los pequeños marenses" data-notes="Recorte de la sección Salud, martes 18 de septiembre de 2001, por Rita Molina Valbuena, desde San Rafael de El Moján. Lee el titular y la entradilla: un caso de desnutrición se diagnosticaba a diario en el Hospital I San Rafael." aria-label="El hambre apaga la vida de los pequeños marenses"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/fundadora_full_poster.jpg" data-src="presentacion/media/fundadora_full.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(11,20,38,0.55)"></div><div class="foot" style="left:672px;top:840px;width:768px;height:36px">Mara en la prensa  ·  Memoria histórica  ·  Alcaldía Bolivariana de Mara</div><div class="foot num" style="left:1456px;top:840px;width:72px;height:36px">2</div><div class="paper a" data-a="drop" style="--d:200ms;--t:1100ms;left:90px;top:54px;width:494.6px;height:762px;"><div class="paperIn" style="--r:-2.5deg"><img src="presentacion/media/prensa/hambre_2001.jpg" alt="Recorte de periódico"><i class="mark" style="left:1%;top:5.6%;width:98%;height:13.2%;--md:1300ms"></i><i class="mark" style="left:73%;top:19.6%;width:25.5%;height:19.5%;--md:1800ms"></i></div></div><div class="t a" data-a="fade" style="--d:700ms;--t:500ms;left:708px;top:72px;width:820px;height:48px;font-size:23.3px;font-weight:700;letter-spacing:4px;color:var(--gold)">RECORTE 01  ·  SECCIÓN SALUD</div><div class="t a" data-a="words" style="--d:900ms;--t:600ms;left:708px;top:120px;width:820px;height:192px;font-size:53.3px;font-family:var(--head);font-weight:700;line-height:1.12;display:flex;align-items:center"><span class="wds"><span class="wd" style="--wd:900ms">El</span> <span class="wd" style="--wd:1000ms">hambre</span> <span class="wd" style="--wd:1100ms">apaga</span> <span class="wd" style="--wd:1200ms">la</span> <span class="wd" style="--wd:1300ms">vida</span> <span class="wd" style="--wd:1400ms">de</span> <span class="wd" style="--wd:1500ms">los</span> <span class="wd" style="--wd:1600ms">pequeños</span> <span class="wd" style="--wd:1700ms">marenses</span></span></div><div class="t a" data-a="fade" style="--d:1700ms;--t:600ms;left:708px;top:324px;width:820px;height:96px;font-size:28.3px;font-style:italic;color:var(--lt2);line-height:1.3">«Un caso de desnutrición diagnostican diariamente en el Hospital I San Rafael»</div><div class="card row a" data-a="flyR" style="--d:2000ms;--t:700ms;left:708px;top:438px;width:820px;height:114px;"><div class="ic" style="width:96px;height:96px;background:#D62839"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M0 464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V192H0v272zm320-196c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zm0 128c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zM192 268c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zm0 128c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zM64 268c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H76c-6.6 0-12-5.4-12-12v-40zm0 128c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H76c-6.6 0-12-5.4-12-12v-40zM400 64h-48V16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v48H160V16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v48H48C21.5 64 0 85.5 0 112v48h448v-48c0-26.5-21.5-48-48-48z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">Martes 18 de septiembre de 2001</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Fecha de publicación</div></div></div><div class="card row a" data-a="flyR" style="--d:2250ms;--t:700ms;left:708px;top:566.4px;width:820px;height:114px;"><div class="ic" style="width:96px;height:96px;background:#2F80ED"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 384 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">San Rafael de El Moján</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Lugar de la noticia</div></div></div><div class="card row a" data-a="flyR" style="--d:2500ms;--t:700ms;left:708px;top:694.8px;width:820px;height:114px;"><div class="ic" style="width:96px;height:96px;background:#F2C12E"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" color="#0B1426" aria-hidden="true" style="color:#0B1426" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M136.6 138.79a64.003 64.003 0 0 0-43.31 41.35L0 460l14.69 14.69L164.8 324.58c-2.99-6.26-4.8-13.18-4.8-20.58 0-26.51 21.49-48 48-48s48 21.49 48 48-21.49 48-48 48c-7.4 0-14.32-1.81-20.58-4.8L37.31 497.31 52 512l279.86-93.29a64.003 64.003 0 0 0 41.35-43.31L416 224 288 96l-151.4 42.79zm361.34-64.62l-60.11-60.11c-18.75-18.75-49.16-18.75-67.91 0l-56.55 56.55 128.02 128.02 56.55-56.55c18.75-18.75 18.75-49.15 0-67.91z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">Rita Molina Valbuena</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Periodista</div></div></div></section>
+<section class="slide" data-tr="slide" data-name="Lo que contaba la prensa en 2001" data-notes="Resalta los datos del recorte: un caso diario de desnutrición en el Hospital I San Rafael y una pobreza crítica estimada en el 80%. Pregunta al público si recuerdan esa época." aria-label="Lo que contaba la prensa en 2001"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/fundadora_full_poster.jpg" data-src="presentacion/media/fundadora_full.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(11,20,38,0.6)"></div><div class="foot" style="left:672px;top:840px;width:768px;height:36px">Mara en la prensa  ·  Memoria histórica  ·  Alcaldía Bolivariana de Mara</div><div class="foot num" style="left:1456px;top:840px;width:72px;height:36px">3</div><div class="t a" data-a="words" style="--d:0ms;--t:600ms;left:72px;top:48px;width:1456px;height:102px;font-size:56.7px;font-family:var(--head);font-weight:700;display:flex;align-items:center"><span class="wds"><span class="wd" style="--wd:0ms">Lo</span> <span class="wd" style="--wd:110ms">que</span> <span class="wd" style="--wd:220ms">contaba</span> <span class="wd" style="--wd:330ms">la</span> <span class="wd" style="--wd:440ms">prensa</span> <span class="wd" style="--wd:550ms">en</span> <span class="wd" style="--wd:660ms">2001</span></span></div><div class="tline a" data-a="wipe" style="--d:500ms;--t:900ms;left:72px;top:139.2px;width:180px;height:5.4px;"></div><div class="t a" data-a="fade" style="--d:250ms;--t:500ms;left:72px;top:146.4px;width:1456px;height:50.4px;font-size:28.3px;font-weight:700;color:var(--gold)">El hambre apaga la vida de los pequeños marenses · Salud, 18/09/2001</div><div class="zoombox a" data-a="zoom" style="--d:300ms;--t:900ms;left:72px;top:228px;width:828px;height:582px;"><img src="presentacion/media/prensa/hambre_2001.jpg" alt="Detalle del recorte" style="width:984px;--from:0px,0px;--to:0px,-384px"></div><div class="card row a" data-a="flyR" style="--d:900ms;--t:700ms;left:942px;top:228px;width:586px;height:180px;"><div class="ic" style="width:96px;height:96px;background:#D62839"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M448 492v20H0v-20c0-6.627 5.373-12 12-12h20V120c0-13.255 10.745-24 24-24h88V24c0-13.255 10.745-24 24-24h112c13.255 0 24 10.745 24 24v72h88c13.255 0 24 10.745 24 24v360h20c6.627 0 12 5.373 12 12zM308 192h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zm-168 64h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12zm104 128h-40c-6.627 0-12 5.373-12 12v84h64v-84c0-6.627-5.373-12-12-12zm64-96h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zm-116 12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40zM182 96h26v26a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V96h26a6 6 0 0 0 6-6V70a6 6 0 0 0-6-6h-26V38a6 6 0 0 0-6-6h-20a6 6 0 0 0-6 6v26h-26a6 6 0 0 0-6 6v20a6 6 0 0 0 6 6z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">Un caso de desnutrición al día</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Diagnosticado en el Hospital I San Rafael, según la entradilla del recorte</div></div></div><div class="card row a" data-a="flyR" style="--d:1200ms;--t:700ms;left:942px;top:428.4px;width:586px;height:180px;"><div class="ic" style="width:96px;height:96px;background:#F2C12E"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 544 512" color="#0B1426" aria-hidden="true" style="color:#0B1426" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M527.79 288H290.5l158.03 158.03c6.04 6.04 15.98 6.53 22.19.68 38.7-36.46 65.32-85.61 73.13-140.86 1.34-9.46-6.51-17.85-16.06-17.85zm-15.83-64.8C503.72 103.74 408.26 8.28 288.8.04 279.68-.59 272 7.1 272 16.24V240h223.77c9.14 0 16.82-7.68 16.19-16.8zM224 288V50.71c0-9.55-8.39-17.4-17.84-16.06C86.99 51.49-4.1 155.6.14 280.37 4.5 408.51 114.83 513.59 243.03 511.98c50.4-.63 96.97-16.87 135.26-44.03 7.9-5.6 8.42-17.23 1.57-24.08L224 288z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">80% de pobreza crítica</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Estimación citada en el artículo para el municipio</div></div></div><div class="card row a" data-a="flyR" style="--d:1500ms;--t:700ms;left:942px;top:628.8px;width:586px;height:180px;"><div class="ic" style="width:96px;height:96px;background:#19C3E6"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 384 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M120 72c0-39.765 32.235-72 72-72s72 32.235 72 72c0 39.764-32.235 72-72 72s-72-32.236-72-72zm254.627 1.373c-12.496-12.497-32.758-12.497-45.254 0L242.745 160H141.254L54.627 73.373c-12.496-12.497-32.758-12.497-45.254 0-12.497 12.497-12.497 32.758 0 45.255L104 213.254V480c0 17.673 14.327 32 32 32h16c17.673 0 32-14.327 32-32V368h16v112c0 17.673 14.327 32 32 32h16c17.673 0 32-14.327 32-32V213.254l94.627-94.627c12.497-12.497 12.497-32.757 0-45.254z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">La infancia, la más golpeada</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">El artículo relata el caso de un niño marense y la falta de recursos de su familia</div></div></div></section>
+<section class="slide" data-tr="iris" data-name="La lucha contra la desnutrición contará con 10 caneyes comunitarios en Mara" data-notes="Recorte del diario La Verdad, sección Comunidades, por Rita Molina Valbuena. El Senifa coopera para minimizar el hambre en los municipios fronterizos." aria-label="La lucha contra la desnutrición contará con 10 caneyes comunitarios en Mara"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/intermedia_full_poster.jpg" data-src="presentacion/media/intermedia_full.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(11,20,38,0.55)"></div><div class="foot" style="left:672px;top:840px;width:768px;height:36px">Mara en la prensa  ·  Memoria histórica  ·  Alcaldía Bolivariana de Mara</div><div class="foot num" style="left:1456px;top:840px;width:72px;height:36px">4</div><div class="paper a" data-a="drop" style="--d:200ms;--t:1100ms;left:66px;top:102px;width:681.5px;height:540px;"><div class="paperIn" style="--r:2deg"><img src="presentacion/media/prensa/caneyes.jpg" alt="Recorte de periódico"><i class="mark" style="left:0.5%;top:9%;width:83%;height:20%;--md:1300ms"></i><i class="mark" style="left:84%;top:3%;width:15.5%;height:28%;--md:1800ms"></i></div></div><div class="t a" data-a="fade" style="--d:700ms;--t:500ms;left:774px;top:72px;width:754px;height:48px;font-size:23.3px;font-weight:700;letter-spacing:4px;color:var(--gold)">RECORTE 02  ·  LA VERDAD · COMUNIDADES</div><div class="t a" data-a="words" style="--d:900ms;--t:600ms;left:774px;top:120px;width:754px;height:240px;font-size:48.3px;font-family:var(--head);font-weight:700;line-height:1.12;display:flex;align-items:center"><span class="wds"><span class="wd" style="--wd:900ms">La</span> <span class="wd" style="--wd:980ms">lucha</span> <span class="wd" style="--wd:1060ms">contra</span> <span class="wd" style="--wd:1140ms">la</span> <span class="wd" style="--wd:1220ms">desnutrición</span> <span class="wd" style="--wd:1300ms">contará</span> <span class="wd" style="--wd:1380ms">con</span> <span class="wd" style="--wd:1460ms">10</span> <span class="wd" style="--wd:1540ms">caneyes</span> <span class="wd" style="--wd:1620ms">comunitarios</span> <span class="wd" style="--wd:1700ms">en</span> <span class="wd" style="--wd:1780ms">Mara</span></span></div><div class="t a" data-a="fade" style="--d:1800ms;--t:600ms;left:774px;top:372px;width:754px;height:96px;font-size:28.3px;font-style:italic;color:var(--lt2);line-height:1.3">«El Senifa coopera para minimizar el hambre en los municipios fronterizos»</div><div class="card row a" data-a="flyR" style="--d:2100ms;--t:700ms;left:774px;top:486px;width:754px;height:114px;"><div class="ic" style="width:96px;height:96px;background:#2F80ED"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 576 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M552 64H88c-13.255 0-24 10.745-24 24v8H24c-13.255 0-24 10.745-24 24v272c0 30.928 25.072 56 56 56h472c26.51 0 48-21.49 48-48V88c0-13.255-10.745-24-24-24zM56 400a8 8 0 0 1-8-8V144h16v248a8 8 0 0 1-8 8zm236-16H140c-6.627 0-12-5.373-12-12v-8c0-6.627 5.373-12 12-12h152c6.627 0 12 5.373 12 12v8c0 6.627-5.373 12-12 12zm208 0H348c-6.627 0-12-5.373-12-12v-8c0-6.627 5.373-12 12-12h152c6.627 0 12 5.373 12 12v8c0 6.627-5.373 12-12 12zm-208-96H140c-6.627 0-12-5.373-12-12v-8c0-6.627 5.373-12 12-12h152c6.627 0 12 5.373 12 12v8c0 6.627-5.373 12-12 12zm208 0H348c-6.627 0-12-5.373-12-12v-8c0-6.627 5.373-12 12-12h152c6.627 0 12 5.373 12 12v8c0 6.627-5.373 12-12 12zm0-96H140c-6.627 0-12-5.373-12-12v-40c0-6.627 5.373-12 12-12h360c6.627 0 12 5.373 12 12v40c0 6.627-5.373 12-12 12z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">Diario La Verdad</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Sección Comunidades</div></div></div><div class="card row a" data-a="flyR" style="--d:2350ms;--t:700ms;left:774px;top:614.4px;width:754px;height:114px;"><div class="ic" style="width:96px;height:96px;background:#F2C12E"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" color="#0B1426" aria-hidden="true" style="color:#0B1426" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M136.6 138.79a64.003 64.003 0 0 0-43.31 41.35L0 460l14.69 14.69L164.8 324.58c-2.99-6.26-4.8-13.18-4.8-20.58 0-26.51 21.49-48 48-48s48 21.49 48 48-21.49 48-48 48c-7.4 0-14.32-1.81-20.58-4.8L37.31 497.31 52 512l279.86-93.29a64.003 64.003 0 0 0 41.35-43.31L416 224 288 96l-151.4 42.79zm361.34-64.62l-60.11-60.11c-18.75-18.75-49.16-18.75-67.91 0l-56.55 56.55 128.02 128.02 56.55-56.55c18.75-18.75 18.75-49.15 0-67.91z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">Rita Molina Valbuena</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Periodista · San Rafael de El Moján</div></div></div></section>
+<section class="slide" data-tr="iris" data-name="La respuesta comunitaria" data-notes="Datos del recorte: 10 caneyes comunitarios en Mara como multihogares, 600 niños por atender y 30 para el Zulia. La comunidad participa en la construcción." aria-label="La respuesta comunitaria"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/intermedia_full_poster.jpg" data-src="presentacion/media/intermedia_full.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(11,20,38,0.6)"></div><div class="foot" style="left:672px;top:840px;width:768px;height:36px">Mara en la prensa  ·  Memoria histórica  ·  Alcaldía Bolivariana de Mara</div><div class="foot num" style="left:1456px;top:840px;width:72px;height:36px">5</div><div class="t a" data-a="words" style="--d:0ms;--t:600ms;left:72px;top:48px;width:1456px;height:102px;font-size:56.7px;font-family:var(--head);font-weight:700;display:flex;align-items:center"><span class="wds"><span class="wd" style="--wd:0ms">La</span> <span class="wd" style="--wd:110ms">respuesta</span> <span class="wd" style="--wd:220ms">comunitaria</span></span></div><div class="tline a" data-a="wipe" style="--d:500ms;--t:900ms;left:72px;top:139.2px;width:180px;height:5.4px;"></div><div class="t a" data-a="fade" style="--d:250ms;--t:500ms;left:72px;top:146.4px;width:1456px;height:50.4px;font-size:28.3px;font-weight:700;color:var(--gold)">La lucha contra la desnutrición contará con 10 caneyes comunitarios en Mara</div><div class="zoombox a" data-a="zoom" style="--d:300ms;--t:900ms;left:72px;top:228px;width:828px;height:582px;"><img src="presentacion/media/prensa/caneyes.jpg" alt="Detalle del recorte" style="width:1152px;--from:0px,0px;--to:-312px,-288px"></div><div class="card row a" data-a="flyR" style="--d:900ms;--t:700ms;left:942px;top:228px;width:586px;height:180px;"><div class="ic" style="width:96px;height:96px;background:#2BB673"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 576 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">10 caneyes comunitarios</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Funcionarán como multihogares en las comunidades de Mara</div></div></div><div class="card row a" data-a="flyR" style="--d:1200ms;--t:700ms;left:942px;top:428.4px;width:586px;height:180px;"><div class="ic" style="width:96px;height:96px;background:#F2C12E"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 384 512" color="#0B1426" aria-hidden="true" style="color:#0B1426" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M120 72c0-39.765 32.235-72 72-72s72 32.235 72 72c0 39.764-32.235 72-72 72s-72-32.236-72-72zm254.627 1.373c-12.496-12.497-32.758-12.497-45.254 0L242.745 160H141.254L54.627 73.373c-12.496-12.497-32.758-12.497-45.254 0-12.497 12.497-12.497 32.758 0 45.255L104 213.254V480c0 17.673 14.327 32 32 32h16c17.673 0 32-14.327 32-32V368h16v112c0 17.673 14.327 32 32 32h16c17.673 0 32-14.327 32-32V213.254l94.627-94.627c12.497-12.497 12.497-32.757 0-45.254z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">600 niños por atender</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">La cifra que destaca el recorte para el programa en Mara</div></div></div><div class="card row a" data-a="flyR" style="--d:1500ms;--t:700ms;left:942px;top:628.8px;width:586px;height:180px;"><div class="ic" style="width:96px;height:96px;background:#D62839"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 640 512" color="#fff" aria-hidden="true" style="color:#fff" height="38" width="38" xmlns="http://www.w3.org/2000/svg"><path d="M488 192H336v56c0 39.7-32.3 72-72 72s-72-32.3-72-72V126.4l-64.9 39C107.8 176.9 96 197.8 96 220.2v47.3l-80 46.2C.7 322.5-4.6 342.1 4.3 357.4l80 138.6c8.8 15.3 28.4 20.5 43.7 11.7L231.4 448H368c35.3 0 64-28.7 64-64h16c17.7 0 32-14.3 32-32v-64h8c13.3 0 24-10.7 24-24v-48c0-13.3-10.7-24-24-24zm147.7-37.4L555.7 16C546.9.7 527.3-4.5 512 4.3L408.6 64H306.4c-12 0-23.7 3.4-33.9 9.7L239 94.6c-9.4 5.8-15 16.1-15 27.1V248c0 22.1 17.9 40 40 40s40-17.9 40-40v-88h184c30.9 0 56 25.1 56 56v28.5l80-46.2c15.3-8.9 20.5-28.4 11.7-43.7z"></path></svg></div><div><div style="font-size:33.3px;font-weight:700;line-height:1.15">30 para el Zulia</div><div style="font-size:24.2px;color:var(--lt2);margin-top:4px;line-height:1.2">Caneyes previstos en el estado, según el recuadro del artículo</div></div></div></section>
+<section class="slide" data-tr="wipe" data-name="Para conversar en grupo" data-notes="Abre la dinámica: forma grupos con personas de distintas generaciones. Desde el teléfono lanza la pantalla «Trabajo en equipo» con el cronómetro. Al final cada grupo comparte una idea." aria-label="Para conversar en grupo"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/bg_loop_poster.jpg" data-src="presentacion/media/bg_loop.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="foot" style="left:672px;top:840px;width:768px;height:36px">Mara en la prensa  ·  Memoria histórica  ·  Alcaldía Bolivariana de Mara</div><div class="foot num" style="left:1456px;top:840px;width:72px;height:36px">6</div><div class="t a" data-a="words" style="--d:0ms;--t:600ms;left:72px;top:48px;width:1456px;height:102px;font-size:56.7px;font-family:var(--head);font-weight:700;display:flex;align-items:center"><span class="wds"><span class="wd" style="--wd:0ms">Para</span> <span class="wd" style="--wd:110ms">conversar</span> <span class="wd" style="--wd:220ms">en</span> <span class="wd" style="--wd:330ms">grupo</span></span></div><div class="tline a" data-a="wipe" style="--d:500ms;--t:900ms;left:72px;top:139.2px;width:180px;height:5.4px;"></div><div class="t a" data-a="fade" style="--d:250ms;--t:500ms;left:72px;top:146.4px;width:1456px;height:50.4px;font-size:28.3px;font-weight:700;color:var(--gold)">Dinámica: mezcla generaciones en cada grupo</div><div class="card row a" data-a="flyR" style="--d:500ms;--t:750ms;left:72px;top:234px;width:1456px;height:158.4px;"><div class="ic" style="width:102px;height:102px;background:#C8743A"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" color="#fff" aria-hidden="true" style="color:#fff" height="40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="M504 255.531c.253 136.64-111.18 248.372-247.82 248.468-59.015.042-113.223-20.53-155.822-54.911-11.077-8.94-11.905-25.541-1.839-35.607l11.267-11.267c8.609-8.609 22.353-9.551 31.891-1.984C173.062 425.135 212.781 440 256 440c101.705 0 184-82.311 184-184 0-101.705-82.311-184-184-184-48.814 0-93.149 18.969-126.068 49.932l50.754 50.754c10.08 10.08 2.941 27.314-11.313 27.314H24c-8.837 0-16-7.163-16-16V38.627c0-14.254 17.234-21.393 27.314-11.314l49.372 49.372C129.209 34.136 189.552 8 256 8c136.81 0 247.747 110.78 248 247.531zm-180.912 78.784l9.823-12.63c8.138-10.463 6.253-25.542-4.21-33.679L288 256.349V152c0-13.255-10.745-24-24-24h-16c-13.255 0-24 10.745-24 24v135.651l65.409 50.874c10.463 8.137 25.541 6.253 33.679-4.21z"></path></svg></div><div class="big" style="font-size:56.7px;color:#C8743A;min-width:96px">01</div><div style="font-size:38.3px;font-weight:700;line-height:1.2">¿Qué ha cambiado en Mara desde que se publicaron estas noticias?</div></div><div class="card row a" data-a="flyR" style="--d:800ms;--t:750ms;left:72px;top:414px;width:1456px;height:158.4px;"><div class="ic" style="width:102px;height:102px;background:#D62839"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 640 512" color="#fff" aria-hidden="true" style="color:#fff" height="40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z"></path></svg></div><div class="big" style="font-size:56.7px;color:#D62839;min-width:96px">02</div><div style="font-size:38.3px;font-weight:700;line-height:1.2">¿Qué le toca a cada generación frente al hambre y la pobreza?</div></div><div class="card row a" data-a="flyR" style="--d:1100ms;--t:750ms;left:72px;top:594px;width:1456px;height:158.4px;"><div class="ic" style="width:102px;height:102px;background:#2F80ED"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 640 512" color="#fff" aria-hidden="true" style="color:#fff" height="40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="M488 192H336v56c0 39.7-32.3 72-72 72s-72-32.3-72-72V126.4l-64.9 39C107.8 176.9 96 197.8 96 220.2v47.3l-80 46.2C.7 322.5-4.6 342.1 4.3 357.4l80 138.6c8.8 15.3 28.4 20.5 43.7 11.7L231.4 448H368c35.3 0 64-28.7 64-64h16c17.7 0 32-14.3 32-32v-64h8c13.3 0 24-10.7 24-24v-48c0-13.3-10.7-24-24-24zm147.7-37.4L555.7 16C546.9.7 527.3-4.5 512 4.3L408.6 64H306.4c-12 0-23.7 3.4-33.9 9.7L239 94.6c-9.4 5.8-15 16.1-15 27.1V248c0 22.1 17.9 40 40 40s40-17.9 40-40v-88h184c30.9 0 56 25.1 56 56v28.5l80-46.2c15.3-8.9 20.5-28.4 11.7-43.7z"></path></svg></div><div class="big" style="font-size:56.7px;color:#2F80ED;min-width:96px">03</div><div style="font-size:38.3px;font-weight:700;line-height:1.2">¿Cómo puede la comunidad organizada responder hoy?</div></div><div class="t a" data-a="fade" style="--d:1800ms;--t:600ms;left:72px;top:780px;width:1456px;height:48px;font-size:25.0px;font-style:italic;color:var(--gold);text-align:right">Cada grupo comparte una idea al final · usa la pantalla «Trabajo en equipo» con el cronómetro</div></section>
+<section class="slide live" data-tr="curtain" data-name="Gran sorteo" data-notes="Desde el teléfono: 🎡 Girar, Cerrar resultado y vuelve a girar. Para seguir, toca «Salir de la ruleta»." aria-label="Gran sorteo"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/bg_loop_poster.jpg" data-src="presentacion/media/bg_loop.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(10,35,70,.45)"></div><iframe id="ruleta" title="Ruleta del gran sorteo" data-src="ruleta.html?embed=1" allow="autoplay; fullscreen"></iframe></section>
+<section class="slide" data-tr="zoom" data-name="Cierre" data-notes="Cierra recordando que la memoria de la comunidad orienta lo que hacemos hoy. Agradece la participación." aria-label="Cierre"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/sunrise_poster.jpg" data-src="presentacion/media/sunrise.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(11,20,38,0.42)"></div><div class="t a" data-a="words" style="--d:200ms;--t:700ms;left:72px;top:162px;width:1456px;height:156px;font-size:110.0px;font-family:var(--head);font-weight:700;text-align:center;display:flex;align-items:center;justify-content:center;text-shadow:0 4px 14px rgba(0,0,0,.45)"><span class="wds"><span class="wd" style="--wd:200ms">¡Gracias!</span></span></div><div class="t a" data-a="float" style="--d:900ms;--t:700ms;left:72px;top:324px;width:1456px;height:66px;font-size:43.3px;font-style:italic;color:var(--gold);text-align:center">La memoria de la comunidad orienta lo que hacemos hoy</div><div class="dot a" data-a="zoom" style="--d:1400ms;--t:400ms;left:650px;top:426px;width:26.4px;height:26.4px;background:#C8743A"></div><div class="dot a" data-a="zoom" style="--d:1520ms;--t:400ms;left:718.4px;top:426px;width:26.4px;height:26.4px;background:#D62839"></div><div class="dot a" data-a="zoom" style="--d:1640ms;--t:400ms;left:786.8px;top:426px;width:26.4px;height:26.4px;background:#2F80ED"></div><div class="dot a" data-a="zoom" style="--d:1760ms;--t:400ms;left:855.2px;top:426px;width:26.4px;height:26.4px;background:#F2C12E"></div><div class="dot a" data-a="zoom" style="--d:1880ms;--t:400ms;left:923.6px;top:426px;width:26.4px;height:26.4px;background:#19C3E6"></div><div class="t a" data-a="flyB" style="--d:2000ms;--t:700ms;left:72px;top:486px;width:1456px;height:54px;font-size:30.0px;font-weight:700;text-align:center">Alcaldía Bolivariana de Mara  ·  Con el pueblo siempre</div></section>
+<div id="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+<canvas id="dust" width="1600" height="900" aria-hidden="true"></canvas>
+<div id="curtain" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+</div>
+<audio id="music" loop preload="auto"><source src="presentacion/audio/musica.m4a" type="audio/mp4"><source src="presentacion/audio/musica.ogg" type="audio/ogg; codecs=opus"></audio>
+<div id="bar"></div>
+<nav id="dock" aria-label="Controles de la presentación">
+  <button id="prev" type="button" aria-label="Diapositiva anterior">‹</button>
+  <button id="count" type="button" aria-label="Elegir diapositiva">1 / 14</button>
+  <button id="next" type="button" aria-label="Diapositiva siguiente">›</button>
+  <button id="snd" type="button" aria-label="Música y sonidos">🔊 Sonido</button>
+  <button id="full" type="button" aria-label="Pantalla completa">Pantalla completa</button>
+</nav>
+<nav id="jump" aria-label="Atajos">
+  <button class="v" type="button" data-v="1" aria-label="Video 1">1</button>
+  <button class="v" type="button" data-v="2" aria-label="Video 2">2</button>
+  <button class="v" type="button" data-v="3" aria-label="Video 3">3</button>
+  <button class="v" type="button" data-v="4" aria-label="Video 4">4</button>
+  <button class="v" type="button" data-v="5" aria-label="Video 5">5</button>
+  <button class="v" type="button" data-v="6" aria-label="Video 6">6</button>
+  <button class="rul" type="button" id="toRuleta">Ruleta</button>
+  <button class="triv" type="button" id="toTrivia">Trivia</button>
+  <button class="sl" type="button" id="toPick" aria-label="Elegir diapositiva">☰ Diapositivas</button>
+  <button class="ap" type="button" id="toAplauso" aria-label="Aplausómetro">👏</button>
+</nav>
+<div id="aplauso" role="dialog" aria-modal="true" aria-labelledby="apTitle">
+  <div id="apCard">
+    <div id="apTitle">APLAUSÓMETRO</div>
+    <div id="apEmoji">👏</div>
+    <div id="apMeter"><div id="apFill"></div><div id="apPeak"></div></div>
+    <div id="apNums"><div><b id="apNow">0</b><span>ahora</span></div><div><b id="apRec">0</b><span>récord</span></div></div>
+    <div id="apMsg">¡Que suenen esos aplausos!</div>
+    <div id="apBtns"><button id="apReset" type="button">Reiniciar récord</button><button id="apClose" type="button">✕ Cerrar</button></div>
+  </div>
+</div>
+<div id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div id="pickCard">
+  <h2 id="pickTitle">Ir a la diapositiva…</h2><p>Toca una para saltar directo. También: tecla D para abrir esta lista, Esc para cerrarla.</p>
+  <div id="pickGrid"></div></div></div>
+<div id="trivia" aria-label="Trivia"><iframe id="tFrame" title="Trivia" allow="fullscreen; clipboard-write"></iframe></div>
+<button id="tClose" type="button">✕ Volver a la presentación</button>
+<div id="player" role="dialog" aria-modal="true" aria-label="Video">
+  <video id="pVideo" controls playsinline preload="none"></video>
+  <div id="pLabel">Video 1</div>
+  <div id="pMsg" hidden></div>
+  <button id="pClose" type="button">✕ Cerrar</button>
+</div>
+<div id="rtoast" aria-live="polite"></div>
+<div id="laser" aria-hidden="true"></div>
+<div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
+  <i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i>
+  <div id="eqBox">
+    <div id="eqKicker">Alcaldía Bolivariana de Mara</div>
+    <div id="eqTitle">Trabajo en equipo</div>
+    <div id="eqSub">Cinco generaciones, un solo bloque histórico</div>
+    <div id="eqPeople"></div>
+    <div id="eqClock"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="eqGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C8743A"/><stop offset=".25" stop-color="#D62839"/><stop offset=".5" stop-color="#2F80ED"/><stop offset=".75" stop-color="#F2C12E"/><stop offset="1" stop-color="#19C3E6"/></linearGradient></defs>
+      <circle class="bg" cx="100" cy="100" r="90"/><circle class="fg" id="eqRing" cx="100" cy="100" r="90" stroke-dasharray="565.5" stroke-dashoffset="0"/></svg><div id="eqTime">5:00</div></div>
+    <div id="eqState"></div>
+  </div>
+  <div id="eqBtns"><button type="button" id="eqPlus">+1 min</button><button type="button" id="eqPause">Pausar</button><button type="button" id="eqClose">✕ Cerrar</button></div>
+</div>
+<div id="hint">Clic o → para avanzar · F pantalla completa</div>
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const slides = [...stage.querySelectorAll('.slide')];
+  const N = slides.length;
+  const $ = id => document.getElementById(id);
+  let cur = -1;
+
+  function fit() {
+    const s = Math.min(innerWidth / 1600, innerHeight / 900);
+    document.documentElement.style.setProperty('--s', s);
+  }
+  addEventListener('resize', fit); fit();
+
+  function load(i) {
+    const sl = slides[i]; if (!sl) return;
+    sl.querySelectorAll('video[data-src]').forEach(v => { v.src = v.dataset.src; v.removeAttribute('data-src'); v.preload = 'auto'; });
+    sl.querySelectorAll('iframe[data-src]').forEach(f => { f.src = f.dataset.src; f.removeAttribute('data-src'); });
+  }
+  /* tiny synth for transitions and entrances (no audio files) */
+  const sfx = (() => {
+    let ac = null; const tok = { n: 0 };
+    const on = () => { try { return localStorage.getItem('pres-sound') !== 'off'; } catch (e) { return true; } };
+    const ctx = () => { try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} return ac; };
+    function whoosh(kind) {
+      if (!on() || !ac || ac.state !== 'running') return;
+      const t = ac.currentTime, d = kind === 'curtain' ? 1.0 : 0.7;
+      const b = ac.createBuffer(1, Math.floor(ac.sampleRate * d), ac.sampleRate), x = b.getChannelData(0);
+      for (let k = 0; k < x.length; k++) x[k] = Math.random() * 2 - 1;
+      const s = ac.createBufferSource(); s.buffer = b;
+      const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 0.8;
+      f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(2600, t + d * 0.55); f.frequency.exponentialRampToValueAtTime(700, t + d);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + d * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      s.connect(f).connect(g).connect(ac.destination); s.start(t); s.stop(t + d + 0.05);
+    }
+    function pop(i) {
+      if (!on() || !ac || ac.state !== 'running') return;
+      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(), base = [660, 784, 880, 988, 1175][i % 5];
+      o.type = 'sine'; o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * 1.5, t + 0.06);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.2);
+    }
+    function entrances(sl) {
+      const my = ++tok.n;
+      [...sl.querySelectorAll('.card.a, .glass.a, .node.a, .pill.a')].slice(0, 10).forEach((el, i) => {
+        const d = parseFloat(getComputedStyle(el).getPropertyValue('--d')) || 0;
+        setTimeout(() => { if (tok.n === my && sl.classList.contains('cur')) pop(i); }, d + 120);
+      });
+    }
+    function alarm() {
+      if (!on() || !ac || ac.state !== 'running') return;
+      const t0 = ac.currentTime;
+      [0, .35, .7, 1.4, 1.75, 2.1].forEach((d, i) => {
+        const o = ac.createOscillator(), g = ac.createGain(), t = t0 + d;
+        o.type = 'triangle'; o.frequency.setValueAtTime(i % 3 === 2 ? 1318.5 : 987.8, t);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.14, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+        o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.35);
+      });
+    }
+    return { ctx, whoosh, entrances, alarm };
+  })();
+  const timers = new Map();
+  const ruletaIdxEarly = slides.findIndex(s => s.classList.contains('live'));
+  let beforeRuleta = -1;
+  function go(i, instant) {
+    i = Math.max(0, Math.min(N - 1, i));
+    if (i === cur) return;
+    const prev = slides[cur], back = cur >= 0 && i < cur, first = cur < 0;
+    let tr = first ? 'fade' : (slides[i].dataset.tr || 'fade');
+    if (tr === 'slide' && back) tr = 'slideback';
+    if (prev) {
+      prev.classList.remove('cur');
+      if (tr === 'slide' || tr === 'slideback') prev.classList.add(back ? 'out-r' : 'out-l');
+      clearTimeout(timers.get(prev));
+      timers.set(prev, setTimeout(() => {          // once it has faded out: stop its videos and rewind its animations
+        if (prev.classList.contains('cur')) return;
+        prev.querySelectorAll('video').forEach(v => v.pause());
+        prev.classList.add('reset'); prev.classList.remove('on', 'out-l', 'out-r'); void prev.offsetWidth; prev.classList.remove('reset');
+      }, 1250));
+    }
+    if (i === ruletaIdxEarly && cur >= 0 && cur !== i) beforeRuleta = cur;
+    cur = i;
+    const sl = slides[i];
+    load(i); load(i + 1); load(i - 1);
+    clearTimeout(timers.get(sl));
+    sl.classList.add('reset'); sl.classList.remove('on', 'out-l', 'out-r'); void sl.offsetWidth; sl.classList.remove('reset');
+    if (tr === 'curtain') { const c = $('curtain'); c.classList.remove('run'); void c.offsetWidth; c.classList.add('run'); }
+    if (/^(zoom|slide|slideback|iris|wipe)$/.test(tr)) { sl.style.transition = 'none'; sl.classList.add('from-' + tr); void sl.offsetWidth; sl.style.transition = ''; }
+    sl.classList.add('cur'); sl.classList.remove('from-zoom', 'from-slide', 'from-slideback', 'from-iris', 'from-wipe');
+    if (!first) sfx.whoosh(tr);
+    sfx.entrances(sl);
+    requestAnimationFrame(() => requestAnimationFrame(() => { sl.classList.add('on'); sl.querySelectorAll('[data-count]').forEach(countUp); }));
+    sl.querySelectorAll('video').forEach(v => { try { v.currentTime = 0; } catch (e) {} const p = v.play(); if (p && p.catch) p.catch(() => {}); });
+    const frame = sl.querySelector('iframe');
+    if (frame) setTimeout(() => { if (slides[cur] === sl) frame.focus(); }, 400);
+    else if (document.activeElement && document.activeElement.tagName === 'IFRAME') document.activeElement.blur();
+    $('count').textContent = `${i + 1} / ${N}`;
+    $('toRuleta').setAttribute('aria-current', String(sl.classList.contains('live')));
+    $('bar').style.width = `${(i + 1) / N * 100}%`;
+    $('prev').disabled = i === 0; $('next').disabled = i === N - 1;
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+  }
+  // numbers that count up when their slide appears: <span data-count="396" data-cd="600" data-suf="%">
+  function countUp(el) {
+    const to = +el.dataset.count, suf = el.dataset.suf || '', delay = +(el.dataset.cd || 0), dur = 1500, tok = (el._tok = (el._tok || 0) + 1);
+    const fmt = v => v.toLocaleString('es-VE') + suf;
+    el.textContent = fmt(0);
+    setTimeout(() => {
+      const t0 = performance.now();
+      const step = now => {
+        if (el._tok !== tok) return;
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(Math.round(to * e));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, delay);
+  }
+  const next = () => go(cur + 1), prev = () => go(cur - 1);
+  function full() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+    } catch (e) {}
+  }
+  const isLive = () => !!slides[cur] && slides[cur].classList.contains('live');
+  function spin() { const f = slides[cur].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage({ ruleta: 'spin' }, '*'); }
+
+  /* ---------- shortcut videos 1–6 (presentacion/videos/video1.mp4 … video6.mp4) ---------- */
+  const player = $('player'), pv = $('pVideo');
+  let triviaOpen = false;
+  let playing = 0;
+  function openVideo(n) {
+    playing = n;
+    $('pLabel').textContent = `Video ${n}`;
+    $('pMsg').hidden = true;
+    pv.src = `presentacion/videos/video${n}.mp4`;
+    pv.currentTime = 0;
+    player.classList.add('open');
+    slides[cur].querySelectorAll('video').forEach(v => v.pause());   // the slide waits underneath
+    const p = pv.play(); if (p && p.catch) p.catch(() => {});
+    music.pause();
+    document.querySelectorAll('#jump .v').forEach(b => b.setAttribute('aria-current', String(+b.dataset.v === n)));
+    pv.focus();
+    wake();
+  }
+  function closeVideo() {
+    if (!playing) return;
+    playing = 0;
+    pv.pause(); pv.removeAttribute('src'); pv.load();
+    player.classList.remove('open');
+    document.querySelectorAll('#jump .v').forEach(b => b.removeAttribute('aria-current'));
+    startMusic();
+    if (triviaOpen) { tFrame.focus(); return; }
+    slides[cur].querySelectorAll('video').forEach(v => { const p = v.play(); if (p && p.catch) p.catch(() => {}); });
+    const f = slides[cur].querySelector('iframe'); if (f) f.focus(); else document.activeElement && document.activeElement.blur && document.activeElement.blur();
+  }
+  pv.addEventListener('ended', closeVideo);
+  pv.addEventListener('error', () => { if (playing) { $('pMsg').textContent = `El video ${playing} todavía no está cargado en la presentación.`; $('pMsg').hidden = false; } });
+  $('pClose').addEventListener('click', closeVideo);
+  player.addEventListener('click', e => { if (e.target === player) closeVideo(); });
+  document.querySelectorAll('#jump .v').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openVideo(+b.dataset.v); }));
+  const ruletaIdx = slides.findIndex(s => s.classList.contains('live'));
+  $('toRuleta').addEventListener('click', e => { e.stopPropagation(); closeVideo(); closeTrivia(); go(ruletaIdx); });
+  /* ---------- trivia: the presenter screen opens over the slides and keeps running in the background ---------- */
+  const tFrame = $('tFrame');
+  function openTrivia() {
+    closeVideo();
+    if (!tFrame.getAttribute('src')) tFrame.src = 'index.html?pantalla';
+    triviaOpen = true;
+    $('trivia').classList.add('open'); document.body.classList.add('trivia');
+    $('toTrivia').setAttribute('aria-current', 'true');
+    slides[cur].querySelectorAll('video').forEach(v => v.pause());
+    setTimeout(() => { if (triviaOpen) tFrame.focus(); }, 350);
+  }
+  function closeTrivia() {
+    if (!triviaOpen) return;
+    triviaOpen = false;
+    $('trivia').classList.remove('open'); document.body.classList.remove('trivia');
+    $('toTrivia').removeAttribute('aria-current');
+    tFrame.blur();
+    slides[cur].querySelectorAll('video').forEach(v => { const p = v.play(); if (p && p.catch) p.catch(() => {}); });
+    const f = slides[cur].querySelector('iframe'); if (f) f.focus();
+  }
+  $('toTrivia').addEventListener('click', e => { e.stopPropagation(); triviaOpen ? closeTrivia() : openTrivia(); });
+  $('tClose').addEventListener('click', closeTrivia);
+
+  /* ---------- slide picker ---------- */
+  const pick = $('pick'), grid = $('pickGrid');
+  slides.forEach((sl, i) => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = `<b>${i + 1}</b><span></span>`; b.lastChild.textContent = sl.dataset.name;
+    b.addEventListener('click', e => { e.stopPropagation(); closePick(); closeVideo(); closeTrivia(); go(i); });
+    grid.appendChild(b);
+  });
+  let pickOpen = false;
+  function openPick() {
+    closeVideo(); pickOpen = true; pick.classList.add('open');
+    [...grid.children].forEach((b, i) => b.setAttribute('aria-current', String(i === cur)));
+    grid.children[cur].focus(); wake();
+  }
+  function closePick() { if (!pickOpen) return; pickOpen = false; pick.classList.remove('open'); const f = triviaOpen ? tFrame : slides[cur].querySelector('iframe'); if (f) f.focus(); else document.activeElement && document.activeElement.blur && document.activeElement.blur(); }
+  pick.addEventListener('click', e => { if (e.target === pick) closePick(); });
+  $('toPick').addEventListener('click', e => { e.stopPropagation(); pickOpen ? closePick() : openPick(); });
+  $('count').addEventListener('click', e => { e.stopPropagation(); openPick(); });
+
+  function shortcut(k) {
+    if (k === 's' || k === 'S') { setSound(!soundOn()); return true; }
+    if (k === 'a' || k === 'A') { apOpen ? closeAplauso() : openAplauso(); return true; }
+    if (k === 'd' || k === 'D') { pickOpen ? closePick() : openPick(); return true; }
+    if (k >= '1' && k <= '6' && k.length === 1) { openVideo(+k); return true; }
+    if (k === 'r' || k === 'R') { closeVideo(); closeTrivia(); go(ruletaIdx); return true; }
+    if (k === 't' || k === 'T') { triviaOpen ? closeTrivia() : openTrivia(); return true; }
+    return false;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (eq.open) {
+      if (e.key === 'Escape' || e.key === 'e' || e.key === 'E') { e.preventDefault(); closeEquipo(); }
+      else if (e.key === ' ') { e.preventDefault(); eqPause(); }
+      else if (e.key === '+' || e.key === '=') { e.preventDefault(); eqAdd(1); }
+      wake(); return;
+    }
+    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); openEquipo(5, 'equipo'); return; }
+    if (apOpen && (e.key === 'Escape' || e.key === 'a' || e.key === 'A')) { e.preventDefault(); closeAplauso(); return; }
+    if (apOpen) return;
+    if (pickOpen) {                                   // arrows move through the list, Enter opens, Esc closes
+      if (e.key === 'Escape' || e.key === 'd' || e.key === 'D') { e.preventDefault(); closePick(); }
+      else if (/^Arrow/.test(e.key)) {
+        e.preventDefault();
+        const items = [...grid.children], at = Math.max(0, items.indexOf(document.activeElement));
+        const cols = Math.max(1, Math.round(grid.clientWidth / items[0].offsetWidth));
+        const d = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols }[e.key];
+        items[Math.max(0, Math.min(items.length - 1, at + d))].focus();
+      }
+      return;
+    }
+    if (playing) {                                   // while a video plays: Esc closes, Space pauses, 1–6 switch video
+      if (e.key === 'Escape') { e.preventDefault(); closeVideo(); }
+      else if (e.key === ' ' && e.target !== pv) { e.preventDefault(); pv.paused ? pv.play() : pv.pause(); }
+      else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); full(); }
+      else if (shortcut(e.key)) e.preventDefault();
+      wake(); return;
+    }
+    if (shortcut(e.key)) { e.preventDefault(); wake(); return; }
+    if (triviaOpen) { tFrame.focus(); wake(); return; }
+    if (e.target.closest && e.target.closest('#dock button') && (e.key === ' ' || e.key === 'Enter')) return;
+    const k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === 'ArrowDown' || k === 'Enter' || k === 'N' || k === 'n') { e.preventDefault(); next(); }
+    else if (k === ' ') { e.preventDefault(); isLive() ? spin() : next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'ArrowUp' || k === 'Backspace' || k === 'P' || k === 'p') { e.preventDefault(); prev(); }
+    else if (k === 'Home') { e.preventDefault(); go(0); }
+    else if (k === 'End') { e.preventDefault(); go(N - 1); }
+    else if (k === 'f' || k === 'F') { e.preventDefault(); full(); }
+    wake();
+  });
+  // the roulette (inside its slide) passes the presenter's navigation keys back here
+  addEventListener('message', e => {
+    const a = e.data && e.data.ruletaNav;
+    if (a === 'pick') { openPick(); return; }
+    if ((playing || triviaOpen) && a !== 'wake') return;
+    if (a === 'next') next(); else if (a === 'prev') prev(); else if (a === 'first') go(0); else if (a === 'last') go(N - 1); else if (a === 'full') full();
+    else if (typeof a === 'string' && a[0] === 'v') openVideo(+a.slice(1));
+    if (a) wake();
+  });
+  stage.addEventListener('click', e => { if (!isLive() && !(e.target.closest && e.target.closest('a,button,iframe'))) next(); });
+  $('prev').addEventListener('click', e => { e.stopPropagation(); prev(); });
+  $('next').addEventListener('click', e => { e.stopPropagation(); next(); });
+  $('full').addEventListener('click', e => { e.stopPropagation(); full(); });
+  document.addEventListener('fullscreenchange', () => { $('full').textContent = document.fullscreenElement ? 'Salir' : 'Pantalla completa'; });
+  let tx = null;
+  stage.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', e => { if (tx === null || isLive()) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) (dx < 0 ? next : prev)(); tx = null; });
+
+  // chrome hides itself while presenting
+  let idleT = null;
+  function wake() { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add('idle'), 2600); }
+  addEventListener('mousemove', wake); wake();
+  setTimeout(() => $('hint').classList.add('gone'), 4500);
+
+  addEventListener('hashchange', () => { const h = parseInt(location.hash.slice(1), 10); if (Number.isFinite(h) && h - 1 !== cur) go(h - 1); });
+  const start = parseInt((location.hash || '').slice(1), 10);
+  const begin = () => go(Number.isFinite(start) ? start - 1 : 0);
+
+  /* golden dust: ~46 specks rising slowly; constant brightness (no twinkle), paused while hidden or covered */
+  (function dust() {
+    const cv = document.getElementById('dust'); if (!cv || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const g = cv.getContext('2d'), W = 1600, H = 900, rnd = (a, b) => a + Math.random() * (b - a);
+    const P = Array.from({ length: 46 }, () => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(1, 2.8), vy: rnd(.12, .38), ph: rnd(0, 6.28), sw: rnd(.2, .6), a: rnd(.25, .6), c: Math.random() < .7 ? '242,193,46' : '255,255,255' }));
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(50, now - last) / 16.7; last = now;
+      if (!document.hidden && !document.getElementById('player').classList.contains('open') && !document.getElementById('trivia').classList.contains('open')) {
+        g.clearRect(0, 0, W, H);
+        for (const p of P) {
+          p.y -= p.vy * dt; p.ph += .01 * dt; p.x += Math.sin(p.ph) * p.sw * .3 * dt;
+          if (p.y < -10) { p.y = H + 10; p.x = rnd(0, W); }
+          const gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
+          gr.addColorStop(0, `rgba(${p.c},${p.a})`); gr.addColorStop(1, `rgba(${p.c},0)`);
+          g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, p.r * 3, 0, 6.283); g.fill();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  /* ---------- sound: soft music loop + whoosh on slide change + light pops as things land ---------- */
+  var music = $('music');
+  function soundOn() { try { return localStorage.getItem('pres-sound') !== 'off'; } catch (e) { return true; } }
+  function setSound(on) {
+    try { localStorage.setItem('pres-sound', on ? 'on' : 'off'); } catch (e) {}
+    $('snd').textContent = on ? '🔊 Sonido' : '🔇 Sonido';
+    if (on) startMusic(); else music.pause();
+  }
+  function startMusic() {
+    if (!soundOn() || playing || apOpen) return;
+    music.volume = 0.32; const p = music.play(); if (p && p.catch) p.catch(() => {});
+  }
+  $('snd').addEventListener('click', e => { e.stopPropagation(); setSound(!soundOn()); });
+  $('snd').textContent = soundOn() ? '🔊 Sonido' : '🔇 Sonido';
+
+  /* ---------- applause meter (microphone level) ---------- */
+  var apOpen = false, apStream = null, apRaf = 0, apRec = 0;
+  async function openAplauso() {
+    closeVideo(); apOpen = true; music.pause(); $('aplauso').classList.add('open'); wake();
+    $('apMsg').textContent = 'Pidiendo permiso para usar el micrófono…';
+    try {
+      apStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      if (!apOpen) { apStream.getTracks().forEach(t => t.stop()); return; }
+      const ac = sfx.ctx(); const src = ac.createMediaStreamSource(apStream), an = ac.createAnalyser(); an.fftSize = 1024; src.connect(an);
+      const buf = new Float32Array(an.fftSize); let lvl = 0, peak = 0, peakT = 0;
+      $('apMsg').textContent = '¡Que suenen esos aplausos!';
+      const loop = now => {
+        an.getFloatTimeDomainData(buf); let sum = 0; for (let k = 0; k < buf.length; k++) sum += buf[k] * buf[k];
+        const db = 20 * Math.log10(Math.sqrt(sum / buf.length) + 1e-6);          // about -60 (quiet) .. 0 (very loud)
+        const v = Math.max(0, Math.min(100, (db + 55) * 100 / 50));
+        lvl += (v - lvl) * (v > lvl ? 0.5 : 0.08);
+        if (lvl > peak) { peak = lvl; peakT = now; } else if (now - peakT > 1200) peak = Math.max(lvl, peak - 0.6);
+        if (lvl > apRec) { apRec = Math.round(lvl); $('apRec').textContent = apRec; }
+        $('apFill').style.width = lvl + '%'; $('apPeak').style.left = `calc(${peak}% - 5px)`;
+        $('apNow').textContent = Math.round(lvl);
+        $('apEmoji').style.setProperty('--k', (1 + lvl / 140).toFixed(3));
+        $('apMsg').textContent = lvl > 85 ? '¡¡INCREÍBLE!!' : lvl > 65 ? '¡Eso es, más fuerte!' : lvl > 35 ? '¡Vamos, un poco más!' : '¡Que suenen esos aplausos!';
+        apRaf = requestAnimationFrame(loop);
+      };
+      apRaf = requestAnimationFrame(loop);
+    } catch (e) {
+      $('apMsg').textContent = 'Permite el micrófono en el navegador para usar el aplausómetro.';
+    }
+  }
+  function closeAplauso() {
+    if (!apOpen) return; apOpen = false; cancelAnimationFrame(apRaf);
+    if (apStream) apStream.getTracks().forEach(t => t.stop()); apStream = null;
+    $('aplauso').classList.remove('open'); startMusic();
+  }
+  $('toAplauso').addEventListener('click', e => { e.stopPropagation(); apOpen ? closeAplauso() : openAplauso(); });
+  $('apClose').addEventListener('click', closeAplauso);
+  $('apReset').addEventListener('click', () => { apRec = 0; $('apRec').textContent = '0'; });
+  $('aplauso').addEventListener('click', e => { if (e.target === $('aplauso')) closeAplauso(); });
+
+  /* ---------- waiting screen for group work / dynamics / games, with a big countdown ---------- */
+  const GCOL = ['#C8743A', '#D62839', '#2F80ED', '#F2C12E', '#19C3E6'];
+  const PERSON = '<svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z"/></svg>';
+  $('eqPeople').innerHTML = GCOL.map(c => `<span style="background:${c}">${PERSON}</span>`).join('');
+  const EQ_TITLES = { equipo: ['Trabajo en equipo', 'Cinco generaciones, un solo bloque histórico'], dinamica: ['Dinámica en curso', 'Participa, comparte y aprende'], juego: ['¡Hora del juego!', 'Diviértete y aprende con tu grupo'], pausa: ['Pausa activa', 'Volvemos en unos minutos'] };
+  let eq = { open: false, total: 300000, remain: 300000, end: 0, paused: false, done: false, t: 0 };
+  function eqRender() {
+    const ms = eq.paused || !eq.open ? eq.remain : Math.max(0, eq.end - Date.now());
+    const sec = Math.ceil(ms / 1000), m = Math.floor(sec / 60), ss = String(sec % 60).padStart(2, '0');
+    $('eqTime').textContent = eq.done ? '¡Tiempo!' : `${m}:${ss}`;
+    $('eqRing').setAttribute('stroke-dashoffset', (565.5 * (1 - ms / eq.total)).toFixed(1));
+    $('eqState').textContent = eq.done ? 'Se acabó el tiempo · regresamos a la presentación' : eq.paused ? 'En pausa' : '';
+    if (!eq.done && !eq.paused && ms <= 0) { eq.done = true; $('equipo').classList.add('done'); sfx.alarm(); eqRender(); }
+  }
+  function openEquipo(min, kind) {
+    const k = EQ_TITLES[kind] ? kind : 'equipo';
+    $('eqTitle').textContent = EQ_TITLES[k][0]; $('eqSub').textContent = EQ_TITLES[k][1];
+    closePick(); closeVideo(); closeAplauso();
+    eq.total = eq.remain = Math.max(1, +min || 5) * 60000; eq.end = Date.now() + eq.total; eq.paused = false; eq.done = false; eq.open = true;
+    $('equipo').classList.remove('done', 'paused'); $('equipo').classList.add('open'); $('eqPause').textContent = 'Pausar';
+    clearInterval(eq.t); eq.t = setInterval(eqRender, 250); eqRender(); wake();
+  }
+  function eqAdd(min) {
+    if (!eq.open) return openEquipo(min || 1);
+    const add = (+min || 1) * 60000;
+    if (eq.done) { eq.done = false; eq.total = add; eq.remain = add; eq.end = Date.now() + add; $('equipo').classList.remove('done'); }
+    else if (eq.paused) { eq.remain += add; eq.total += add; } else { eq.end += add; eq.total += add; }
+    eqRender();
+  }
+  function eqPause() {
+    if (!eq.open || eq.done) return;
+    if (eq.paused) { eq.end = Date.now() + eq.remain; eq.paused = false; } else { eq.remain = Math.max(0, eq.end - Date.now()); eq.paused = true; }
+    $('equipo').classList.toggle('paused', eq.paused); $('eqPause').textContent = eq.paused ? 'Seguir' : 'Pausar'; eqRender();
+  }
+  function closeEquipo() { if (!eq.open) return; eq.open = false; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); }
+  $('eqPlus').addEventListener('click', () => eqAdd(1));
+  $('eqPause').addEventListener('click', eqPause);
+  $('eqClose').addEventListener('click', closeEquipo);
+
+  /* ---------- laser pointer from the phone (positions 0..1 over the slide) ---------- */
+  const laser = $('laser'); let lz = { x: .5, y: .5, tx: .5, ty: .5, last: 0, raf: 0 };
+  function laserTo(x, y, on) {
+    if (!on) { laser.classList.remove('on'); return; }
+    lz.tx = Math.max(0, Math.min(1, x)); lz.ty = Math.max(0, Math.min(1, y)); lz.last = performance.now();
+    if (!laser.classList.contains('on')) { lz.x = lz.tx; lz.y = lz.ty; laser.classList.add('on'); }
+    if (!lz.raf) lz.raf = requestAnimationFrame(laserFrame);
+  }
+  function laserFrame(now) {
+    lz.x += (lz.tx - lz.x) * 0.25; lz.y += (lz.ty - lz.y) * 0.25;
+    const r = stage.getBoundingClientRect();
+    laser.style.transform = `translate(${(r.left + lz.x * r.width).toFixed(1)}px,${(r.top + lz.y * r.height).toFixed(1)}px)`;
+    if (now - lz.last > 2500) { laser.classList.remove('on'); lz.raf = 0; return; }
+    lz.raf = requestAnimationFrame(laserFrame);
+  }
+
+  /* ---------- phone remote (control.html): commands arrive through Firebase ---------- */
+  const FBCFG = {
+    apiKey: "AIzaSyDDLY42OYezFcDUkb-x3vQO3fCq6FfZG6k",
+    authDomain: "quest-35aa0.firebaseapp.com",
+    projectId: "quest-35aa0",
+    storageBucket: "quest-35aa0.firebasestorage.app",
+    messagingSenderId: "226578437399",
+    appId: "1:226578437399:web:982321847804b3c9991352"
+  };
+  const DECK = ((location.pathname.split('/').pop() || '').replace(/\.html$/, '')) || 'presentacion';
+  let rT;
+  function rtoast(t) { const el = $('rtoast'); el.textContent = '📱 ' + t; el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
+  function remote(cmd, arg) {
+    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); };
+    switch (cmd) {
+      case 'next': calm(); next(); rtoast('Siguiente'); break;
+      case 'prev': calm(); prev(); rtoast('Anterior'); break;
+      case 'go': calm(); go(+arg); rtoast(`Diapositiva ${+arg + 1}`); break;
+      case 'ruleta': calm(); go(ruletaIdx); rtoast('Ruleta'); break;
+      case 'spin': calm(); if (!isLive()) { go(ruletaIdx); setTimeout(spin, 1800); } else spin(); rtoast('Girando la ruleta'); break;
+      case 'salirRuleta': calm(); go(isLive() ? (beforeRuleta >= 0 && beforeRuleta !== ruletaIdx ? beforeRuleta : Math.max(0, ruletaIdx - 1)) : cur); rtoast('Saliendo de la ruleta'); break;
+      case 'equipo': {
+        const a = arg || {};
+        if (a.a === 'close') { closeEquipo(); rtoast('Pantalla de espera cerrada'); }
+        else if (a.a === 'pause') { eqPause(); rtoast(eq.paused ? 'Cronómetro en pausa' : 'Cronómetro sigue'); }
+        else if (a.a === 'add') { eqAdd(a.min || 1); rtoast(`+${a.min || 1} min`); }
+        else { closeTrivia(); openEquipo(a.min || 5, a.kind); rtoast(`${EQ_TITLES[a.kind] ? EQ_TITLES[a.kind][0] : 'Trabajo en equipo'} · ${a.min || 5} min`); }
+        break;
+      }
+      case 'closeReveal': { const f = slides[ruletaIdx] && slides[ruletaIdx].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage({ ruleta: 'close' }, '*'); rtoast('Resultado cerrado'); break; }
+      case 'video': closePick(); closeAplauso(); openVideo(+arg); rtoast(`Video ${arg}`); break;
+      case 'closeVideo': closeVideo(); rtoast('Video cerrado'); break;
+      case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
+      case 'aplauso': closePick(); arg === 'close' ? closeAplauso() : openAplauso(); rtoast('Aplausómetro'); break;
+      case 'sound': setSound(arg !== 'off'); rtoast(arg === 'off' ? 'Sonido apagado' : 'Sonido activado'); break;
+    }
+  }
+  window.__remote = remote;
+  (async () => {
+    if (new URLSearchParams(location.search).has('demo')) {
+      try { const ch = new BroadcastChannel('remote-' + DECK); ch.onmessage = e => { const d = e.data; if (!d) return; if (d.laser) laserTo(d.laser.x, d.laser.y, d.laser.on); else remote(d.cmd, d.arg); }; } catch (e) {}
+      return;
+    }
+    if (!FBCFG) return;
+    try {
+      const V = '10.12.2';
+      const [A, U, F] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
+        import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
+      ]);
+      const fb = A.initializeApp(FBCFG, 'control');
+      const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
+      if (!auth.currentUser) await U.signInAnonymously(auth);
+      let first = true, last = null;
+      F.onSnapshot(F.doc(db, 'trivia', 'remote-' + DECK), snap => {
+        const d = snap.data();
+        if (first) { first = false; last = d ? d.seq : null; return; }   // never replay an old command when the page opens
+        if (d && d.seq !== last) { last = d.seq; remote(d.cmd, d.arg); }
+      }, () => {});
+      // the phone spreads pointer updates over five documents (Firestore takes about one write per second per document)
+      let lastLaser = 0;
+      for (let k = 0; k < 5; k++) {
+        let firstL = true;
+        F.onSnapshot(F.doc(db, 'trivia', `remote-${DECK}-laser${k}`), snap => {
+          const d = snap.data();
+          if (firstL) { firstL = false; return; }
+          if (d && d.seq > lastLaser) { lastLaser = d.seq; laserTo(d.x, d.y, d.on); }
+        }, () => {});
+      }
+    } catch (e) { /* offline: the presentation works the same, just without the phone */ }
+  })();
+
+  // some browsers hold back autoplay until the first touch or key: start the current videos then
+  const kick = () => { slides[cur] && slides[cur].querySelectorAll('video').forEach(v => { if (v.paused) { const p = v.play(); if (p && p.catch) p.catch(() => {}); } }); };
+  addEventListener('pointerdown', kick, { once: true }); addEventListener('keydown', kick, { once: true });
+  const firstGesture = () => { sfx.ctx(); startMusic(); };
+  addEventListener('pointerdown', firstGesture, { once: true }); addEventListener('keydown', firstGesture, { once: true });
+  addEventListener('message', e => { if (e.data && e.data.ruletaSound === 'duck') music.volume = 0.1; if (e.data && e.data.ruletaSound === 'unduck') music.volume = 0.32; });
+  // wait for the bundled fonts so titles do not jump while animating in
+  (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]) : Promise.resolve()).then(begin);
+})();
+</script>
+</body>
+</html>

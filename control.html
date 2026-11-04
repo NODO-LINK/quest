@@ -41,8 +41,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .status{font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;background:var(--glass);border:1px solid var(--edge);white-space:nowrap}
 .status.ok{color:#7BE0A3}.status.bad{color:#FF8A96}.status.busy{color:var(--yellow)}
 .glass{background:var(--glass);border:1px solid var(--edge);box-shadow:var(--shadow);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-radius:26px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;border-radius:999px}
-.tabs button{font:700 15px var(--font);color:var(--muted);background:transparent;border:0;border-radius:999px;height:42px}
+.tabs{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;padding:6px;border-radius:999px}
+.tabs button{font:700 14px var(--font);color:var(--muted);background:transparent;border:0;border-radius:999px;height:42px}
 .tabs button[aria-pressed=true]{background:rgba(255,255,255,.2);color:#fff}
 .now{padding:16px 18px}
 .now small{display:block;color:var(--yellow);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
@@ -110,6 +110,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       <div class="tabs glass" role="group" aria-label="Presentación">
         <button type="button" data-deck="presentacion" aria-pressed="true">Plan de Formación</button>
         <button type="button" data-deck="diagnostico" aria-pressed="false">Diagnóstico</button>
+        <button type="button" data-deck="periodicos" aria-pressed="false">Periódicos</button>
       </div>
       <div class="now glass"><small>En pantalla (aprox.)</small><b id="nowName">—</b><span id="nowNum">Toca una diapositiva de la lista para sincronizar</span></div>
       <div class="notes glass" id="notesBox"><small>Notas del presentador</small><span id="notes">Toca una diapositiva de la lista y aquí verás qué decir.</span></div>
@@ -191,8 +192,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera' };
-  let deck = new URLSearchParams(location.search).get('d') === 'diagnostico' ? 'diagnostico' : 'presentacion';
-  try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && saved) deck = saved; } catch (e) {}
+  const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
+  let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
+  try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
 
   function status(t, cls) { const s = $('status'); s.textContent = t; s.className = 'status ' + cls; }
