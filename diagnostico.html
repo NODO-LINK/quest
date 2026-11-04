@@ -312,6 +312,12 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
 .zoombox img{display:block;transform:translate(var(--from))}
 .on .zoombox img{animation:zoomPan 16s ease-in-out .8s infinite alternate}
 @keyframes zoomPan{from{transform:translate(var(--from))}to{transform:translate(var(--to))}}
+/* a "clean" slide shows only its content: the shortcut bar hides once the mouse rests */
+.bigpaper{box-shadow:0 24px 60px rgba(0,0,0,.7)}
+.bigpaper img{width:100%;height:100%;display:block;object-fit:contain;background:#eee}
+body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
+#jump{transition:opacity .4s ease}
+.slide.clean ~ #dust{}
 /* golden dust drifting over every slide */
 #dust{position:absolute;inset:0;width:1600px;height:900px;pointer-events:none;z-index:4;mix-blend-mode:screen;opacity:.8}
 .reset .card::after,.reset .glass::after{animation:none!important}
@@ -603,6 +609,9 @@ body.idle #pClose,body.idle #pLabel{opacity:0;transition:opacity .4s}
     if (frame) setTimeout(() => { if (slides[cur] === sl) frame.focus(); }, 400);
     else if (document.activeElement && document.activeElement.tagName === 'IFRAME') document.activeElement.blur();
     $('count').textContent = `${i + 1} / ${N}`;
+    document.body.classList.toggle('clean', sl.classList.contains('clean'));
+    document.getElementById('dust').style.opacity = sl.classList.contains('clean') ? '0' : '';
+    document.getElementById('lights').style.opacity = sl.classList.contains('clean') ? '0' : '';
     $('toRuleta').setAttribute('aria-current', String(sl.classList.contains('live')));
     $('bar').style.width = `${(i + 1) / N * 100}%`;
     $('prev').disabled = i === 0; $('next').disabled = i === N - 1;
