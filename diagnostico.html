@@ -144,6 +144,19 @@ body.idle #dock{opacity:0;transform:translateY(12px);pointer-events:none}
 #jump button.v:nth-child(4){box-shadow:inset 0 -3px 0 #D7263D}
 #jump button.v:nth-child(5){box-shadow:inset 0 -3px 0 #19C3E6}
 #jump button.v:nth-child(6){box-shadow:inset 0 -3px 0 #C8743A}
+#jump button.pr{font-size:18px;padding:0 10px;box-shadow:inset 0 -3px 0 #F7F9FC}
+/* newspapers viewer: both clippings big, side by side; tap one to see it alone */
+#prensa{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:2.2vw;padding:3vh 2vw;
+  background:radial-gradient(ellipse at 50% 45%,#1a2233 0%,#0b0f18 75%);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+#prensa.open{opacity:1;visibility:visible;transition:opacity .35s ease}
+#prensa img{display:block;max-height:94vh;box-shadow:0 24px 60px rgba(0,0,0,.7);background:#eee;cursor:zoom-in;transition:transform .5s cubic-bezier(.2,.75,.2,1),opacity .35s ease}
+#prensa img.p1{max-width:30vw}#prensa img.p2{max-width:62vw}
+#prensa.open img{animation:prIn .7s cubic-bezier(.2,.75,.2,1) both}#prensa.open img.p2{animation-delay:.15s}
+@keyframes prIn{from{opacity:0;transform:translateY(40px) scale(.96)}}
+#prensa.solo img{display:none}#prensa.solo img.show{display:block;max-width:96vw;max-height:94vh;cursor:zoom-out}
+#prBtns{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:21}
+#prBtns button{font:700 15px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:999px;height:42px;padding:0 16px;cursor:pointer}
+body.idle #prBtns{opacity:0;transition:opacity .4s}
 #jump button.triv{background:linear-gradient(160deg,#2BB673,#1E9E4F 60%,#16803F);padding:0 16px}
 body.trivia #jump{bottom:auto;top:max(14px,env(safe-area-inset-top))}
 /* trivia (presenter screen) inside the same page */
@@ -490,6 +503,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   <button class="v" type="button" data-v="4" aria-label="Video 4">4</button>
   <button class="v" type="button" data-v="5" aria-label="Video 5">5</button>
   <button class="v" type="button" data-v="6" aria-label="Video 6">6</button>
+  <button class="pr" type="button" id="toPrensa" aria-label="Periódicos">📰</button>
   <button class="rul" type="button" id="toRuleta">Ruleta</button>
   <button class="triv" type="button" id="toTrivia">Trivia</button>
   <button class="sl" type="button" id="toPick" aria-label="Elegir diapositiva">☰ Diapositivas</button>
@@ -510,6 +524,11 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   <div id="pickGrid"></div></div></div>
 <div id="trivia" aria-label="Trivia"><iframe id="tFrame" title="Trivia" allow="fullscreen; clipboard-write"></iframe></div>
 <button id="tClose" type="button">✕ Volver a la presentación</button>
+<div id="prensa" role="dialog" aria-modal="true" aria-label="Periódicos">
+  <img class="p1" src="presentacion/media/prensa/hambre_2001.jpg" alt="El hambre apaga la vida de los pequeños marenses" data-p="1" loading="lazy">
+  <img class="p2" src="presentacion/media/prensa/caneyes.jpg" alt="La lucha contra la desnutrición contará con 10 caneyes comunitarios en Mara" data-p="2" loading="lazy">
+  <div id="prBtns"><button type="button" data-pr="both">Ambos</button><button type="button" data-pr="1">1</button><button type="button" data-pr="2">2</button><button type="button" id="prClose">✕ Cerrar</button></div>
+</div>
 <div id="player" role="dialog" aria-modal="true" aria-label="Video">
   <video id="pVideo" controls playsinline preload="none"></video>
   <div id="pLabel">Video 1</div>
@@ -679,6 +698,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   let triviaOpen = false;
   let playing = 0;
   function openVideo(n) {
+    if (typeof closePrensa === 'function') closePrensa();
     playing = n;
     $('pLabel').textContent = `Video ${n}`;
     $('pMsg').hidden = true;
@@ -752,7 +772,27 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   $('toPick').addEventListener('click', e => { e.stopPropagation(); pickOpen ? closePick() : openPick(); });
   $('count').addEventListener('click', e => { e.stopPropagation(); openPick(); });
 
+  /* ---------- newspapers viewer (📰 button, key 7, or the phone) ---------- */
+  let prOpen = false;
+  function openPrensa(which) {
+    closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeBien();
+    prOpen = true; const pr = $('prensa'); pr.classList.add('open');
+    prShow(which || 'both'); $('toPrensa').setAttribute('aria-current', 'true'); wake();
+  }
+  function prShow(which) {
+    const pr = $('prensa');
+    pr.classList.toggle('solo', which === '1' || which === '2');
+    pr.querySelectorAll('img').forEach(im => im.classList.toggle('show', im.dataset.p === which));
+  }
+  function closePrensa() { if (!prOpen) return; prOpen = false; $('prensa').classList.remove('open', 'solo'); $('toPrensa').removeAttribute('aria-current'); }
+  $('toPrensa').addEventListener('click', e => { e.stopPropagation(); prOpen ? closePrensa() : openPrensa('both'); });
+  $('prClose').addEventListener('click', closePrensa);
+  document.querySelectorAll('#prBtns [data-pr]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); prShow(b.dataset.pr); }));
+  $('prensa').querySelectorAll('img').forEach(im => im.addEventListener('click', e => { e.stopPropagation(); prShow($('prensa').classList.contains('solo') ? 'both' : im.dataset.p); }));
+  $('prensa').addEventListener('click', e => { if (e.target === $('prensa')) closePrensa(); });
+
   function shortcut(k) {
+    if (k === '7') { prOpen ? closePrensa() : openPrensa('both'); return true; }
     if (k === 's' || k === 'S') { setSound(!soundOn()); return true; }
     if (k === 'a' || k === 'A') { apOpen ? closeAplauso() : openAplauso(); return true; }
     if (k === 'd' || k === 'D') { pickOpen ? closePick() : openPick(); return true; }
@@ -767,6 +807,12 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
       if (e.key === 'Escape' || e.key === 'e' || e.key === 'E') { e.preventDefault(); closeEquipo(); }
       else if (e.key === ' ') { e.preventDefault(); eqPause(); }
       else if (e.key === '+' || e.key === '=') { e.preventDefault(); eqAdd(1); }
+      wake(); return;
+    }
+    if (prOpen) {
+      if (e.key === 'Escape' || e.key === '7') { e.preventDefault(); closePrensa(); }
+      else if (e.key === '1' || e.key === '2') { e.preventDefault(); prShow(e.key); }
+      else if (e.key === '0' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); prShow('both'); }
       wake(); return;
     }
     if (bienOpen) { if (e.key === 'Escape' || e.key === 'b' || e.key === 'B' || e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter' || e.key === 'PageDown') { e.preventDefault(); closeBien(); } return; }
@@ -810,6 +856,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     if (a === 'pick') { openPick(); return; }
     if ((playing || triviaOpen) && a !== 'wake') return;
     if (a === 'next') next(); else if (a === 'prev') prev(); else if (a === 'first') go(0); else if (a === 'last') go(N - 1); else if (a === 'full') full();
+    else if (a === 'prensa') openPrensa('both');
     else if (typeof a === 'string' && a[0] === 'v') openVideo(+a.slice(1));
     if (a) wake();
   });
@@ -989,7 +1036,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   let rT;
   function rtoast(t) { const el = $('rtoast'); el.textContent = '📱 ' + t; el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
   function remote(cmd, arg) {
-    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); };
+    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); closePrensa(); };
     switch (cmd) {
       case 'next': calm(); next(); rtoast('Siguiente'); break;
       case 'prev': calm(); prev(); rtoast('Anterior'); break;
@@ -1009,6 +1056,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
       case 'closeReveal': { const f = slides[ruletaIdx] && slides[ruletaIdx].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage({ ruleta: 'close' }, '*'); rtoast('Resultado cerrado'); break; }
       case 'video': closePick(); closeAplauso(); openVideo(+arg); rtoast(`Video ${arg}`); break;
       case 'closeVideo': closeVideo(); rtoast('Video cerrado'); break;
+      case 'prensa': if (arg === 'close') { closePrensa(); rtoast('Periódicos cerrados'); } else if (prOpen && arg !== 'both') { prShow(arg); rtoast(`Periódico ${arg}`); } else { openPrensa(arg || 'both'); rtoast('Periódicos'); } break;
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
       case 'aplauso': closePick(); arg === 'close' ? closeAplauso() : openAplauso(); rtoast('Aplausómetro'); break;
       case 'sound': setSound(arg !== 'off'); rtoast(arg === 'off' ? 'Sonido apagado' : 'Sonido activado'); break;

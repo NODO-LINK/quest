@@ -165,6 +165,16 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
         </div>
         <div class="row" style="margin-top:8px"><button class="btn" type="button" data-cmd="closeVideo">✕ Cerrar video</button></div>
       </section>
+      <section class="sec glass"><h2>📰 Periódicos</h2>
+        <div class="row">
+          <button class="btn green" type="button" data-cmd="prensa" data-arg="both">📰 Mostrar los dos</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" type="button" data-cmd="prensa" data-arg="1">Solo el 1</button>
+          <button class="btn" type="button" data-cmd="prensa" data-arg="2">Solo el 2</button>
+          <button class="btn" type="button" data-cmd="prensa" data-arg="close">✕ Cerrar</button>
+        </div>
+      </section>
       <section class="sec glass"><h2>Más</h2>
         <div class="row">
           <button class="btn green" type="button" data-cmd="trivia" data-arg="open">Abrir trivia</button>
@@ -199,9 +209,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: '📰 Periódicos' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1793798258';
+  const THUMBV = '1793798663';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
