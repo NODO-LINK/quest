@@ -65,6 +65,22 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid v
 .sess{display:grid;gap:4px}
 .sess b{font-size:19px;line-height:1.25}
 .genchip{margin-top:10px;min-height:34px}
+/* module picker (replaces the browser's plain dropdown) */
+.mwrap{position:relative}
+.mwrap input{padding-right:44px}
+.mwrap .caret{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);transition:transform .2s}
+.mwrap.open .caret{transform:translateY(-50%) rotate(180deg)}
+.mpanel{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:30;max-height:min(420px,60vh);overflow:auto;padding:8px;border-radius:20px;
+  background:linear-gradient(160deg,#17346A,#0C2046);border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.25),0 24px 60px rgba(0,0,0,.55);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  animation:mIn .18s ease-out}
+@keyframes mIn{from{opacity:0;transform:translateY(-6px)}}
+.mgen{display:flex;align-items:center;gap:8px;padding:10px 10px 6px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);position:sticky;top:-8px;background:#122b58;z-index:1}
+.mgen i{width:10px;height:10px;border-radius:50%}
+.mopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:0;border-radius:14px;padding:9px 10px;cursor:pointer;color:#fff;font-size:15px;line-height:1.25}
+.mopt:hover,.mopt.act{background:rgba(255,255,255,.12)}
+.mopt b{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+.mempty{padding:14px;color:var(--muted);font-size:14px}
 /* success */
 .ok{text-align:center;padding:30px 20px}
 .tick{width:110px;height:110px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#2BB673,#1E9E4F);box-shadow:0 14px 34px rgba(30,158,79,.45);animation:pop .6s cubic-bezier(.2,1.6,.4,1) both}
@@ -1676,8 +1692,9 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return `<div class="grid2" style="margin-top:14px;grid-template-columns:minmax(260px,380px) 1fr">
       <form class="glass pad" id="nf"><h2>Nueva sesión</h2>
         <label for="nfF">Fecha</label><input id="nfF" type="date" value="${today()}" required>
-        <label for="nfM">Módulo</label><input id="nfM" list="mods" placeholder="Escribe o elige un módulo" required maxlength="120">
-        <datalist id="mods">${MODULOS.map(m => `<option value="${esc(m)}">`).join('')}</datalist>
+        <label for="nfM">Módulo</label>
+        <div class="mwrap" id="mw"><input id="nfM" placeholder="Toca para elegir un módulo" required maxlength="120" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="mp">
+          <span class="caret" aria-hidden="true">▾</span><div class="mpanel" id="mp" role="listbox" hidden></div></div>
         <label for="nfC">Coordinación</label><select id="nfC" required>${coordOpts}</select>
         <label for="nfL">Lugar (opcional)</label><input id="nfL" maxlength="80" placeholder="Ej.: Salón de sesiones">
         <button class="btn primary" type="submit">Crear y abrir</button></form>
@@ -1768,6 +1785,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       const id = newId(), data = { fecha: $('#nfF').value, modulo: $('#nfM').value.trim(), coordinacion: $('#nfC').value, lugar: $('#nfL').value.trim(), abierta: true, creada: Date.now() };
       try { await DB.saveSesion(id, data); toast('Sesión creada y abierta'); openProj(id); } catch (err) { toast('No se pudo crear (¿reglas de Firestore?)'); }
     });
+    const mi = $('#nfM'); if (mi && !mi.dataset.b) { mi.dataset.b = 1; modulePicker(mi); }
     document.querySelectorAll('[data-toggle]').forEach(b => b.onclick = async () => { const s = S.ses[b.dataset.toggle]; try { await DB.saveSesion(b.dataset.toggle, { abierta: !s.abierta }); } catch (e) { toast('No se pudo cambiar'); } });
     document.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => openProj(b.dataset.proj));
     document.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(linkOf(b.dataset.copy)); toast('Enlace copiado'); } catch (e) { prompt('Copia el enlace:', linkOf(b.dataset.copy)); } });
@@ -1778,6 +1796,36 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       e.preventDefault();
       const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5) };
       try { await DB.setConfig(c); S.cfg = c; toast('Ajustes guardados'); } catch (err) { toast('No se pudo guardar'); }
+    });
+  }
+  // grouped, searchable module list in the Alcaldía style; free text still allowed
+  function modulePicker(inp) {
+    const wrap = $('#mw'), panel = $('#mp');
+    const MODS = MODULOS.map(m => { const g = m.split(' · ')[0], rest = m.slice(g.length + 3), num = (rest.match(/Módulo (\d+)/) || [])[1] || '', title = rest.replace(/^Módulo \d+:\s*/, ''); return { full: m, g, gi: GENS.findIndex(x => x.n === g), num, title }; });
+    let act = -1, shown = [];
+    const draw = () => {
+      const q = normName(inp.value);
+      shown = MODS.filter(m => !q || normName(m.full).includes(q));
+      let html = '', last = '';
+      shown.forEach((m, i) => {
+        const g = GENS[m.gi] || { c: '#999', n: m.g };
+        if (m.g !== last) { html += `<div class="mgen"><i style="background:${g.c}"></i>Generación ${esc(m.g)}</div>`; last = m.g; }
+        html += `<button type="button" class="mopt${i === act ? ' act' : ''}" role="option" data-i="${i}"><b style="background:${g.c};color:${m.gi >= 3 ? '#0B1426' : '#fff'}">${esc(m.num)}</b><span>${esc(m.title)}</span></button>`;
+      });
+      panel.innerHTML = html || `<div class="mempty">Ningún módulo coincide. Puedes dejar lo que escribiste.</div>`;
+      panel.querySelectorAll('.mopt').forEach(b => b.addEventListener('mousedown', e => { e.preventDefault(); pick(+b.dataset.i); }));
+    };
+    const open = () => { act = -1; draw(); panel.hidden = false; wrap.classList.add('open'); inp.setAttribute('aria-expanded', 'true'); };
+    const close = () => { panel.hidden = true; wrap.classList.remove('open'); inp.setAttribute('aria-expanded', 'false'); };
+    const pick = i => { const m = shown[i]; if (!m) return; inp.value = m.full; close(); };
+    inp.addEventListener('focus', open); inp.addEventListener('click', open);
+    inp.addEventListener('input', () => { act = -1; if (panel.hidden) open(); else draw(); });
+    inp.addEventListener('blur', () => setTimeout(close, 120));
+    inp.addEventListener('keydown', e => {
+      if (panel.hidden && (e.key === 'ArrowDown')) { open(); return; }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); act = Math.max(0, Math.min(shown.length - 1, act + (e.key === 'ArrowDown' ? 1 : -1))); draw(); const el = panel.querySelector('.mopt.act'); el && el.scrollIntoView({ block: 'nearest' }); }
+      else if (e.key === 'Enter' && !panel.hidden && act >= 0) { e.preventDefault(); pick(act); }
+      else if (e.key === 'Escape') close();
     });
   }
   const linkOf = id => { const u = new URL(location.href); u.search = (DB.demo ? '?demo&' : '?') + 's=' + id; u.hash = ''; return u.toString(); };
