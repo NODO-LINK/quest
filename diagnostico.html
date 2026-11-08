@@ -1907,9 +1907,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   const timers = new Map();
   const ruletaIdxEarly = slides.findIndex(s => s.classList.contains('live'));
   let beforeRuleta = -1;
+  let pubState = () => {};   // set once Firebase is connected: tells the home dashboard which slide is on screen
   function go(i, instant) {
     i = Math.max(0, Math.min(N - 1, i));
     if (i === cur) return;
+    setTimeout(() => pubState(), 0);
     const prev = slides[cur], back = cur >= 0 && i < cur, first = cur < 0;
     let tr = first ? 'fade' : (slides[i].dataset.tr || 'fade');
     if (tr === 'slide' && back) tr = 'slideback';
@@ -2449,6 +2451,10 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
           if (d && d.seq > lastLaser) { lastLaser = d.seq; laserTo(d.x, d.y, d.on); }
         }, () => {});
       }
+      // live status for the home dashboard: one write per slide change plus a heartbeat each minute
+      const pub = () => F.setDoc(F.doc(db, 'trivia', 'estado-' + DECK), { slide: cur + 1, total: N, nombre: (slides[cur] && slides[cur].dataset.name) || '', at: F.serverTimestamp() }).catch(() => {});
+      let pt = 0; pubState = () => { clearTimeout(pt); pt = setTimeout(pub, 800); };
+      pub(); setInterval(pub, 60000);
     } catch (e) { /* offline: the presentation works the same, just without the phone */ }
   })();
 

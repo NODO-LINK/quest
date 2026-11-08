@@ -3,72 +3,438 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A2346">
-<title>Formación · Alcaldía de Mara</title>
+<meta name="theme-color" content="#ffffff">
+<title>Panel de Formación · Alcaldía de Mara</title>
 <script>
 // old trivia links (?pantalla, ?sala=…) still work: send them to the trivia
 (function () { var q = location.search; if (/[?&](pantalla|sala|jugar)\b/.test(q)) location.replace('trivia.html' + q + location.hash); })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  PANEL DE FORMACIÓN (página de inicio)
+  · Público: sesión abierta, presentaciones en vivo, trivia en vivo y accesos rápidos.
+  · Con la clave de administración: números de asistencia, gráficos y últimas llegadas.
+  · Todo en el Firebase nodocount (mismas reglas que la asistencia y la trivia).
+  · Prueba sin internet: index.html?demo
+-->
 <style>
 :root{
-  color-scheme:dark;
-  --bg:#0A2346; --ink:#fff; --muted:#B8C7DD;
-  --green:#1E9E4F; --blue:#2A64B4; --yellow:#F4C20D; --red:#D7263D;
-  --glass:linear-gradient(140deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,.07) 45%,rgba(255,255,255,.04) 100%);
-  --edge:rgba(255,255,255,.26);
-  --shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 14px 36px rgba(2,10,30,.35);
-  --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+  --bg:#F2F5F9; --card:#fff; --line:#E2E8F0; --line2:#EEF2F6;
+  --ink:#0E1B2E; --ink2:#334155; --muted:#64748B;
+  --blue:#1F57B5; --blue-soft:#E8F0FC; --yellow:#E9AE00; --yellow-soft:#FFF6D6; --red:#CC2B3D; --red-soft:#FDECEE;
+  --green:#14834A; --green-soft:#E3F5EA;
+  --bar:#2F6BD0; --bar-hi:#1F57B5;
+  --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:18px; --sh:0 1px 2px rgba(15,30,60,.05),0 6px 20px rgba(15,30,60,.05);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%}
-body{font-family:var(--font);color:var(--ink);background:var(--bg);
-  background-image:radial-gradient(60vmax 45vmax at 110% 110%,rgba(30,158,79,.35),transparent 60%),radial-gradient(55vmax 40vmax at -10% 0%,rgba(42,100,180,.45),transparent 60%),linear-gradient(170deg,#0E3366,#0A2346 55%,#081B38);
-  background-attachment:fixed;padding:max(18px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
-.wrap{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
-header{display:flex;align-items:center;gap:12px;padding-top:6px}
-.flag{display:grid;grid-template-rows:repeat(3,1fr);width:9px;height:44px;border-radius:3px;overflow:hidden;flex:none}
-.flag i:nth-child(1){background:var(--yellow)}.flag i:nth-child(2){background:var(--blue)}.flag i:nth-child(3){background:var(--red)}
-header small{display:block;color:var(--muted);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-header h1{margin:2px 0 0;font-size:clamp(22px,4.6vw,32px);line-height:1.15}
-h2{margin:0 0 10px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-a.card{display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;padding:16px;border-radius:20px;
-  background:var(--glass);border:1px solid var(--edge);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
-  transition:transform .15s,border-color .15s;min-height:84px}
-a.card:hover,a.card:focus-visible{transform:translateY(-2px);border-color:rgba(255,255,255,.5);outline:none}
-a.card:active{transform:scale(.98)}
-.ic{flex:none;width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:25px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
-.c-y .ic{background:rgba(244,194,13,.2)}.c-b .ic{background:rgba(42,100,180,.35)}.c-g .ic{background:rgba(30,158,79,.3)}.c-r .ic{background:rgba(215,38,61,.28)}
-.card b{display:block;font-size:17px;line-height:1.25}
-.card span{display:block;color:var(--muted);font-size:13.5px;line-height:1.35;margin-top:3px}
-.tip{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0;padding:14px 16px;border-radius:16px;border:1px dashed rgba(255,255,255,.22)}
-.tip b{color:var(--ink)}
+html,body{margin:0}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button,input{font:inherit}
+.stripe{height:5px;display:grid;grid-template-columns:1fr 1fr 1fr}
+.stripe i:nth-child(1){background:var(--yellow)}.stripe i:nth-child(2){background:var(--blue)}.stripe i:nth-child(3){background:var(--red)}
+
+/* header */
+.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top-in{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--blue);display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;flex:none;
+  background-image:linear-gradient(135deg,#2A66C9,#173F86)}
+.ttl small{display:block;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ttl h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em}
+.sp{flex:1}
+.clock{color:var(--ink2);font-weight:600;font-size:14px;text-align:right;white-space:nowrap}
+.clock small{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;font-size:13px;font-weight:600;background:var(--line2);color:var(--ink2);white-space:nowrap}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:#94A3B8}
+.pill.ok{background:var(--green-soft);color:var(--green)}.pill.ok::before{background:var(--green)}
+.pill.bad{background:var(--red-soft);color:var(--red)}.pill.bad::before{background:var(--red)}
+.pill.demo{background:var(--yellow-soft);color:#8A6500}.pill.demo::before{background:var(--yellow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#C9D3E0}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:#184A9C}
+.btn:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #9EC0F5;outline-offset:2px}
+
+/* layout */
+main{max-width:1280px;margin:0 auto;padding:22px 20px 40px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;min-width:0}
+.card h2{margin:0;font-size:15px;font-weight:700}
+.card .sub{margin:2px 0 0;color:var(--muted);font-size:13px}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+.k{grid-column:span 3}.w8{grid-column:span 8}.w4{grid-column:span 4}.w12{grid-column:span 12}
+@media (max-width:1100px){.k{grid-column:span 6}.w8,.w4{grid-column:span 12}.w4.half{grid-column:span 6}}
+@media (max-width:680px){
+  main{padding:16px 14px 32px;gap:12px}.k{grid-column:span 6}.w4.half{grid-column:span 12}
+  .top-in{padding:10px 14px;gap:10px;flex-wrap:wrap}.clock{display:none}.ttl h1{font-size:17px}
+  .o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}
+}
+@media (max-width:420px){.k{grid-column:span 12}}
+
+/* KPI */
+.kpi{display:flex;flex-direction:column;gap:6px;min-height:132px}
+.kpi .lab{display:flex;align-items:center;gap:9px;color:var(--ink2);font-weight:600;font-size:13.5px}
+.kpi .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:none}
+.kpi .val{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .val.txt{font-size:19px;line-height:1.25;letter-spacing:-.005em}
+.kpi .foot{color:var(--muted);font-size:13px;margin-top:auto}
+.kpi .lock{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px}
+.t-b{background:var(--blue-soft)}.t-y{background:var(--yellow-soft)}.t-r{background:var(--red-soft)}.t-g{background:var(--green-soft)}
+
+/* live */
+.live{display:flex;flex-direction:column;gap:10px}
+.lrow{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line2);border-radius:14px;background:#FAFBFD}
+.lrow .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none}
+.lrow b{display:block;font-size:14.5px}
+.lrow span{display:block;color:var(--muted);font-size:13px}
+.lrow .st{margin-left:auto;text-align:right;flex:none}
+.dot{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:#CBD5E1}
+.dot.on{color:var(--green)}.dot.on::before{background:var(--green);box-shadow:0 0 0 0 rgba(20,131,74,.5);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(20,131,74,0)}100%{box-shadow:0 0 0 0 rgba(20,131,74,0)}}
+@media (prefers-reduced-motion:reduce){.dot.on::before{animation:none}}
+.prog{height:6px;border-radius:99px;background:var(--line2);overflow:hidden;margin-top:6px;width:120px}
+.prog i{display:block;height:100%;background:var(--blue);border-radius:99px}
+
+/* charts */
+.vb{display:flex;align-items:flex-end;gap:2px;height:268px;padding-top:22px;border-bottom:1px solid var(--line);position:relative}
+.vb .grid{position:absolute;inset:22px 0 0 0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.vb .grid i{border-top:1px dashed var(--line2);height:0}
+.vb .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;cursor:default;min-width:0}
+.vb .col .b{width:min(44px,70%);background:var(--bar);border-radius:4px 4px 0 0;min-height:2px;transition:height .5s}
+.vb .col:hover .b{background:var(--bar-hi)}
+.vb .col .n{font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:5px;font-variant-numeric:tabular-nums}
+.vbl{display:flex;gap:2px;margin-top:7px}.vbl span{flex:1;text-align:center;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hb{display:flex;flex-direction:column;gap:12px}
+.hb .r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;cursor:default}
+.hb .r .l{font-size:13.5px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:7px;min-width:0}
+.hb .r .l em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .r .l i{width:10px;height:10px;border-radius:3px;flex:none}
+.hb .r .v{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.hb .r .t{grid-column:1/-1;height:10px;border-radius:0 4px 4px 0;background:var(--line2)}
+.hb .r .t b{display:block;height:100%;background:var(--bar);border-radius:0 4px 4px 0;min-width:2px;transition:width .5s}
+.hb .r:hover .t b{background:var(--bar-hi)}
+.empty{color:var(--muted);font-size:14px;padding:22px 0;text-align:center}
+.feed{display:flex;flex-direction:column}
+.feed .f{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.feed .f:last-child{border-bottom:0}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex:none}
+.feed b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed span{display:block;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed .av{display:grid;color:#fff;font-size:13px}
+.feed .h{margin-left:auto;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+
+/* lock card */
+.lockc{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center;padding:26px}
+.lockc h2{font-size:20px;font-weight:800;margin:6px 0 6px}
+.lockc p{margin:0;color:var(--muted)}
+.lockc .big{font-size:30px}
+form.lf{display:flex;flex-direction:column;gap:10px}
+form.lf label{font-size:13px;font-weight:600;color:var(--ink2)}
+form.lf input{height:46px;border:1px solid var(--line);border-radius:12px;padding:0 13px;font-size:15px;background:#FAFBFD;color:var(--ink)}
+form.lf .msg{color:var(--red);font-size:13.5px;min-height:1em}
+@media (max-width:760px){.lockc{grid-template-columns:1fr;padding:20px}}
+
+/* access */
+.acc{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px}
+.acc a{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;text-decoration:none;color:inherit;background:#fff;transition:border-color .15s,box-shadow .15s,transform .15s}
+.acc a:hover{border-color:#BFD0EA;box-shadow:0 6px 18px rgba(31,87,181,.10);transform:translateY(-1px)}
+.acc .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none}
+.acc b{display:block;font-size:14.5px}
+.acc span{display:block;font-size:12.5px;color:var(--muted);line-height:1.3}
+
+#tip{position:fixed;z-index:20;pointer-events:none;background:#0E1B2E;color:#fff;font-size:12.5px;font-weight:600;padding:7px 10px;border-radius:9px;box-shadow:0 8px 20px rgba(0,0,0,.18);opacity:0;transition:opacity .12s;max-width:240px}
+#tip.on{opacity:1}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,16px);opacity:0;transition:all .25s;background:#0E1B2E;color:#fff;padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;z-index:30}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header><div class="flag"><i></i><i></i><i></i></div><div><small>Alcaldía Bolivariana de Mara</small><h1>Formación · Todo en un lugar</h1></div></header>
+<div class="stripe"><i></i><i></i><i></i></div>
+<header class="top"><div class="top-in">
+  <div class="logo" aria-hidden="true">M</div>
+  <div class="ttl"><small>Alcaldía Bolivariana de Mara</small><h1>Panel de Formación</h1></div>
+  <div class="sp"></div>
+  <div class="clock" id="clock"></div>
+  <span class="pill" id="conn">Conectando…</span>
+  <button class="btn" id="userBtn" hidden></button>
+</div></header>
 
-  <section>
-    <h2>Presentaciones (en la laptop del videobeam)</h2>
-    <div class="grid">
-      <a class="card c-y" href="presentacion.html"><div class="ic">🎓</div><div><b>Plan de Formación</b><span>Filosófico-Político · con videos, ruleta, trivia y QR de asistencia</span></div></a>
-      <a class="card c-b" href="diagnostico.html"><div class="ic">📊</div><div><b>Diagnóstico I Fase</b><span>Gestión interna y resultados</span></div></a>
-      <a class="card c-r" href="periodicos.html"><div class="ic">📰</div><div><b>Periódicos</b><span>Presentación de los periódicos</span></div></a>
-    </div>
+<main>
+  <!-- KPIs -->
+  <section class="card k kpi o1" aria-live="polite">
+    <div class="lab"><span class="ic t-g">🟢</span>Sesión de asistencia</div>
+    <div class="val txt" id="kSes">—</div>
+    <div class="foot" id="kSesF">&nbsp;</div>
+  </section>
+  <section class="card k kpi o1">
+    <div class="lab"><span class="ic t-b">✅</span>Asistencias hoy</div>
+    <div class="val" id="kHoy">—</div>
+    <div class="foot" id="kHoyF"></div>
+  </section>
+  <section class="card k kpi o1">
+    <div class="lab"><span class="ic t-y">👥</span>Formados registrados</div>
+    <div class="val" id="kFor">—</div>
+    <div class="foot" id="kForF"></div>
+  </section>
+  <section class="card k kpi o1">
+    <div class="lab"><span class="ic t-r">❓</span>Jugadores en la trivia</div>
+    <div class="val" id="kTri">—</div>
+    <div class="foot" id="kTriF">&nbsp;</div>
   </section>
 
-  <section>
-    <h2>Herramientas</h2>
-    <div class="grid">
-      <a class="card c-g" href="control.html"><div class="ic">📱</div><div><b>Control del teléfono</b><span>Cambia diapositivas, ruleta, videos y pantallas de espera</span></div></a>
-      <a class="card c-y" href="trivia.html?pantalla"><div class="ic">❓</div><div><b>Trivia · pantalla</b><span>Para el videobeam. La gente entra con el QR</span></div></a>
-      <a class="card c-r" href="ruleta.html"><div class="ic">🎡</div><div><b>Ruleta</b><span>Sola, en pantalla completa</span></div></a>
-      <a class="card c-b" href="asistencia.html?admin"><div class="ic">✅</div><div><b>Asistencia · administración</b><span>Sesiones, formados, gráficos y constancias (pide clave)</span></div></a>
-    </div>
+  <!-- private charts (admin) -->
+  <section class="card w8 o4 adm" hidden>
+    <div class="ch"><div><h2>Asistencias por sesión</h2><p class="sub">Últimas sesiones, por fecha</p></div></div>
+    <div id="cSes"></div>
   </section>
 
-  <p class="tip"><b>Cómo se usa:</b> abre la presentación en la laptop y el control en tu teléfono, los dos desde este mismo link. La trivia, la ruleta y el QR de asistencia también se abren desde los botones de la presentación.</p>
-</div>
+  <!-- live -->
+  <section class="card w4 o2" id="liveCard">
+    <div class="ch"><div><h2>En vivo</h2><p class="sub">Lo que está pasando ahora</p></div></div>
+    <div class="live" id="live"></div>
+  </section>
+
+  <section class="card w4 half o4 adm" hidden>
+    <div class="ch"><div><h2>Formados por generación</h2><p class="sub">Personas registradas</p></div></div>
+    <div id="cGen"></div>
+  </section>
+  <section class="card w4 half o4 adm" hidden>
+    <div class="ch"><div><h2>Por coordinación</h2><p class="sub">Asistencias totales</p></div></div>
+    <div id="cCoo"></div>
+  </section>
+  <section class="card w4 o4 adm" hidden>
+    <div class="ch"><div><h2>Últimas llegadas</h2><p class="sub">Asistencias marcadas</p></div></div>
+    <div class="feed" id="feed"></div>
+  </section>
+
+  <!-- lock (public visitors) -->
+  <section class="card w8 o4 lockc" id="lockCard" hidden>
+    <div>
+      <div class="big">🔒</div>
+      <h2>Números de asistencia</h2>
+      <p>Las asistencias tienen datos de cédulas, por eso solo se ven con la clave de administración. Lo demás del panel lo puede ver cualquiera.</p>
+    </div>
+    <form class="lf" id="lf">
+      <label for="em">Correo</label><input id="em" type="email" autocomplete="username" required>
+      <label for="pw">Contraseña</label><input id="pw" type="password" autocomplete="current-password" required>
+      <button class="btn primary" type="submit" id="lb">Entrar</button>
+      <div class="msg" id="lm" role="alert"></div>
+    </form>
+  </section>
+
+  <!-- access -->
+  <section class="card w12 o3">
+    <div class="ch"><div><h2>Accesos rápidos</h2><p class="sub">Todo lo de la formación en un solo lugar</p></div></div>
+    <nav class="acc">
+      <a href="presentacion.html"><span class="ic t-y">🎓</span><div><b>Plan de Formación</b><span>Presentación con videos, ruleta y trivia</span></div></a>
+      <a href="diagnostico.html"><span class="ic t-b">📊</span><div><b>Diagnóstico I Fase</b><span>Presentación</span></div></a>
+      <a href="periodicos.html"><span class="ic t-r">📰</span><div><b>Periódicos</b><span>Presentación</span></div></a>
+      <a href="control.html"><span class="ic t-g">📱</span><div><b>Control del teléfono</b><span>Diapositivas, ruleta y videos</span></div></a>
+      <a href="trivia.html?pantalla"><span class="ic t-y">❓</span><div><b>Trivia</b><span>Pantalla del videobeam</span></div></a>
+      <a href="ruleta.html"><span class="ic t-r">🎡</span><div><b>Ruleta</b><span>En pantalla completa</span></div></a>
+      <a href="asistencia.html?admin"><span class="ic t-b">✅</span><div><b>Asistencia</b><span>Sesiones, QR y constancias</span></div></a>
+    </nav>
+  </section>
+</main>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const FB = {
+    apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y",
+    authDomain: "nodocount.firebaseapp.com",
+    projectId: "nodocount",
+    storageBucket: "nodocount.firebasestorage.app",
+    messagingSenderId: "344018240488",
+    appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
+  };
+const P = new URLSearchParams(location.search);
+const DEMO = P.has('demo') || !FB;
+const SALA = 'formacion-mara';
+const DECKS = [['presentacion', 'Plan de Formación', '🎓', 't-y'], ['diagnostico', 'Diagnóstico I Fase', '📊', 't-b'], ['periodicos', 'Periódicos', '📰', 't-r']];
+const GENS = [
+  { n: 'Precursora', c: '#B9652F' }, { n: 'Fundadora', c: '#CC2B3D' }, { n: 'Intermedia', c: '#1F57B5' }, { n: 'De Oro', c: '#B98A00' }, { n: 'Genial', c: '#0E8FA8' }];
+const FASE = { lobby: 'Esperando jugadores', preparando: 'Preparando pregunta', votando: 'Respondiendo ahora', cerrada: 'Mostrando la respuesta', ranking: 'Ranking', final: 'Partida terminada' };
+const $ = id => document.getElementById(id);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtN = n => Number(n || 0).toLocaleString('es-VE');
+const ms = t => !t ? 0 : typeof t === 'number' ? t : t.toMillis ? t.toMillis() : (t.seconds ? t.seconds * 1000 : 0);
+const dayKey = d => { d = new Date(d); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const today = () => dayKey(Date.now());
+const shortDate = f => { try { const [y, m, d] = f.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }); } catch (e) { return f; } };
+const longDate = f => { try { const [y, m, d] = f.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) { return f; } };
+const ago = t => { const s = Math.max(0, (Date.now() - t) / 1000); return s < 60 ? 'hace segundos' : s < 3600 ? `hace ${Math.round(s / 60)} min` : s < 86400 ? `hace ${Math.round(s / 3600)} h` : `hace ${Math.round(s / 86400)} d`; };
+let tT; const toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tT); tT = setTimeout(() => el.classList.remove('show'), 2400); };
+
+// ---------- state ----------
+const S = { ses: {}, per: null, mar: null, trivia: null, jug: 0, estado: {}, admin: false, email: '' };
+
+// ---------- clock ----------
+const tick = () => { const d = new Date(); $('clock').innerHTML = `${d.toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit' })}<small>${d.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' })}</small>`; };
+tick(); setInterval(tick, 15000);
+setInterval(() => renderLive(), 20000);
+
+// ---------- tooltip ----------
+const tip = $('tip');
+document.addEventListener('pointerover', e => { const el = e.target.closest('[data-tip]'); if (!el) { tip.classList.remove('on'); return; } tip.textContent = el.dataset.tip; tip.classList.add('on'); });
+document.addEventListener('pointermove', e => { if (!tip.classList.contains('on')) return; const w = tip.offsetWidth; tip.style.left = Math.min(innerWidth - w - 8, e.clientX + 12) + 'px'; tip.style.top = (e.clientY - 40) + 'px'; });
+
+// ---------- render ----------
+function render() { renderKpis(); renderLive(); renderPrivate(); }
+
+function openSessions() { return Object.entries(S.ses).filter(([, s]) => s.abierta).sort((a, b) => (b[1].creada || 0) - (a[1].creada || 0)); }
+
+function renderKpis() {
+  const op = openSessions();
+  if (op.length) {
+    const [, s] = op[0];
+    $('kSes').textContent = s.modulo || 'Sesión abierta';
+    $('kSesF').textContent = [s.fecha ? longDate(s.fecha) : '', s.lugar].filter(Boolean).join(' · ') + (op.length > 1 ? ` · ${op.length} abiertas` : '');
+  } else { $('kSes').textContent = 'Ninguna abierta'; $('kSesF').textContent = 'Ábrela desde Asistencia'; }
+
+  const lock = '<span class="lock">🔒 Entra para verlo</span>';
+  if (S.admin && S.mar && S.per) {
+    const marcas = Object.values(S.mar), t0 = today();
+    const hoy = marcas.filter(m => dayKey(ms(m.t) || Date.now()) === t0);
+    const enOpen = op.length ? marcas.filter(m => m.sesion === op[0][0]).length : null;
+    $('kHoy').textContent = fmtN(hoy.length);
+    $('kHoyF').textContent = enOpen != null ? `${fmtN(enOpen)} en la sesión abierta` : `${fmtN(marcas.length)} en total`;
+    const pers = Object.values(S.per), nuevos = pers.filter(p => dayKey(ms(p.creado) || 0) === t0).length;
+    $('kFor').textContent = fmtN(pers.length);
+    $('kForF').textContent = nuevos ? `+${fmtN(nuevos)} nuevos hoy` : `${fmtN(marcas.length)} asistencias en total`;
+  } else { $('kHoy').textContent = '—'; $('kHoyF').innerHTML = lock; $('kFor').textContent = '—'; $('kForF').innerHTML = lock; }
+
+  const tr = S.trivia;
+  $('kTri').textContent = fmtN(S.jug);
+  $('kTriF').textContent = tr ? (FASE[tr.fase] || 'Lista') + (tr.fase === 'votando' || tr.fase === 'cerrada' ? ` · pregunta ${(tr.pos ?? 0) + 1} de ${tr.total || 10}` : '') : 'Sin partida';
+}
+
+function renderLive() {
+  const now = Date.now();
+  const rows = DECKS.map(([k, name, ic, cls]) => {
+    const e = S.estado[k], t = e ? ms(e.at) : 0, on = t && now - t < 150000;
+    const pct = e && e.total ? Math.round(e.slide / e.total * 100) : 0;
+    const detail = e && e.slide ? `Diapositiva ${e.slide} de ${e.total}${e.nombre ? ' · ' + esc(e.nombre) : ''}` : 'Sin abrir todavía';
+    return `<div class="lrow"><span class="ic ${cls}">${ic}</span><div style="min-width:0"><b>${name}</b><span>${on ? detail : (t ? 'Cerrada · ' + ago(t) : 'Sin abrir todavía')}</span>${on ? `<div class="prog" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>` : ''}</div>
+      <div class="st"><span class="dot ${on ? 'on' : ''}">${on ? 'En vivo' : 'Apagada'}</span></div></div>`;
+  });
+  const tr = S.trivia, tOn = tr && (tr.fase && tr.fase !== 'lobby' && tr.fase !== 'final' || S.jug > 0);
+  rows.push(`<div class="lrow"><span class="ic t-y">❓</span><div style="min-width:0"><b>Trivia</b><span>${tr ? esc(FASE[tr.fase] || 'Lista') : 'Sin partida'} · ${fmtN(S.jug)} jugador${S.jug === 1 ? '' : 'es'}</span></div>
+    <div class="st"><span class="dot ${tOn ? 'on' : ''}">${tOn ? 'En vivo' : 'Apagada'}</span></div></div>`);
+  $('live').innerHTML = rows.join('');
+}
+
+function vbars(items) {   // [{label, value, tip}]
+  if (!items.length) return '<div class="empty">Aún no hay sesiones</div>';
+  const max = Math.max(1, ...items.map(i => i.value));
+  return `<div class="vb"><div class="grid"><i></i><i></i><i></i><i></i></div>${items.map(i => `<div class="col" data-tip="${esc(i.tip)}" aria-label="${esc(i.tip)}"><span class="n">${fmtN(i.value)}</span><div class="b" style="height:${Math.max(1, i.value / max * 82)}%"></div></div>`).join('')}</div>
+    <div class="vbl">${items.map(i => `<span>${esc(i.label)}</span>`).join('')}</div>`;
+}
+function hbars(items) {   // [{label, value, color?, tip}]
+  if (!items.length || !items.some(i => i.value)) return '<div class="empty">Sin datos todavía</div>';
+  const max = Math.max(1, ...items.map(i => i.value));
+  return `<div class="hb">${items.map(i => `<div class="r" data-tip="${esc(i.tip)}"><div class="l">${i.color ? `<i style="background:${i.color}"></i>` : ''}<em>${esc(i.label)}</em></div><div class="v">${fmtN(i.value)}</div><div class="t"><b style="width:${i.value / max * 100}%"></b></div></div>`).join('')}</div>`;
+}
+
+function renderPrivate() {
+  const adm = S.admin;
+  document.querySelectorAll('.adm').forEach(el => el.hidden = !adm);
+  $('lockCard').hidden = adm || !S.ready;
+  $('liveCard').classList.toggle('w8', !adm && false);
+  if (!adm || !S.mar || !S.per) return;
+  const marcas = Object.values(S.mar), per = S.per;
+  const bySes = {}; marcas.forEach(m => bySes[m.sesion] = (bySes[m.sesion] || 0) + 1);
+  const ses = Object.entries(S.ses).sort((a, b) => String(a[1].fecha).localeCompare(String(b[1].fecha)) || (a[1].creada || 0) - (b[1].creada || 0)).slice(-10);
+  $('cSes').innerHTML = vbars(ses.map(([id, s]) => ({ label: shortDate(s.fecha), value: bySes[id] || 0, tip: `${s.modulo || 'Sesión'} · ${longDate(s.fecha)}${s.lugar ? ' · ' + s.lugar : ''}: ${bySes[id] || 0} asistencias` })));
+  const pers = Object.values(per), byGen = GENS.map((g, i) => pers.filter(p => p.gen === i).length);
+  $('cGen').innerHTML = hbars(GENS.map((g, i) => ({ label: g.n, value: byGen[i], color: g.c, tip: `Generación ${g.n}: ${byGen[i]} formados` })));
+  const byCoo = {}; marcas.forEach(m => { const p = per[m.persona]; const c = (p && p.coord) || 'Sin coordinación'; byCoo[c] = (byCoo[c] || 0) + 1; });
+  $('cCoo').innerHTML = hbars(Object.entries(byCoo).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([c, n]) => ({ label: c, value: n, tip: `${c}: ${n} asistencias` })));
+  const last = marcas.filter(m => ms(m.t)).sort((a, b) => ms(b.t) - ms(a.t)).slice(0, 6);
+  $('feed').innerHTML = last.length ? last.map(m => { const p = per[m.persona] || {}; const g = GENS[p.gen] || { n: '', c: '#64748B' }; const nm = p.nombre || 'Formado';
+    const ini = nm.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    const t = new Date(ms(m.t)); const same = dayKey(t) === today();
+    return `<div class="f"><span class="av" style="background:${g.c}" aria-hidden="true">${esc(ini)}</span><div style="min-width:0"><b>${esc(nm)}</b><span>${esc(g.n ? 'Generación ' + g.n : '')}${p.coord ? ' · ' + esc(p.coord) : ''}</span></div><span class="h">${same ? t.toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit' }) : t.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })}</span></div>`; }).join('')
+    : '<div class="empty">Todavía nadie ha marcado</div>';
+}
+
+function setConn(kind, text) { const c = $('conn'); c.className = 'pill ' + kind; c.textContent = text; }
+function setUser() {
+  const b = $('userBtn'); b.hidden = false;
+  if (S.admin) { b.textContent = 'Salir'; b.title = S.email; b.onclick = () => api.logout(); }
+  else { b.textContent = 'Entrar'; b.title = 'Clave de administración'; b.onclick = () => { $('lockCard').hidden = false; $('lockCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('em').focus(), 350); }; }
+}
+
+$('lf').addEventListener('submit', async e => {
+  e.preventDefault(); $('lm').textContent = ''; $('lb').disabled = true;
+  try { await api.login($('em').value.trim(), $('pw').value); $('pw').value = ''; }
+  catch (err) { const c = String(err && err.code || ''); $('lm').textContent = /operation-not-allowed/.test(c) ? 'Falta activar «Correo electrónico/contraseña» en Firebase → Authentication.' : /weak-password/.test(c) ? 'La contraseña debe tener al menos 6 caracteres.' : /network/.test(c) ? 'Sin internet. Revisa la conexión.' : 'Correo o contraseña incorrectos.'; }
+  $('lb').disabled = false;
+});
+
+// ---------- data: Firebase ----------
+let api;
+async function startFirebase() {
+  const V = '10.12.2';
+  const [A, U, F] = await Promise.all([
+    import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+    import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
+    import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)]);
+  const app = A.initializeApp(FB, 'panel');
+  const auth = U.getAuth(app), db = F.initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+  const snapMap = qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); return o; };
+  let subs = [];
+  const stopAll = () => { subs.forEach(u => u()); subs = []; };
+  api = {
+    async login(email, pass) {
+      try { await U.signInWithEmailAndPassword(auth, email, pass); }
+      catch (e) {
+        if (!/user-not-found|invalid-credential|invalid-login/.test(e.code || '')) throw e;
+        try { await U.createUserWithEmailAndPassword(auth, email, pass); }   // first login creates the admin account
+        catch (e2) { throw e2.code === 'auth/email-already-in-use' ? e : e2; }
+      }
+    },
+    async logout() { await U.signOut(auth); },
+  };
+  U.onAuthStateChanged(auth, u => {
+    stopAll();
+    if (!u) { S.admin = false; U.signInAnonymously(auth).catch(() => setConn('bad', 'Sin conexión')); return; }
+    S.admin = !u.isAnonymous; S.email = u.email || ''; S.ready = true; S.per = S.mar = null;
+    setConn('ok', 'En línea'); setUser();
+    const on = (ref, cb) => subs.push(F.onSnapshot(ref, cb, err => { if (/permission/i.test(String(err && err.code))) { if (S.admin) toast('Esta cuenta no tiene permiso de administración'); } else setConn('bad', 'Sin conexión'); }));
+    on(F.collection(db, 'asist_sesiones'), q => { S.ses = snapMap(q); render(); });
+    on(F.doc(db, 'trivia', SALA), d => { S.trivia = d.exists() ? d.data() : null; render(); });
+    on(F.collection(db, 'trivia', SALA, 'jugadores'), q => { S.jug = q.size; render(); });
+    DECKS.forEach(([k]) => on(F.doc(db, 'trivia', 'estado-' + k), d => { S.estado[k] = d.exists() ? d.data() : null; renderLive(); }));
+    if (S.admin) {
+      on(F.collection(db, 'asist_personas'), q => { S.per = snapMap(q); render(); });
+      on(F.collection(db, 'asist_marcas'), q => { S.mar = snapMap(q); render(); });
+    }
+    render();
+  });
+}
+
+// ---------- data: demo ----------
+function startDemo() {
+  setConn('demo', 'Modo demo'); S.ready = true;
+  const names = ['María González', 'José Pérez', 'Luisa Fernández', 'Carlos Urdaneta', 'Ana Morales', 'Pedro Villalobos', 'Yelitza Paz', 'Jesús Fuenmayor', 'Rosa Montiel', 'Luis Atencio', 'Carmen Ferrer', 'Andrés Soto'];
+  const coords = ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'];
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const per = {}; for (let i = 0; i < 64; i++) per['p' + i] = { nombre: names[i % names.length], coord: coords[Math.floor(rnd() * 3)], gen: Math.floor(rnd() * 5), creado: Date.now() - Math.floor(rnd() * 20) * 86400000 };
+  const ses = {}, mar = {}; const base = new Date(); base.setHours(9, 0, 0, 0);
+  for (let k = 0; k < 7; k++) { const d = new Date(base - (6 - k) * 7 * 86400000); const id = 's' + k; ses[id] = { fecha: dayKey(d), modulo: 'Plan de Formación Filosófico-Político', lugar: 'Salón de la Alcaldía', abierta: k === 6, creada: +d };
+    const n = 26 + Math.floor(rnd() * 30) - (k === 6 ? 12 : 0); for (let j = 0; j < n; j++) { const p = 'p' + Math.floor(rnd() * 64); mar[id + '_' + p] = { sesion: id, persona: p, t: k === 6 ? Date.now() - Math.floor(rnd() * 5400000) : +d + j * 60000 }; } }
+  Object.assign(S, { ses, per, mar, admin: !P.has('publico'), email: 'presentador@tucorreo.com', trivia: { fase: 'votando', pos: 3, total: 10 }, jug: 37,
+    estado: { presentacion: { slide: 7, total: 15, nombre: 'Las cinco generaciones', at: Date.now() - 20000 }, diagnostico: { slide: 18, total: 18, at: Date.now() - 3 * 86400000 } } });
+  api = { async login() { S.admin = true; setUser(); render(); }, async logout() { S.admin = false; setUser(); render(); } };
+  setUser(); render();
+}
+
+render();
+if (DEMO) startDemo(); else startFirebase().catch(() => { setConn('bad', 'Sin conexión'); S.ready = true; render(); });
+</script>
 </body>
 </html>
