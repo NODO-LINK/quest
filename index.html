@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <title>Panel de Formación · Alcaldía de Mara</title>
+<link rel="icon" href="logo/mara-bandera.svg" type="image/svg+xml">
 <script>
 // old trivia links (?pantalla, ?sala=…) still work: send them to the trivia
 (function () { var q = location.search; if (/[?&](pantalla|sala|jugar)\b/.test(q)) location.replace('trivia.html' + q + location.hash); })();
@@ -41,8 +42,7 @@ button,input{font:inherit}
 /* header */
 .top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
 .top-in{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px}
-.logo{width:42px;height:42px;border-radius:12px;background:var(--blue);display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;flex:none;
-  background-image:linear-gradient(135deg,#2A66C9,#173F86)}
+svg.logo{height:48px;width:auto;flex:none}
 .ttl small{display:block;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .ttl h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em}
 .sp{flex:1}
@@ -156,7 +156,9 @@ form.lf .msg{color:var(--red);font-size:13.5px;min-height:1em}
 <body>
 <div class="stripe"><i></i><i></i><i></i></div>
 <header class="top"><div class="top-in">
-  <div class="logo" aria-hidden="true">M</div>
+  <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="8 6 163 228" aria-hidden="true"><defs><linearGradient id="hdrg" x1="14" y1="0" x2="165" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#05692F"/><stop offset="1" stop-color="#38A838"/></linearGradient>
+<linearGradient id="hdrb" x1="14" y1="0" x2="165" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00325E"/><stop offset=".55" stop-color="#005A8F"/><stop offset="1" stop-color="#0090C8"/></linearGradient>
+<linearGradient id="hdrw" x1="14" y1="0" x2="165" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EEF0F0"/></linearGradient></defs><path fill="url(#hdrg)" d="M14,96 C14,72 30,62 52,58 C95,50 140,44 165,12 L165,56 C150,72 122,81 100,87 C70,94 40,99 14,101 Z"/><path fill="url(#hdrw)" d="M14,101 C40,99 70,94 100,87 C122,81 150,72 165,56 L165,112 C150,128 125,135 100,140 C75,145 45,152 14,152 Z"/><path fill="url(#hdrb)" d="M14,152 C45,152 75,145 100,140 C125,135 150,128 165,112 L165,157 C152,172 125,183 100,192 C70,200 45,202 30,212 C22,218 16,224 14,228 Z"/><path fill="#FCE212" d="M14,102 A38,46 0 0 1 14,194 Z"/><path fill="#111" d="M137.00,91.00 L140.06,99.79 L149.36,99.98 L141.95,105.61 L144.64,114.52 L137.00,109.20 L129.36,114.52 L132.05,105.61 L124.64,99.98 L133.94,99.79Z"/></svg>
   <div class="ttl"><small>Alcaldía Bolivariana de Mara</small><h1>Panel de Formación</h1></div>
   <div class="sp"></div>
   <div class="clock" id="clock"></div>

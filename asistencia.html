@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0A2346">
 <title>Asistencia · Plan de Formación · Alcaldía de Mara</title>
+<link rel="icon" href="logo/mara-bandera.svg" type="image/svg+xml">
 <!--
   CONTROL DE ASISTENCIA DE LOS FORMADOS — Alcaldía Bolivariana de Mara
   · Formados: escanean el QR de la sesión (asistencia.html?s=CÓDIGO), ponen su cédula y marcan.
@@ -39,6 +40,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .wide{max-width:1180px}
 header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px}
+.mk{height:42px;width:auto;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
 .flag{display:grid;grid-template-rows:repeat(3,1fr);width:8px;height:36px;border-radius:3px;overflow:hidden;flex:none}
 .flag i:nth-child(1){background:var(--green)}.flag i:nth-child(2){background:#fff}.flag i:nth-child(3){background:var(--blue)}
 .brand small{display:block;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
@@ -1443,7 +1445,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   const genOf = edad => GENS.findIndex(g => edad >= g.min && edad <= g.max);
   const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], culminar: 5 };
   let tT; const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tT); tT = setTimeout(() => el.classList.remove('show'), 2200); };
-  const brand = sub => `<div class="brand"><span class="flag"><i></i><i></i><i></i></span><div><small>Alcaldía Bolivariana de Mara</small><b>${esc(sub)}</b></div></div>`;
+  const brand = sub => `<div class="brand"><img class="mk" src="logo/mara-bandera.svg" alt=""><div><small>Alcaldía Bolivariana de Mara</small><b>${esc(sub)}</b></div></div>`;
   const fmtFecha = f => { try { const [y, m, d] = f.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return f; } };
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const tsMs = t => !t ? 0 : typeof t === 'number' ? t : t.toMillis ? t.toMillis() : (t.seconds ? t.seconds * 1000 : 0);

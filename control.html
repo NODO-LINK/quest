@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0A2346">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Control remoto · Alcaldía de Mara</title>
+<link rel="icon" href="logo/mara-bandera.svg" type="image/svg+xml">
 <!--
   CONTROL REMOTO DESDE EL TELÉFONO
   · Abre esta página en tu teléfono: no pide clave.
@@ -36,6 +37,7 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand{display:flex;align-items:center;gap:10px}
+.mk{height:40px;width:auto;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
 .flag{display:grid;grid-template-rows:repeat(3,1fr);width:8px;height:34px;border-radius:3px;overflow:hidden}
 .flag i:nth-child(1){background:var(--green)}.flag i:nth-child(2){background:#fff}.flag i:nth-child(3){background:var(--blue)}
 .brand b{display:block;font-size:17px}.brand small{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
@@ -95,7 +97,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 <body>
 <div class="wrap">
   <header>
-    <div class="brand"><span class="flag"><i></i><i></i><i></i></span><div><small>Alcaldía de Mara</small><b>Control remoto</b></div></div>
+    <div class="brand"><img class="mk" src="logo/mara-bandera.svg" alt=""><div><small>Alcaldía de Mara</small><b>Control remoto</b></div></div>
     <div class="status busy" id="status">Conectando…</div>
   </header>
 
@@ -218,7 +220,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794179188';
+  const THUMBV = '1794179674';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
