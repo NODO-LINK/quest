@@ -2335,6 +2335,15 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     messagingSenderId: "226578437399",
     appId: "1:226578437399:web:982321847804b3c9991352"
   };
+  const ASCFG = {
+    apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y",
+    authDomain: "nodocount.firebaseapp.com",
+    projectId: "nodocount",
+    storageBucket: "nodocount.firebasestorage.app",
+    messagingSenderId: "344018240488",
+    appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
+  }
+;   // attendance project (nodocount): open sessions for the QR
   const DECK = ((location.pathname.split('/').pop() || '').replace(/\.html$/, '')) || 'presentacion';
   let rT;
   function rtoast(t) { const el = $('rtoast'); el.textContent = '📱 ' + t; el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
@@ -2372,6 +2381,20 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       try { const ch = new BroadcastChannel('remote-' + DECK); ch.onmessage = e => { const d = e.data; if (!d) return; if (d.laser) laserTo(d.laser.x, d.laser.y, d.laser.on); else remote(d.cmd, d.arg); }; } catch (e) {}
       return;
     }
+    if (ASCFG) (async () => {
+      try {
+        const V = '10.12.2';
+        const [A, U, F] = await Promise.all([
+          import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+          import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
+          import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
+        ]);
+        const fa = A.initializeApp(ASCFG, 'asistencia-qr');
+        const au = U.getAuth(fa), db2 = F.initializeFirestore(fa, { experimentalAutoDetectLongPolling: true });
+        if (!au.currentUser) await U.signInAnonymously(au);
+        F.onSnapshot(F.query(F.collection(db2, 'asist_sesiones'), F.where('abierta', '==', true)), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); pickSession(o); }, () => {});
+      } catch (e) { /* offline or rules not set: the presentation works the same */ }
+    })();
     if (!FBCFG) return;
     try {
       const V = '10.12.2';
@@ -2389,7 +2412,6 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         if (first) { first = false; last = d ? d.seq : null; return; }   // never replay an old command when the page opens
         if (d && d.seq !== last) { last = d.seq; remote(d.cmd, d.arg); }
       }, () => {});
-      F.onSnapshot(F.query(F.collection(db, 'asist_sesiones'), F.where('abierta', '==', true)), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); pickSession(o); }, () => {});
       // the phone spreads pointer updates over five documents (Firestore takes about one write per second per document)
       let lastLaser = 0;
       for (let k = 0; k < 5; k++) {
