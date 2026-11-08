@@ -149,6 +149,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="chip" type="button" data-kind="dinamica" aria-pressed="false">Dinámica</button>
           <button class="chip" type="button" data-kind="juego" aria-pressed="false">Juego</button>
           <button class="chip" type="button" data-kind="pausa" aria-pressed="false">Pausa</button>
+          <button class="chip" type="button" data-kind="peces" aria-pressed="false">Peces de papel</button>
+          <button class="chip" type="button" data-kind="podcast" aria-pressed="false">Podcast</button>
+          <button class="chip" type="button" data-kind="baile" aria-pressed="false">Baile</button>
+          <button class="chip" type="button" data-kind="papa" aria-pressed="false">Papa caliente</button>
         </div>
         <div class="lbl">Minutos</div>
         <div class="chips" id="eqMin">
@@ -220,7 +224,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794179674';
+  const THUMBV = '1794182132';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
