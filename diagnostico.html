@@ -15,6 +15,7 @@
   · Necesita esta página junto a trivia.html, ruleta.html y la carpeta presentacion/ (videos y letras).
 -->
 <style>
+.ico{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
 @font-face{font-family:"Bookman Web";src:url(presentacion/fonts/texgyrebonum-bold.woff) format("woff");font-weight:700;font-display:block}
 @font-face{font-family:"Carlito Web";src:url(presentacion/fonts/Carlito-Regular.woff) format("woff");font-weight:400;font-display:block}
 @font-face{font-family:"Carlito Web";src:url(presentacion/fonts/Carlito-Bold.woff) format("woff");font-weight:700;font-display:block}
@@ -276,7 +277,7 @@ body.idle #eqBtns{opacity:0;transition:opacity .4s}
 #apCard{width:min(860px,100%);text-align:center;padding:30px 34px;border-radius:34px;background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
   border:1px solid rgba(255,255,255,.28);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 20px 60px rgba(0,0,0,.5)}
 #apTitle{font:700 18px var(--body);letter-spacing:6px;color:var(--gold)}
-#apEmoji{font-size:110px;line-height:1.1;margin:6px 0 10px;transform:scale(var(--k,1));transition:transform .08s linear}
+#apEmoji{font-size:110px;line-height:1.1;margin:6px 0 10px;color:var(--gold,#F4C20D);transform:scale(var(--k,1));transition:transform .08s linear}
 #apMeter{position:relative;height:54px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);overflow:hidden}
 #apFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#1E9E4F,#2A64B4 35%,#F4C20D 65%,#D7263D);transition:width .08s linear}
 #apPeak{position:absolute;top:4px;bottom:4px;width:5px;border-radius:3px;background:#fff;left:0;box-shadow:0 0 12px #fff}
@@ -512,7 +513,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   <button id="prev" type="button" aria-label="Diapositiva anterior">‹</button>
   <button id="count" type="button" aria-label="Elegir diapositiva">1 / 18</button>
   <button id="next" type="button" aria-label="Diapositiva siguiente">›</button>
-  <button id="snd" type="button" aria-label="Música y sonidos">🔊 Sonido</button>
+  <button id="snd" type="button" aria-label="Música y sonidos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg> Sonido</button>
   <button id="full" type="button" aria-label="Pantalla completa">Pantalla completa</button>
 </nav>
 <nav id="jump" aria-label="Atajos">
@@ -522,17 +523,17 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   <button class="v" type="button" data-v="4" aria-label="Video 4">4</button>
   <button class="v" type="button" data-v="5" aria-label="Video 5">5</button>
   <button class="v" type="button" data-v="6" aria-label="Video 6">6</button>
-  <button class="pr" type="button" id="toPrensa" aria-label="Periódicos">📰</button>
-  <button class="as" type="button" id="toAsis" aria-label="QR de asistencia">✅ Asistencia</button>
+  <button class="pr" type="button" id="toPrensa" aria-label="Periódicos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16a1 1 0 0 1 1 1v14H6a2 2 0 0 1-2-2Z"/><path d="M17 8h2.5a.5.5 0 0 1 .5.5V17a2 2 0 0 1-2 2"/><path d="M8 8h5"/><path d="M8 12h5"/><path d="M8 15.5h3"/></svg></button>
+  <button class="as" type="button" id="toAsis" aria-label="QR de asistencia"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg> Asistencia</button>
   <button class="rul" type="button" id="toRuleta">Ruleta</button>
   <button class="triv" type="button" id="toTrivia">Trivia</button>
   <button class="sl" type="button" id="toPick" aria-label="Elegir diapositiva">☰ Diapositivas</button>
-  <button class="ap" type="button" id="toAplauso" aria-label="Aplausómetro">👏</button>
+  <button class="ap" type="button" id="toAplauso" aria-label="Aplausómetro"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4.5-5"/><circle cx="12" cy="17" r="1.2"/><path d="M6.3 11.2 7.5 12"/><path d="M12 7.5V9"/><path d="M17.7 11.2 16.5 12"/></svg></button>
 </nav>
 <div id="aplauso" role="dialog" aria-modal="true" aria-labelledby="apTitle">
   <div id="apCard">
     <div id="apTitle">APLAUSÓMETRO</div>
-    <div id="apEmoji">👏</div>
+    <div id="apEmoji"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4.5-5"/><circle cx="12" cy="17" r="1.2"/><path d="M6.3 11.2 7.5 12"/><path d="M12 7.5V9"/><path d="M17.7 11.2 16.5 12"/></svg></div>
     <div id="apMeter"><div id="apFill"></div><div id="apPeak"></div></div>
     <div id="apNums"><div><b id="apNow">0</b><span>ahora</span></div><div><b id="apRec">0</b><span>récord</span></div></div>
     <div id="apMsg">¡Que suenen esos aplausos!</div>
@@ -565,7 +566,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     <div id="bienHi">¡Bienvenidos!</div>
     <div id="bienSub"></div>
     <div id="bienWait">Comenzaremos en breve<span>.</span><span>.</span><span>.</span></div>
-    <div id="bienClock">🕒 <span id="bienTime">--:--</span></div>
+    <div id="bienClock"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg> <span id="bienTime">--:--</span></div>
     <div id="bienQR" hidden><canvas id="bienQRc" aria-label="QR de asistencia"></canvas><div><b>Marca tu asistencia</b><span>Escanea con la cámara de tu teléfono</span></div></div>
     <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
   </div>
@@ -1846,6 +1847,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 <script>
 (() => {
   const stage = document.getElementById('stage');
+  const ICO = { vol: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>', mute: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/></svg>', phone: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="2" width="11" height="20" rx="2.5"/><path d="M11 18h2"/></svg>' };
   const slides = [...stage.querySelectorAll('.slide')];
   const N = slides.length;
   const $ = id => document.getElementById(id);
@@ -2238,7 +2240,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function soundOn() { try { return localStorage.getItem('pres-sound') !== 'off'; } catch (e) { return true; } }
   function setSound(on) {
     try { localStorage.setItem('pres-sound', on ? 'on' : 'off'); } catch (e) {}
-    $('snd').textContent = on ? '🔊 Sonido' : '🔇 Sonido';
+    $('snd').innerHTML = (on ? ICO.vol : ICO.mute) + ' Sonido';
     if (on) startMusic(); else music.pause();
   }
   function startMusic() {
@@ -2246,7 +2248,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     music.volume = 0.32; const p = music.play(); if (p && p.catch) p.catch(() => {});
   }
   $('snd').addEventListener('click', e => { e.stopPropagation(); setSound(!soundOn()); });
-  $('snd').textContent = soundOn() ? '🔊 Sonido' : '🔇 Sonido';
+  $('snd').innerHTML = (soundOn() ? ICO.vol : ICO.mute) + ' Sonido';
 
   /* ---------- applause meter (microphone level) ---------- */
   var apOpen = false, apStream = null, apRaf = 0, apRec = 0;
@@ -2375,7 +2377,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 ;   // attendance project (nodocount): open sessions for the QR
   const DECK = ((location.pathname.split('/').pop() || '').replace(/\.html$/, '')) || 'presentacion';
   let rT;
-  function rtoast(t) { const el = $('rtoast'); el.textContent = '📱 ' + t; el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
+  function rtoast(t) { const el = $('rtoast'); el.textContent = ' ' + t; el.insertAdjacentHTML('afterbegin', ICO.phone); el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
   function remote(cmd, arg) {
     const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); closePrensa(); closeAsis(); };
     switch (cmd) {

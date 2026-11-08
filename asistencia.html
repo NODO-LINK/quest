@@ -15,6 +15,7 @@
   · Privacidad: la cédula solo la ve la administración; el teléfono del formado solo consulta una huella (hash) de su cédula.
 -->
 <style>
+.ico{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
 :root{
   color-scheme:dark;
   --bg:#0A2346; --ink:#fff; --muted:#B8C7DD; --line:rgba(255,255,255,.18);
@@ -1690,7 +1691,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <div class="t"><b>${esc(s.modulo)}</b><span>${esc(fmtFecha(s.fecha))} · ${esc(s.coordinacion || '')}${s.lugar ? ' · ' + esc(s.lugar) : ''}</span></div>
       <span class="badge ${s.abierta ? 'b-open' : 'b-closed'}">${s.abierta ? 'Abierta' : 'Cerrada'}</span>
       <b class="num" style="min-width:90px">${(bySes[id] || []).length} asistentes</b>
-      <div class="row"><button class="btn sm blue" data-proj="${id}">📽 Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
+      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
   }
   function viewSesiones() {
     const coordOpts = S.cfg.coordinaciones.map(c => `<option>${esc(c)}</option>`).join('');
@@ -1815,7 +1816,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       let html = '', last = '';
       shown.forEach((m, i) => {
         if (m.g !== last) { html += `<div class="mgen"><i style="background:#F4C20D"></i>${esc(m.g)}</div>`; last = m.g; }
-        html += `<button type="button" class="mopt${i === act ? ' act' : ''}" role="option" data-i="${i}"><b style="background:${m.c};color:#fff">🎓</b><span><strong style="display:block">${esc(m.title)}</strong><span class="muted" style="font-size:13.5px">${esc(m.sub)}</span></span></button>`;
+        html += `<button type="button" class="mopt${i === act ? ' act' : ''}" role="option" data-i="${i}"><b style="background:${m.c};color:#fff"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22 9.5 12 4.5 2 9.5l10 5 10-5Z"/><path d="M6 11.5V17c3.3 2.4 8.7 2.4 12 0v-5.5"/><path d="M22 9.5v5"/></svg></b><span><strong style="display:block">${esc(m.title)}</strong><span class="muted" style="font-size:13.5px">${esc(m.sub)}</span></span></button>`;
       });
       panel.innerHTML = html || `<div class="mempty">Ninguna formación coincide. Puedes dejar lo que escribiste.</div>`;
       panel.querySelectorAll('.mopt').forEach(b => b.addEventListener('mousedown', e => { e.preventDefault(); pick(+b.dataset.i); }));

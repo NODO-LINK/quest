@@ -33,6 +33,7 @@
 html,body{margin:0}
 body{font-family:var(--font);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
+.ico{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
 button,input{font:inherit}
 .stripe{height:5px;display:grid;grid-template-columns:1fr 1fr 1fr}
 .stripe i:nth-child(1){background:var(--yellow)}.stripe i:nth-child(2){background:var(--blue)}.stripe i:nth-child(3){background:var(--red)}
@@ -81,7 +82,8 @@ main{max-width:1280px;margin:0 auto;padding:22px 20px 40px;display:grid;grid-tem
 .kpi .val.txt{font-size:19px;line-height:1.25;letter-spacing:-.005em}
 .kpi .foot{color:var(--muted);font-size:13px;margin-top:auto}
 .kpi .lock{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px}
-.t-b{background:var(--blue-soft)}.t-y{background:var(--yellow-soft)}.t-r{background:var(--red-soft)}.t-g{background:var(--green-soft)}
+.t-b{background:var(--blue-soft);color:var(--blue)}.t-y{background:var(--yellow-soft);color:#9A6B00}.t-r{background:var(--red-soft);color:var(--red)}.t-g{background:var(--green-soft);color:var(--green)}
+.kpi .ic .ico{width:18px;height:18px}.lrow .ic .ico{width:20px;height:20px}.acc .ic .ico{width:22px;height:22px}
 
 /* live */
 .live{display:flex;flex-direction:column;gap:10px}
@@ -164,22 +166,22 @@ form.lf .msg{color:var(--red);font-size:13.5px;min-height:1em}
 <main>
   <!-- KPIs -->
   <section class="card k kpi o1" aria-live="polite">
-    <div class="lab"><span class="ic t-g">🟢</span>Sesión de asistencia</div>
+    <div class="lab"><span class="ic t-g"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><path d="m9 15 2 2 4-4"/></svg></span>Sesión de asistencia</div>
     <div class="val txt" id="kSes">—</div>
     <div class="foot" id="kSesF">&nbsp;</div>
   </section>
   <section class="card k kpi o1">
-    <div class="lab"><span class="ic t-b">✅</span>Asistencias hoy</div>
+    <div class="lab"><span class="ic t-b"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg></span>Asistencias hoy</div>
     <div class="val" id="kHoy">—</div>
     <div class="foot" id="kHoyF"></div>
   </section>
   <section class="card k kpi o1">
-    <div class="lab"><span class="ic t-y">👥</span>Formados registrados</div>
+    <div class="lab"><span class="ic t-y"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg></span>Formados registrados</div>
     <div class="val" id="kFor">—</div>
     <div class="foot" id="kForF"></div>
   </section>
   <section class="card k kpi o1">
-    <div class="lab"><span class="ic t-r">❓</span>Jugadores en la trivia</div>
+    <div class="lab"><span class="ic t-r"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.3c-.7.4-1.2.9-1.2 1.7v.4"/><path d="M12 16.8h.01"/></svg></span>Jugadores en la trivia</div>
     <div class="val" id="kTri">—</div>
     <div class="foot" id="kTriF">&nbsp;</div>
   </section>
@@ -213,13 +215,13 @@ form.lf .msg{color:var(--red);font-size:13.5px;min-height:1em}
   <section class="card w12 o3">
     <div class="ch"><div><h2>Accesos rápidos</h2><p class="sub">Todo lo de la formación en un solo lugar</p></div></div>
     <nav class="acc">
-      <a href="presentacion.html"><span class="ic t-y">🎓</span><div><b>Plan de Formación</b><span>Presentación con videos, ruleta y trivia</span></div></a>
-      <a href="diagnostico.html"><span class="ic t-b">📊</span><div><b>Diagnóstico I Fase</b><span>Presentación</span></div></a>
-      <a href="periodicos.html"><span class="ic t-r">📰</span><div><b>Periódicos</b><span>Presentación</span></div></a>
-      <a href="control.html"><span class="ic t-g">📱</span><div><b>Control del teléfono</b><span>Diapositivas, ruleta y videos</span></div></a>
-      <a href="trivia.html?pantalla"><span class="ic t-y">❓</span><div><b>Trivia</b><span>Pantalla del videobeam</span></div></a>
-      <a href="ruleta.html"><span class="ic t-r">🎡</span><div><b>Ruleta</b><span>En pantalla completa</span></div></a>
-      <a href="asistencia.html?admin"><span class="ic t-b">✅</span><div><b>Asistencia</b><span>Sesiones, QR y constancias</span></div></a>
+      <a href="presentacion.html"><span class="ic t-y"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22 9.5 12 4.5 2 9.5l10 5 10-5Z"/><path d="M6 11.5V17c3.3 2.4 8.7 2.4 12 0v-5.5"/><path d="M22 9.5v5"/></svg></span><div><b>Plan de Formación</b><span>Presentación con videos, ruleta y trivia</span></div></a>
+      <a href="diagnostico.html"><span class="ic t-b"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V7"/><path d="M18 17v-8"/></svg></span><div><b>Diagnóstico I Fase</b><span>Presentación</span></div></a>
+      <a href="periodicos.html"><span class="ic t-r"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16a1 1 0 0 1 1 1v14H6a2 2 0 0 1-2-2Z"/><path d="M17 8h2.5a.5.5 0 0 1 .5.5V17a2 2 0 0 1-2 2"/><path d="M8 8h5"/><path d="M8 12h5"/><path d="M8 15.5h3"/></svg></span><div><b>Periódicos</b><span>Presentación</span></div></a>
+      <a href="control.html"><span class="ic t-g"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="2" width="11" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span><div><b>Control del teléfono</b><span>Diapositivas, ruleta y videos</span></div></a>
+      <a href="trivia.html?pantalla"><span class="ic t-y"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.3c-.7.4-1.2.9-1.2 1.7v.4"/><path d="M12 16.8h.01"/></svg></span><div><b>Trivia</b><span>Pantalla del videobeam</span></div></a>
+      <a href="ruleta.html"><span class="ic t-r"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7"/><path d="M12 14v7"/><path d="M3 12h7"/><path d="M14 12h7"/><path d="m5.6 5.6 5 5"/><path d="m13.4 13.4 5 5"/><path d="m18.4 5.6-5 5"/><path d="m10.6 13.4-5 5"/></svg></span><div><b>Ruleta</b><span>En pantalla completa</span></div></a>
+      <a href="asistencia.html?admin"><span class="ic t-b"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg></span><div><b>Asistencia</b><span>Sesiones, QR y constancias</span></div></a>
     </nav>
   </section>
 </main>
@@ -235,10 +237,11 @@ const FB = {
     messagingSenderId: "344018240488",
     appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
   };
+const ICO = {"cap": '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22 9.5 12 4.5 2 9.5l10 5 10-5Z"/><path d="M6 11.5V17c3.3 2.4 8.7 2.4 12 0v-5.5"/><path d="M22 9.5v5"/></svg>', "chart": '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V7"/><path d="M18 17v-8"/></svg>', "news": '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16a1 1 0 0 1 1 1v14H6a2 2 0 0 1-2-2Z"/><path d="M17 8h2.5a.5.5 0 0 1 .5.5V17a2 2 0 0 1-2 2"/><path d="M8 8h5"/><path d="M8 12h5"/><path d="M8 15.5h3"/></svg>', "quiz": '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.3c-.7.4-1.2.9-1.2 1.7v.4"/><path d="M12 16.8h.01"/></svg>'};
 const P = new URLSearchParams(location.search);
 const DEMO = P.has('demo') || !FB;
 const SALA = 'formacion-mara';
-const DECKS = [['presentacion', 'Plan de Formación', '🎓', 't-y'], ['diagnostico', 'Diagnóstico I Fase', '📊', 't-b'], ['periodicos', 'Periódicos', '📰', 't-r']];
+const DECKS = [['presentacion', 'Plan de Formación', ICO.cap, 't-y'], ['diagnostico', 'Diagnóstico I Fase', ICO.chart, 't-b'], ['periodicos', 'Periódicos', ICO.news, 't-r']];
 const GENS = [
   { n: 'Precursora', c: '#B9652F' }, { n: 'Fundadora', c: '#CC2B3D' }, { n: 'Intermedia', c: '#1F57B5' }, { n: 'De Oro', c: '#B98A00' }, { n: 'Genial', c: '#0E8FA8' }];
 const FASE = { lobby: 'Esperando jugadores', preparando: 'Preparando pregunta', votando: 'Respondiendo ahora', cerrada: 'Mostrando la respuesta', ranking: 'Ranking', final: 'Partida terminada' };
@@ -306,7 +309,7 @@ function renderLive() {
       <div class="st"><span class="dot ${on ? 'on' : ''}">${on ? 'En vivo' : 'Apagada'}</span></div></div>`;
   });
   const tr = S.trivia, tOn = tr && (tr.fase && tr.fase !== 'lobby' && tr.fase !== 'final' || S.jug > 0);
-  rows.push(`<div class="lrow"><span class="ic t-y">❓</span><div style="min-width:0"><b>Trivia</b><span>${tr ? esc(FASE[tr.fase] || 'Lista') : 'Sin partida'} · ${fmtN(S.jug)} jugador${S.jug === 1 ? '' : 'es'}</span></div>
+  rows.push(`<div class="lrow"><span class="ic t-y">${ICO.quiz}</span><div style="min-width:0"><b>Trivia</b><span>${tr ? esc(FASE[tr.fase] || 'Lista') : 'Sin partida'} · ${fmtN(S.jug)} jugador${S.jug === 1 ? '' : 'es'}</span></div>
     <div class="st"><span class="dot ${tOn ? 'on' : ''}">${tOn ? 'En vivo' : 'Apagada'}</span></div></div>`);
   $('live').innerHTML = rows.join('');
 }

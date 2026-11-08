@@ -32,6 +32,7 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);
   background-attachment:fixed;padding:max(14px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   -webkit-user-select:none;user-select:none}
 [hidden]{display:none!important}
+.ico{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand{display:flex;align-items:center;gap:10px}
@@ -122,13 +123,13 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       </div>
       <section class="sec glass"><h2>Ruleta</h2>
         <div class="row">
-          <button class="btn red" type="button" data-cmd="spin">🎡 Girar</button>
+          <button class="btn red" type="button" data-cmd="spin"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7"/><path d="M12 14v7"/><path d="M3 12h7"/><path d="M14 12h7"/><path d="m5.6 5.6 5 5"/><path d="m13.4 13.4 5 5"/><path d="m18.4 5.6-5 5"/><path d="m10.6 13.4-5 5"/></svg> Girar</button>
           <button class="btn" type="button" data-cmd="closeReveal">Cerrar resultado</button>
           <button class="btn" type="button" data-cmd="ruleta">Ir a la ruleta</button>
           <button class="btn" type="button" data-cmd="salirRuleta">↩ Salir de la ruleta</button>
         </div>
       </section>
-      <section class="sec glass"><h2>✅ QR de asistencia</h2>
+      <section class="sec glass"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg> QR de asistencia</h2>
         <div class="row">
           <button class="btn green" type="button" data-cmd="asis" data-arg="open">Mostrar QR de asistencia</button>
           <button class="btn" type="button" data-cmd="asis" data-arg="close">Quitar</button>
@@ -136,7 +137,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       </section>
       <section class="sec glass"><h2>Bienvenida (antes de empezar)</h2>
         <div class="row">
-          <button class="btn green" type="button" data-cmd="bien" data-arg="open">👋 Mostrar bienvenida</button>
+          <button class="btn green" type="button" data-cmd="bien" data-arg="open"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 21h18"/><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><path d="M14.5 12.5h.01"/></svg> Mostrar bienvenida</button>
           <button class="btn" type="button" data-cmd="bien" data-arg="close">Quitar</button>
         </div>
       </section>
@@ -171,9 +172,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
         </div>
         <div class="row" style="margin-top:8px"><button class="btn" type="button" data-cmd="closeVideo">✕ Cerrar video</button></div>
       </section>
-      <section class="sec glass"><h2>📰 Periódicos</h2>
+      <section class="sec glass"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16a1 1 0 0 1 1 1v14H6a2 2 0 0 1-2-2Z"/><path d="M17 8h2.5a.5.5 0 0 1 .5.5V17a2 2 0 0 1-2 2"/><path d="M8 8h5"/><path d="M8 12h5"/><path d="M8 15.5h3"/></svg> Periódicos</h2>
         <div class="row">
-          <button class="btn green" type="button" data-cmd="prensa" data-arg="both">📰 Mostrar los dos</button>
+          <button class="btn green" type="button" data-cmd="prensa" data-arg="both"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H16a1 1 0 0 1 1 1v14H6a2 2 0 0 1-2-2Z"/><path d="M17 8h2.5a.5.5 0 0 1 .5.5V17a2 2 0 0 1-2 2"/><path d="M8 8h5"/><path d="M8 12h5"/><path d="M8 15.5h3"/></svg> Mostrar los dos</button>
         </div>
         <div class="row" style="margin-top:8px">
           <button class="btn" type="button" data-cmd="prensa" data-arg="1">Solo el 1</button>
@@ -187,12 +188,12 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn" type="button" data-cmd="trivia" data-arg="close">Volver de la trivia</button>
         </div>
         <div class="row" style="margin-top:8px">
-          <button class="btn" type="button" data-cmd="aplauso" data-arg="open">👏 Aplausómetro</button>
+          <button class="btn" type="button" data-cmd="aplauso" data-arg="open"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4.5-5"/><circle cx="12" cy="17" r="1.2"/><path d="M6.3 11.2 7.5 12"/><path d="M12 7.5V9"/><path d="M17.7 11.2 16.5 12"/></svg> Aplausómetro</button>
           <button class="btn" type="button" data-cmd="aplauso" data-arg="close">Cerrar aplausos</button>
         </div>
         <div class="row" style="margin-top:8px">
-          <button class="btn" type="button" data-cmd="sound" data-arg="on">🔊 Sonido</button>
-          <button class="btn" type="button" data-cmd="sound" data-arg="off">🔇 Silencio</button>
+          <button class="btn" type="button" data-cmd="sound" data-arg="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg> Sonido</button>
+          <button class="btn" type="button" data-cmd="sound" data-arg="off"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/></svg> Silencio</button>
         </div>
       </section>
       <section class="sec glass"><h2>Ir a la diapositiva</h2><div class="list" id="list"></div></section>
@@ -214,10 +215,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
-  const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: '📰 Periódicos', asis: '✅ QR de asistencia' };
+  const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794174715';
+  const THUMBV = '1794179188';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
