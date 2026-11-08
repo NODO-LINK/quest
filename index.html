@@ -18,10 +18,10 @@
        tu-sitio/?pantalla&sala=grupo2   (el QR ya lleva a esa misma sala)
 
   PASOS EN FIREBASE (una vez)
-   1. Authentication → Sign-in method: activa "Anónimo" y "Correo/contraseña".
-   2. Authentication → Users: crea el usuario del presentador.
+   1. Authentication → Sign-in method: activa "Anónimo" (no hace falta usuario ni clave).
+   2. (sin paso: la pantalla del presentador ya no pide clave)
    3. Firestore Database: créala y en "Reglas" pega las REGLAS de abajo,
-      cambiando presentador@tucorreo.com por el correo del paso 2.
+      (copiar tal cual, sin cambiar nada).
    4. Publica este archivo como index.html (Firebase Hosting, Netlify, GitHub Pages…).
       Si no usas un dominio .web.app, agrégalo en Authentication → Settings → Authorized domains.
 
@@ -29,25 +29,14 @@
 =====================================================================
 rules_version = '2';
 
-// Reglas de seguridad de la Trivia del Bloque Histórico.
-// CAMBIA el correo de abajo por el correo del presentador (el mismo que creas en Authentication).
+// Reglas de la Trivia del Bloque Histórico y del control remoto de las presentaciones.
+// Sin clave: la pantalla del presentador y el control del teléfono entran como usuarios anónimos.
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function esPresentador() {
-      return request.auth != null
-        && request.auth.token.email in ['presentador@tucorreo.com'];
-    }
-    function conectado() {
-      return request.auth != null;
-    }
+    function conectado() { return request.auth != null; }
 
     match /trivia/{sala} {
-      // Estado de la partida (pregunta actual, fase, respuesta correcta al revelar)
-      allow read: if conectado();
-      allow write: if esPresentador();
-
-      // Participantes: cada quien crea su propio registro con 0 puntos; solo el presentador suma puntos
+      allow read, write: if conectado();
       match /jugadores/{uid} {
         allow read: if conectado();
         allow create: if conectado() && request.auth.uid == uid
@@ -55,31 +44,21 @@ service cloud.firestore {
           && request.resource.data.gen is int
           && request.resource.data.gen >= 0
           && request.resource.data.gen <= 4
-          && request.resource.data.nombre is string
-          && request.resource.data.nombre.size() > 0
-          && request.resource.data.nombre.size() <= 24
-          && request.resource.data.puntos == 0
-          && request.resource.data.aciertos == 0;
-        allow update, delete: if esPresentador();
+          && request.resource.data.nombre is string && request.resource.data.nombre.size() > 0 && request.resource.data.nombre.size() <= 24
+          && request.resource.data.puntos == 0 && request.resource.data.aciertos == 0;
+        allow update, delete: if conectado();
       }
-
-      // Votos: uno por persona por pregunta, solo mientras la pregunta está abierta, sin poder cambiarlo
       match /votos/{votoId} {
-        allow read: if esPresentador()
-          || (conectado() && resource.data.uid == request.auth.uid);
-        allow create: if conectado()
-          && request.resource.data.keys().hasOnly(['q', 'opcion', 'uid', 't'])
-          && request.resource.data.uid == request.auth.uid
-          && request.resource.data.q is int
+        allow read: if conectado();
+        allow create: if conectado() && request.resource.data.keys().hasOnly(['q', 'opcion', 'uid', 't'])
+          && request.resource.data.uid == request.auth.uid && request.resource.data.q is int
           && votoId == string(request.resource.data.q) + '_' + request.auth.uid
-          && request.resource.data.opcion is int
-          && request.resource.data.opcion >= 0
-          && request.resource.data.opcion < 4
+          && request.resource.data.opcion is int && request.resource.data.opcion >= 0 && request.resource.data.opcion < 4
           && request.resource.data.t == request.time
           && get(/databases/$(database)/documents/trivia/$(sala)).data.fase == 'votando'
           && get(/databases/$(database)/documents/trivia/$(sala)).data.q == request.resource.data.q;
         allow update: if false;
-        allow delete: if esPresentador();
+        allow delete: if conectado();
       }
     }
   }
@@ -2263,7 +2242,8 @@ function showBanner(t) { bannerText = t; const b = document.getElementById("bann
    PROJECTOR (presenter laptop, duplicated screen)
    ===================================================================== */
 async function presenter(store) {
-  if (store.mode === "firebase") { await store.ready(); if (!store.isHostUser()) return hostLogin(store); }
+  // no password: the projector screen signs in anonymously (an older presenter session also works)
+  if (store.mode === "firebase") { try { await store.anon(); } catch (e) { return mount(h("div", { class: "center" }, h("div", { class: "card" }, h("h2", {}, "No se pudo conectar"), h("p", { class: "muted" }, "Revisa el internet de la laptop y recarga la página.")))); } }
   const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const S = { state: null, players: [], votes: [], unVotes: null, votesQ: null, live: false, limite: CFG.tiempo, confirmReset: false,
     closing: false, opening: false, now: Date.now(), viewKey: "", screen: "", prevW: {}, idleT: 0, prepStart: 0, prepQ: null,
@@ -2396,7 +2376,7 @@ async function presenter(store) {
       h("label", {}, live, "% en vivo"),
       h("button", { class: "btn", onclick: () => document.documentElement.requestFullscreen?.().catch(() => {}) }, "Pantalla completa"),
       reset,
-      store.mode === "firebase" ? h("button", { class: "btn", onclick: async () => { await store.logout(); location.reload(); } }, "Salir") : null,
+      null,
       h("span", { class: "kbd" }, "Espacio: comenzar / cerrar y revelar / siguiente · R: ranking · F: pantalla completa"));
   }
 

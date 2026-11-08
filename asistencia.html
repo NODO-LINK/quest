@@ -1523,7 +1523,16 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
           cb(u);
         });
       },
-      async login(email, pass) { await init(); await U.signInWithEmailAndPassword(auth, email, pass); },
+      // first login with this email creates the account (only the email listed in the rules gets admin access)
+      async login(email, pass) {
+        await init();
+        try { await U.signInWithEmailAndPassword(auth, email, pass); }
+        catch (e) {
+          if (!/user-not-found|invalid-credential|invalid-login/.test(e.code || '')) throw e;
+          try { await U.createUserWithEmailAndPassword(auth, email, pass); }
+          catch (e2) { throw e2.code === 'auth/email-already-in-use' ? e : e2; }
+        }
+      },
       async logout() { await U.signOut(auth); },
       uid: () => auth && auth.currentUser ? auth.currentUser.uid : '',
       async getConfig() { const d = await F.getDoc(F.doc(db, 'asist_config', 'main')); return d.exists() ? Object.assign({}, DEF_CFG, d.data()) : DEF_CFG; },
@@ -1630,13 +1639,13 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   function adminLogin() {
     root.innerHTML = `<div class="wrap"><header class="top">${brand('Asistencia · Administración')}</header>
-      <form class="glass pad" id="lf"><h1>Iniciar sesión</h1><p class="muted">Usa el correo y la contraseña de presentador (los mismos de la trivia y del control).</p>
+      <form class="glass pad" id="lf"><h1>Iniciar sesión</h1><p class="muted">Usa el correo y la contraseña de administrador. La primera vez que entras, la cuenta se crea sola.</p>
       <label for="em">Correo</label><input id="em" type="email" autocomplete="username" required>
       <label for="pw">Contraseña</label><input id="pw" type="password" autocomplete="current-password" ${DB.demo ? '' : 'required'}>
       <button class="btn primary" type="submit">Entrar</button><div class="msg" id="lm"></div></form></div>`;
     $('#lf').addEventListener('submit', async e => {
       e.preventDefault(); $('#lm').textContent = '';
-      try { await DB.login($('#em').value.trim(), $('#pw').value); } catch (err) { $('#lm').textContent = 'Correo o contraseña incorrectos.'; }
+      try { await DB.login($('#em').value.trim(), $('#pw').value); } catch (err) { const c = String(err && err.code || ''); $('#lm').textContent = /operation-not-allowed/.test(c) ? 'Falta activar «Correo electrónico/contraseña» en Firebase → Authentication.' : /weak-password/.test(c) ? 'La contraseña debe tener al menos 6 caracteres.' : /network/.test(c) ? 'Sin internet. Revisa la conexión.' : 'Correo o contraseña incorrectos.'; }
     });
   }
 

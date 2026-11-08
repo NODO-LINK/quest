@@ -8,7 +8,7 @@
 <title>Control remoto · Alcaldía de Mara</title>
 <!--
   CONTROL REMOTO DESDE EL TELÉFONO
-  · Abre esta página en tu teléfono e inicia sesión con el correo de presentador (el mismo de la trivia).
+  · Abre esta página en tu teléfono: no pide clave.
   · En la laptop abre la presentación (presentacion.html o diagnostico.html) con internet.
   · Los botones del teléfono mueven las diapositivas, la ruleta, los videos, la trivia, el sonido y el aplausómetro.
   · También: notas del presentador, puntero láser y pantallas de espera con cronómetro para dinámicas y juegos.
@@ -196,7 +196,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
         </div>
       </section>
       <section class="sec glass"><h2>Ir a la diapositiva</h2><div class="list" id="list"></div></section>
-      <div class="foot"><button type="button" id="logout">Cerrar sesión</button></div>
+
     </div>
   </main>
 </div>
@@ -217,7 +217,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: '📰 Periódicos', asis: '✅ QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794172477';
+  const THUMBV = '1794174368';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
@@ -272,7 +272,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       toast(cmd === 'video' ? `▶ Video ${arg}` : cmd === 'go' ? `Diapositiva ${arg + 1}` : LABEL[cmd] + (cmd === 'sound' ? (arg === 'on' ? ' activado' : ' apagado') : ''));
     } catch (e) {
       status('Sin conexión', 'bad');
-      toast(/permission/i.test(String(e && e.code || e)) ? 'Esta cuenta no es de presentador' : 'No se pudo enviar. Revisa el internet.');
+      toast(/permission/i.test(String(e && e.code || e)) ? 'Faltan las reglas nuevas en Firebase' : 'No se pudo enviar. Revisa el internet.');
     }
   }
   document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => command(b.dataset.cmd, b.dataset.arg)));
@@ -323,12 +323,14 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
         import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
         import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
       ]);
-      const fb = A.initializeApp(FB, 'presentador');
+      const fb = A.initializeApp(FB, 'control-telefono');
       const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
       sendFor = d => m => F.setDoc(F.doc(db, 'trivia', 'remote-' + d), Object.assign(m, { at: F.serverTimestamp() }));
       laserFor = d => (m, k) => F.setDoc(F.doc(db, 'trivia', `remote-${d}-laser${k}`), m);
+      // no password: the phone signs in anonymously
       U.onAuthStateChanged(auth, user => {
-        if (user && !user.isAnonymous) {
+        if (!user) { U.signInAnonymously(auth).catch(() => { status('Sin conexión', 'bad'); }); return; }
+        if (user) {
           $('login').hidden = true; $('app').hidden = false; send = sendFor(deck); sendLaser = laserFor(deck); status('Conectado ✓', 'ok');
           if (!names.length) loadNames();
         } else {
@@ -341,10 +343,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
         catch (err) { $('loginMsg').textContent = 'Correo o contraseña incorrectos.'; }
         $('loginBtn').disabled = false;
       });
-      $('logout').addEventListener('click', () => U.signOut(auth));
+
     } catch (e) {
       status('Sin conexión', 'bad');
-      $('login').hidden = false; $('loginMsg').textContent = 'No se pudo conectar. Revisa el internet del teléfono y recarga.';
+      toast('No se pudo conectar. Revisa el internet del teléfono y recarga.');
     }
   }
   start();
