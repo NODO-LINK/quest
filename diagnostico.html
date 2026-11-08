@@ -266,8 +266,8 @@ body.idle #jump{cursor:default}
 #eqTime{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(54px,9vmin,104px) var(--head);font-variant-numeric:tabular-nums}
 /* activities with animated characters: scene on the left, title + steps + clock on the right */
 #eqScene,#eqSteps{display:none}
-#equipo.act #eqBox{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);grid-template-areas:"scene kick" "scene title" "scene steps" "scene clock" "scene state";grid-template-rows:auto auto auto auto 1fr;column-gap:clamp(20px,3vw,48px);align-items:start;text-align:left;width:min(1560px,96vw)}
-#equipo.act #eqKicker{grid-area:kick;align-self:end;letter-spacing:.25em}
+#equipo.act #eqBox{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);grid-template-areas:"scene kick" "scene title" "scene clock" "scene state";grid-template-rows:1fr auto auto 1fr;column-gap:clamp(20px,3vw,48px);align-items:start;text-align:left;width:min(1560px,96vw)}
+#equipo.act #eqKicker{grid-area:kick;align-self:end;letter-spacing:.16em;font-size:clamp(11px,1.05vw,17px);white-space:nowrap}
 #equipo.act #eqTitle{grid-area:title;font-size:clamp(34px,4.4vw,74px);margin:6px 0 12px}
 #equipo.act #eqSub,#equipo.act #eqPeople{display:none}
 #equipo.act #eqScene{display:block;grid-area:scene;align-self:center;border-radius:28px;overflow:hidden;border:2px solid rgba(255,255,255,.22);box-shadow:0 24px 60px rgba(0,0,0,.45)}
@@ -277,7 +277,8 @@ body.idle #jump{cursor:default}
 #eqSteps li::before{content:counter(st);flex:none;width:clamp(34px,2.6vw,46px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:800 clamp(17px,1.5vw,24px) var(--body);color:#0B1426;background:var(--c,#F2C12E)}
 #eqSteps li:nth-child(1){--c:#F2C12E;animation-delay:.3s}#eqSteps li:nth-child(2){--c:#19C3E6;animation-delay:.6s}#eqSteps li:nth-child(3){--c:#5DD08A;animation-delay:.9s}
 @keyframes eqStep{to{opacity:1;transform:none}}
-#equipo.act #eqClock{grid-area:clock;width:clamp(150px,21vmin,250px);margin:0}
+#equipo.act #eqClock{grid-area:clock;width:clamp(170px,26vmin,300px);margin:8px 0 0}
+#equipo.act #eqSteps{display:none}
 #equipo.act #eqTime{font-size:clamp(36px,6vmin,68px)}
 #equipo.act #eqState{grid-area:state;text-align:left}
 #eqState{margin-top:12px;font:700 clamp(15px,1.7vw,22px) var(--body);color:var(--lt2);min-height:1.4em}
@@ -2495,7 +2496,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     $('eqTitle').textContent = EQ_TITLES[k][0]; $('eqSub').textContent = EQ_TITLES[k][1];
     const act = !!SCN[k]; $('equipo').classList.toggle('act', act);
     $('eqScene').innerHTML = act ? SCN[k]() : '';
-    $('eqSteps').innerHTML = act ? EQ_STEPS[k].map(t => `<li>${t}</li>`).join('') : '';
+    $('eqSteps').innerHTML = '';   // no written steps: the characters show the activity
     closePick(); closeVideo(); closeAplauso(); closeBien();
     eq.total = eq.remain = Math.max(1, +min || 5) * 60000; eq.end = Date.now() + eq.total; eq.paused = false; eq.done = false; eq.open = true;
     $('equipo').classList.remove('done', 'paused'); $('equipo').classList.add('open'); $('eqPause').textContent = 'Pausar';
