@@ -206,18 +206,18 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 (() => {
   const $ = id => document.getElementById(id);
   const FB = {
-    apiKey: "AIzaSyDDLY42OYezFcDUkb-x3vQO3fCq6FfZG6k",
-    authDomain: "quest-35aa0.firebaseapp.com",
-    projectId: "quest-35aa0",
-    storageBucket: "quest-35aa0.firebasestorage.app",
-    messagingSenderId: "226578437399",
-    appId: "1:226578437399:web:982321847804b3c9991352"
+    apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y",
+    authDomain: "nodocount.firebaseapp.com",
+    projectId: "nodocount",
+    storageBucket: "nodocount.firebasestorage.app",
+    messagingSenderId: "344018240488",
+    appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: '📰 Periódicos', asis: '✅ QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794174368';
+  const THUMBV = '1794174715';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;

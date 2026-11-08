@@ -12,7 +12,7 @@
   · En la diapositiva del sorteo la ruleta funciona aquí mismo: Espacio o clic en GIRAR para girar;
     las flechas y el clicker siguen cambiando de diapositiva.
   · Atajos (abajo a la izquierda, siempre visibles): 1–6 videos · Ruleta · Trivia (pantalla del presentador).
-  · Necesita esta página junto a index.html (trivia), ruleta.html y la carpeta presentacion/ (videos y letras).
+  · Necesita esta página junto a trivia.html, ruleta.html y la carpeta presentacion/ (videos y letras).
 -->
 <style>
 @font-face{font-family:"Bookman Web";src:url(presentacion/fonts/texgyrebonum-bold.woff) format("woff");font-weight:700;font-display:block}
@@ -2015,7 +2015,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   const tFrame = $('tFrame');
   function openTrivia() {
     closeVideo();
-    if (!tFrame.getAttribute('src')) tFrame.src = 'index.html?pantalla';
+    if (!tFrame.getAttribute('src')) tFrame.src = 'trivia.html?pantalla';
     triviaOpen = true;
     $('trivia').classList.add('open'); document.body.classList.add('trivia');
     $('toTrivia').setAttribute('aria-current', 'true');
@@ -2354,13 +2354,14 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 
   /* ---------- phone remote (control.html): commands arrive through Firebase ---------- */
   const FBCFG = {
-    apiKey: "AIzaSyDDLY42OYezFcDUkb-x3vQO3fCq6FfZG6k",
-    authDomain: "quest-35aa0.firebaseapp.com",
-    projectId: "quest-35aa0",
-    storageBucket: "quest-35aa0.firebasestorage.app",
-    messagingSenderId: "226578437399",
-    appId: "1:226578437399:web:982321847804b3c9991352"
-  };
+    apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y",
+    authDomain: "nodocount.firebaseapp.com",
+    projectId: "nodocount",
+    storageBucket: "nodocount.firebasestorage.app",
+    messagingSenderId: "344018240488",
+    appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
+  }
+;
   const ASCFG = {
     apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y",
     authDomain: "nodocount.firebaseapp.com",
