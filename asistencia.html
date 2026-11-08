@@ -1422,7 +1422,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     messagingSenderId: "226578437399",
     appId: "1:226578437399:web:982321847804b3c9991352"
   };
-  const MODULOS = ["Precursora · Módulo 1: El ideario bolivariano y las raíces históricas","Precursora · Módulo 2: Memoria histórica, identidad y resistencia antiimperialista","Precursora · Módulo 3: Liderazgo comunal, gestión del cambio y articulación territorial","Precursora · Módulo 4: Origen filosófico e histórico de la Revolución Bolivariana","Precursora · Módulo 5: Encuentro generacional: diálogo y memoria colectiva, «Tarde de Nostalgia»","Fundadora · Módulo 1: Consejo de Sabios y orientación política generacional","Fundadora · Módulo 2: Eje histórico y político: pensamiento bolivariano y socialismo del siglo XXI","Fundadora · Módulo 3: Democracia participativa y sistematización de la experiencia organizativa","Fundadora · Módulo 4: Memoria institucional, normativa municipal y sistemas de expedientes","Fundadora · Módulo 5: Formación ideológica, capacidad operativa y liderazgo local","Intermedia · Módulo 1: Dialéctica de la gestión, la utopía, la eficiencia administrativa y el contraataque del imperialismo ante el surgimiento de liderazgos por la soberanía y la autodeterminación","Intermedia · Módulo 2: Construcción del Estado comunal, resistencia antihegemónica y gestión pública","Intermedia · Módulo 3: Ética pública, normativas legales y redacción","Intermedia · Módulo 4: Descolonización, soberanía cultural y memoria histórica","Intermedia · Módulo 5: Liderazgo técnico-político y relevo generacional","De Oro · Módulo 1: Plan de formación filosófico-político para la Generación de Oro","De Oro · Módulo 2: Reconocimiento, formación, empoderamiento y protagonismo de la juventud","De Oro · Módulo 3: La comunicación como hecho social y las consecuencias de las redes sociales","De Oro · Módulo 4: Innovación y soberanía tecnológica / formación digital","De Oro · Módulo 5: Encuentro dinámico del pensamiento crítico","Genial · Módulo 1: Transformación digital y cultura digital aplicada","Genial · Módulo 2: Educación, ciencia y tecnología para la suprema felicidad social","Genial · Módulo 3: Uso adecuado de las redes sociales y defensa frente a la guerra cognitiva","Genial · Módulo 4: Liderazgo estudiantil, nuevas tecnologías y conciencia del bloque histórico","Genial · Módulo 5: Identidad cultural, preservación del patrimonio y valores patrios"];
+  // formations available for sessions (for now only the first presentation); deck = the presentation file that shows its QR
+  const FORMACIONES = [
+    { deck: 'presentacion', t: 'Plan de Formación Filosófico-Político', s: 'El Bloque Histórico y la Continuidad de las Cinco Generaciones', c: '#D62839' },
+  ];
+  const formFull = f => `${f.t}: ${f.s}`;
   const P = new URLSearchParams(location.search);
   const DEMO = P.has('demo'), ADMIN = P.has('admin'), SID = P.get('s');
   const $ = s => document.querySelector(s);
@@ -1555,7 +1559,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       [ses, cfg] = await Promise.all([DB.getSesion(SID), DB.getConfig()]);
     } catch (e) { card.innerHTML = `<h2>Sin conexión</h2><p class="muted">No se pudo conectar. Revisa el internet del teléfono y vuelve a escanear el código.</p>`; return; }
     if (!ses) { card.innerHTML = `<h2>Sesión no encontrada</h2><p class="muted">Este código no corresponde a ninguna sesión. Pide al facilitador que proyecte el QR otra vez.</p>`; return; }
-    const head = `<div class="sess"><span class="eyebrow">Plan de Formación · ${esc(fmtFecha(ses.fecha))}</span><b>${esc(ses.modulo)}</b><span class="muted">${esc(ses.coordinacion || '')}${ses.lugar ? ' · ' + esc(ses.lugar) : ''}</span></div>`;
+    const head = `<div class="sess"><span class="eyebrow">Formación · ${esc(fmtFecha(ses.fecha))}</span><b>${esc(ses.modulo)}</b><span class="muted">${esc(ses.coordinacion || '')}${ses.lugar ? ' · ' + esc(ses.lugar) : ''}</span></div>`;
     if (!ses.abierta) { card.innerHTML = head + `<h2 style="margin-top:18px">Sesión cerrada</h2><p class="muted">El registro de asistencia de esta sesión ya se cerró.</p>`; return; }
     const stepCed = () => {
       card.innerHTML = head + `<form id="f1"><label for="ced">Tu cédula de identidad</label>
@@ -1692,8 +1696,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return `<div class="grid2" style="margin-top:14px;grid-template-columns:minmax(260px,380px) 1fr">
       <form class="glass pad" id="nf"><h2>Nueva sesión</h2>
         <label for="nfF">Fecha</label><input id="nfF" type="date" value="${today()}" required>
-        <label for="nfM">Módulo</label>
-        <div class="mwrap" id="mw"><input id="nfM" placeholder="Toca para elegir un módulo" required maxlength="120" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="mp">
+        <label for="nfM">Formación</label>
+        <div class="mwrap" id="mw"><input id="nfM" placeholder="Toca para elegir la formación" required maxlength="160" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="mp" value="${esc(formFull(FORMACIONES[0]))}">
           <span class="caret" aria-hidden="true">▾</span><div class="mpanel" id="mp" role="listbox" hidden></div></div>
         <label for="nfC">Coordinación</label><select id="nfC" required>${coordOpts}</select>
         <label for="nfL">Lugar (opcional)</label><input id="nfL" maxlength="80" placeholder="Ej.: Salón de sesiones">
@@ -1782,7 +1786,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function bind() {
     const nf = $('#nf'); if (nf && !nf.dataset.b) nf.dataset.b = 1, nf.addEventListener('submit', async e => {
       e.preventDefault();
-      const id = newId(), data = { fecha: $('#nfF').value, modulo: $('#nfM').value.trim(), coordinacion: $('#nfC').value, lugar: $('#nfL').value.trim(), abierta: true, creada: Date.now() };
+      const mod = $('#nfM').value.trim(), f = FORMACIONES.find(x => formFull(x) === mod);
+      const id = newId(), data = { fecha: $('#nfF').value, modulo: mod, deck: f ? f.deck : '', coordinacion: $('#nfC').value, lugar: $('#nfL').value.trim(), abierta: true, creada: Date.now() };
       try { await DB.saveSesion(id, data); toast('Sesión creada y abierta'); openProj(id); } catch (err) { toast('No se pudo crear (¿reglas de Firestore?)'); }
     });
     const mi = $('#nfM'); if (mi && !mi.dataset.b) { mi.dataset.b = 1; modulePicker(mi); }
@@ -1801,18 +1806,17 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   // grouped, searchable module list in the Alcaldía style; free text still allowed
   function modulePicker(inp) {
     const wrap = $('#mw'), panel = $('#mp');
-    const MODS = MODULOS.map(m => { const g = m.split(' · ')[0], rest = m.slice(g.length + 3), num = (rest.match(/Módulo (\d+)/) || [])[1] || '', title = rest.replace(/^Módulo \d+:\s*/, ''); return { full: m, g, gi: GENS.findIndex(x => x.n === g), num, title }; });
+    const MODS = FORMACIONES.map((f, i) => ({ full: formFull(f), g: 'Formaciones', c: f.c, num: String(i + 1), title: f.t, sub: f.s }));
     let act = -1, shown = [];
     const draw = () => {
       const q = normName(inp.value);
-      shown = MODS.filter(m => !q || normName(m.full).includes(q));
+      shown = MODS.filter(m => !q || normName(m.full).includes(q) || MODS.some(x => x.full === inp.value));
       let html = '', last = '';
       shown.forEach((m, i) => {
-        const g = GENS[m.gi] || { c: '#999', n: m.g };
-        if (m.g !== last) { html += `<div class="mgen"><i style="background:${g.c}"></i>Generación ${esc(m.g)}</div>`; last = m.g; }
-        html += `<button type="button" class="mopt${i === act ? ' act' : ''}" role="option" data-i="${i}"><b style="background:${g.c};color:${m.gi >= 3 ? '#0B1426' : '#fff'}">${esc(m.num)}</b><span>${esc(m.title)}</span></button>`;
+        if (m.g !== last) { html += `<div class="mgen"><i style="background:#F4C20D"></i>${esc(m.g)}</div>`; last = m.g; }
+        html += `<button type="button" class="mopt${i === act ? ' act' : ''}" role="option" data-i="${i}"><b style="background:${m.c};color:#fff">🎓</b><span><strong style="display:block">${esc(m.title)}</strong><span class="muted" style="font-size:13.5px">${esc(m.sub)}</span></span></button>`;
       });
-      panel.innerHTML = html || `<div class="mempty">Ningún módulo coincide. Puedes dejar lo que escribiste.</div>`;
+      panel.innerHTML = html || `<div class="mempty">Ninguna formación coincide. Puedes dejar lo que escribiste.</div>`;
       panel.querySelectorAll('.mopt').forEach(b => b.addEventListener('mousedown', e => { e.preventDefault(); pick(+b.dataset.i); }));
     };
     const open = () => { act = -1; draw(); panel.hidden = false; wrap.classList.add('open'); inp.setAttribute('aria-expanded', 'true'); };

@@ -128,6 +128,12 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn" type="button" data-cmd="salirRuleta">↩ Salir de la ruleta</button>
         </div>
       </section>
+      <section class="sec glass"><h2>✅ QR de asistencia</h2>
+        <div class="row">
+          <button class="btn green" type="button" data-cmd="asis" data-arg="open">Mostrar QR de asistencia</button>
+          <button class="btn" type="button" data-cmd="asis" data-arg="close">Quitar</button>
+        </div>
+      </section>
       <section class="sec glass"><h2>Bienvenida (antes de empezar)</h2>
         <div class="row">
           <button class="btn green" type="button" data-cmd="bien" data-arg="open">👋 Mostrar bienvenida</button>
@@ -209,9 +215,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: '🎡 Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: '📰 Periódicos' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: '📰 Periódicos', asis: '✅ QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1793798663';
+  const THUMBV = '1794172477';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
