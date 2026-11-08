@@ -13,8 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!--
   PANEL DE FORMACIÓN (página de inicio)
-  · Público: sesión abierta, presentaciones en vivo, trivia en vivo y accesos rápidos.
-  · Con la clave de administración: números de asistencia, gráficos y últimas llegadas.
+  · Sesión abierta, presentaciones en vivo, trivia en vivo y accesos rápidos.
+  · Sin clave: cualquiera con el link ve los números de asistencia, gráficos y últimas llegadas.
   · Todo en el Firebase nodocount (mismas reglas que la asistencia y la trivia).
   · Prueba sin internet: index.html?demo
 -->
@@ -159,7 +159,6 @@ form.lf .msg{color:var(--red);font-size:13.5px;min-height:1em}
   <div class="sp"></div>
   <div class="clock" id="clock"></div>
   <span class="pill" id="conn">Conectando…</span>
-  <button class="btn" id="userBtn" hidden></button>
 </div></header>
 
 <main>
@@ -208,21 +207,6 @@ form.lf .msg{color:var(--red);font-size:13.5px;min-height:1em}
   <section class="card w4 o4 adm" hidden>
     <div class="ch"><div><h2>Últimas llegadas</h2><p class="sub">Asistencias marcadas</p></div></div>
     <div class="feed" id="feed"></div>
-  </section>
-
-  <!-- lock (public visitors) -->
-  <section class="card w8 o4 lockc" id="lockCard" hidden>
-    <div>
-      <div class="big">🔒</div>
-      <h2>Números de asistencia</h2>
-      <p>Las asistencias tienen datos de cédulas, por eso solo se ven con la clave de administración. Lo demás del panel lo puede ver cualquiera.</p>
-    </div>
-    <form class="lf" id="lf">
-      <label for="em">Correo</label><input id="em" type="email" autocomplete="username" required>
-      <label for="pw">Contraseña</label><input id="pw" type="password" autocomplete="current-password" required>
-      <button class="btn primary" type="submit" id="lb">Entrar</button>
-      <div class="msg" id="lm" role="alert"></div>
-    </form>
   </section>
 
   <!-- access -->
@@ -295,7 +279,7 @@ function renderKpis() {
     $('kSesF').textContent = [s.fecha ? longDate(s.fecha) : '', s.lugar].filter(Boolean).join(' · ') + (op.length > 1 ? ` · ${op.length} abiertas` : '');
   } else { $('kSes').textContent = 'Ninguna abierta'; $('kSesF').textContent = 'Ábrela desde Asistencia'; }
 
-  const lock = '<span class="lock">🔒 Entra para verlo</span>';
+  const lock = '<span class="lock">Cargando…</span>';
   if (S.admin && S.mar && S.per) {
     const marcas = Object.values(S.mar), t0 = today();
     const hoy = marcas.filter(m => dayKey(ms(m.t) || Date.now()) === t0);
@@ -342,7 +326,6 @@ function hbars(items) {   // [{label, value, color?, tip}]
 function renderPrivate() {
   const adm = S.admin;
   document.querySelectorAll('.adm').forEach(el => el.hidden = !adm);
-  $('lockCard').hidden = adm || !S.ready;
   $('liveCard').classList.toggle('w8', !adm && false);
   if (!adm || !S.mar || !S.per) return;
   const marcas = Object.values(S.mar), per = S.per;
@@ -362,18 +345,7 @@ function renderPrivate() {
 }
 
 function setConn(kind, text) { const c = $('conn'); c.className = 'pill ' + kind; c.textContent = text; }
-function setUser() {
-  const b = $('userBtn'); b.hidden = false;
-  if (S.admin) { b.textContent = 'Salir'; b.title = S.email; b.onclick = () => api.logout(); }
-  else { b.textContent = 'Entrar'; b.title = 'Clave de administración'; b.onclick = () => { $('lockCard').hidden = false; $('lockCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('em').focus(), 350); }; }
-}
 
-$('lf').addEventListener('submit', async e => {
-  e.preventDefault(); $('lm').textContent = ''; $('lb').disabled = true;
-  try { await api.login($('em').value.trim(), $('pw').value); $('pw').value = ''; }
-  catch (err) { const c = String(err && err.code || ''); $('lm').textContent = /operation-not-allowed/.test(c) ? 'Falta activar «Correo electrónico/contraseña» en Firebase → Authentication.' : /weak-password/.test(c) ? 'La contraseña debe tener al menos 6 caracteres.' : /network/.test(c) ? 'Sin internet. Revisa la conexión.' : 'Correo o contraseña incorrectos.'; }
-  $('lb').disabled = false;
-});
 
 // ---------- data: Firebase ----------
 let api;
@@ -402,8 +374,8 @@ async function startFirebase() {
   U.onAuthStateChanged(auth, u => {
     stopAll();
     if (!u) { S.admin = false; U.signInAnonymously(auth).catch(() => setConn('bad', 'Sin conexión')); return; }
-    S.admin = !u.isAnonymous; S.email = u.email || ''; S.ready = true; S.per = S.mar = null;
-    setConn('ok', 'En línea'); setUser();
+    S.admin = true; S.ready = true; S.per = S.mar = null;   // no password: everyone sees everything
+    setConn('ok', 'En línea');
     const on = (ref, cb) => subs.push(F.onSnapshot(ref, cb, err => { if (/permission/i.test(String(err && err.code))) { if (S.admin) toast('Esta cuenta no tiene permiso de administración'); } else setConn('bad', 'Sin conexión'); }));
     on(F.collection(db, 'asist_sesiones'), q => { S.ses = snapMap(q); render(); });
     on(F.doc(db, 'trivia', SALA), d => { S.trivia = d.exists() ? d.data() : null; render(); });
@@ -427,10 +399,9 @@ function startDemo() {
   const ses = {}, mar = {}; const base = new Date(); base.setHours(9, 0, 0, 0);
   for (let k = 0; k < 7; k++) { const d = new Date(base - (6 - k) * 7 * 86400000); const id = 's' + k; ses[id] = { fecha: dayKey(d), modulo: 'Plan de Formación Filosófico-Político', lugar: 'Salón de la Alcaldía', abierta: k === 6, creada: +d };
     const n = 26 + Math.floor(rnd() * 30) - (k === 6 ? 12 : 0); for (let j = 0; j < n; j++) { const p = 'p' + Math.floor(rnd() * 64); mar[id + '_' + p] = { sesion: id, persona: p, t: k === 6 ? Date.now() - Math.floor(rnd() * 5400000) : +d + j * 60000 }; } }
-  Object.assign(S, { ses, per, mar, admin: !P.has('publico'), email: 'presentador@tucorreo.com', trivia: { fase: 'votando', pos: 3, total: 10 }, jug: 37,
+  Object.assign(S, { ses, per, mar, admin: true, trivia: { fase: 'votando', pos: 3, total: 10 }, jug: 37,
     estado: { presentacion: { slide: 7, total: 15, nombre: 'Las cinco generaciones', at: Date.now() - 20000 }, diagnostico: { slide: 18, total: 18, at: Date.now() - 3 * 86400000 } } });
-  api = { async login() { S.admin = true; setUser(); render(); }, async logout() { S.admin = false; setUser(); render(); } };
-  setUser(); render();
+  render();
 }
 
 render();

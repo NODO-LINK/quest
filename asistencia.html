@@ -1467,7 +1467,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const subs = new Set(); const fire = () => subs.forEach(f => f());
     ch && (ch.onmessage = fire); addEventListener('storage', fire);
     const watch = (pick, cb) => { const f = () => cb(pick(st())); subs.add(f); f(); return () => subs.delete(f); };
-    let user = ADMIN ? null : { uid, isAnonymous: true };
+    let user = { uid, isAnonymous: true };
     let authCb = null;
     return {
       demo: true,
@@ -1519,7 +1519,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async start(cb) {
         await init();
         U.onAuthStateChanged(auth, async u => {
-          if (!ADMIN && !u) { try { await U.signInAnonymously(auth); } catch (e) { cb(null, e); } return; }
+          if (!u) { try { await U.signInAnonymously(auth); } catch (e) { cb(null, e); } return; }   // no password anywhere
           cb(u);
         });
       },
@@ -1634,32 +1634,24 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   /* ================= admin ================= */
   async function admin() {
     root.innerHTML = `<div class="wrap"><header class="top">${brand('Asistencia · Administración')}</header><div class="glass pad"><p class="muted">Conectando…</p></div></div>`;
-    try { await DB.start(u => u && !u.isAnonymous ? adminApp() : adminLogin()); }
+    try { await DB.start(u => u ? adminApp() : adminLogin()); }
     catch (e) { root.innerHTML = `<div class="wrap"><div class="glass pad"><h2>Sin conexión</h2><p class="muted">No se pudo conectar. Revisa el internet y recarga.</p></div></div>`; }
   }
   function adminLogin() {
-    root.innerHTML = `<div class="wrap"><header class="top">${brand('Asistencia · Administración')}</header>
-      <form class="glass pad" id="lf"><h1>Iniciar sesión</h1><p class="muted">Usa el correo y la contraseña de administrador. La primera vez que entras, la cuenta se crea sola.</p>
-      <label for="em">Correo</label><input id="em" type="email" autocomplete="username" required>
-      <label for="pw">Contraseña</label><input id="pw" type="password" autocomplete="current-password" ${DB.demo ? '' : 'required'}>
-      <button class="btn primary" type="submit">Entrar</button><div class="msg" id="lm"></div></form></div>`;
-    $('#lf').addEventListener('submit', async e => {
-      e.preventDefault(); $('#lm').textContent = '';
-      try { await DB.login($('#em').value.trim(), $('#pw').value); } catch (err) { const c = String(err && err.code || ''); $('#lm').textContent = /operation-not-allowed/.test(c) ? 'Falta activar «Correo electrónico/contraseña» en Firebase → Authentication.' : /weak-password/.test(c) ? 'La contraseña debe tener al menos 6 caracteres.' : /network/.test(c) ? 'Sin internet. Revisa la conexión.' : 'Correo o contraseña incorrectos.'; }
-    });
+    root.innerHTML = `<div class="wrap"><header class="top">${brand('Asistencia · Administración')}</header><div class="glass pad"><h2>Sin conexión</h2><p class="muted">No se pudo conectar. Revisa el internet y recarga la página.</p></div></div>`;
   }
+
 
   let S = { ses: {}, per: {}, mar: {}, cfg: DEF_CFG, tab: 'sesiones', q: '' }, unsubs = [];
   async function adminApp() {
     unsubs.forEach(u => u && u()); unsubs = [];
     try { S.cfg = await DB.getConfig(); } catch (e) {}
     root.innerHTML = `<div class="wrap wide">
-      <header class="top">${brand('Asistencia · Administración')}<button class="btn sm" id="out">Cerrar sesión</button></header>
+      <header class="top">${brand('Asistencia · Administración')}</header>
       <nav class="tabs glass" role="tablist">
         ${[['sesiones', 'Sesiones'], ['formados', 'Formados'], ['panel', 'Panel'], ['repetidos', 'Repetidos'], ['ajustes', 'Ajustes']].map(([k, t]) => `<button role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${t}</button>`).join('')}
       </nav>
       <main id="view"></main></div>`;
-    $('#out').onclick = () => DB.logout();
     document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; S.det = null; document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === b))); render(); });
     let t = 0; const later = () => { clearTimeout(t); t = setTimeout(refresh, 120); };
     unsubs.push(DB.watchSesiones(v => { S.ses = v || {}; later(); updateProj(); }));
