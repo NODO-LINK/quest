@@ -92,6 +92,14 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid v
 @keyframes pop{from{transform:scale(.3);opacity:0}}
 @keyframes draw{to{stroke-dashoffset:0}}
 .ok h1{font-size:30px}
+/* penitencia: a random few must dance */
+.penit{text-align:center;padding:22px 18px 26px;position:relative;overflow:hidden}
+.penit .kick{display:inline-block;font-weight:800;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#0B1426;background:#F2C12E;border-radius:999px;padding:6px 14px;animation:pz 1s ease-in-out infinite}
+.penit h1{font-size:clamp(30px,9vw,44px);margin:12px 0 4px;line-height:1.05}
+.penit .dz{width:min(300px,82vw);margin:4px auto 0;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,#30195A,#140C2E);border:1px solid rgba(255,255,255,.18)}
+.penit .dz svg{display:block;width:100%;height:auto}
+.penit p{margin:12px 0 0}
+@keyframes pz{50%{transform:scale(1.08)}}
 .big-time{font:700 22px var(--head);margin-top:6px}
 /* admin */
 .tabs{display:flex;gap:6px;padding:6px;border-radius:999px;overflow:auto}
@@ -1443,7 +1451,181 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     { n: 'Genial', r: '18 a 25 años', c: '#19C3E6', min: 0, max: 25 },
   ];
   const genOf = edad => GENS.findIndex(g => edad >= g.min && edad <= g.max);
-  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], culminar: 5 };
+  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], culminar: 5, penit: true, penitN: 5 };
+  /* ---------- animated cartoon scenes for the waiting screen (SVG + SMIL, all share one clock) ---------- */
+  const SCN = (() => {
+    const SKIN = ['#F2C79C', '#D9A066', '#A86B3C', '#E8B98A', '#8A5A35', '#F5D0A9'];
+    const HAIR = ['#2A1B12', '#5A3A22', '#141414', '#7A4A2A', '#3B2416'];
+    const PANTS = ['#2C3E66', '#34344A', '#4B5D8A', '#3D2F55'];
+    const SHOE = '#24242F';
+    const n = v => +v.toFixed(2);
+    const rot = (vals, cx, cy, dur, begin = 0, extra = '') =>
+      `<animateTransform attributeName="transform" type="rotate" values="${vals.map(a => `${a} ${cx} ${cy}`).join(';')}" dur="${dur}s" begin="${begin}s" repeatCount="indefinite" ${extra}/>`;
+    const move = (vals, dur, begin = 0, extra = '') =>
+      `<animateTransform attributeName="transform" type="translate" values="${vals.map(p => p.join(' ')).join(';')}" dur="${dur}s" begin="${begin}s" repeatCount="indefinite" ${extra}/>`;
+    const smooth = k => `calcMode="spline" keySplines="${Array(k).fill('.45 0 .55 1').join(';')}"`;
+
+    // one cartoon person; feet at (0,0), about 200 units tall. o.armL / o.armR: inner SMIL for the arms, o.handR: object in the right hand
+    function guy(o) {
+      const sk = o.skin || SKIN[0], sh = o.shirt || '#2F80ED', pa = o.pants || PANTS[0], ha = o.hair || HAIR[0], hs = o.hs || 0;
+      const blink = `<animate attributeName="ry" values="5.6;5.6;.6;5.6" keyTimes="0;.93;.96;1" dur="${o.blinkDur || 4.2}s" begin="${o.blinkAt || 0}s" repeatCount="indefinite"/>`;
+      const hairBack = hs === 1 ? `<path fill="${ha}" d="M-32,-168 Q-34,-202 0,-201 Q34,-202 32,-168 L34,-124 Q22,-118 19,-138 L-19,-138 Q-22,-118 -34,-124Z"/>` : '';
+      const hairTop = hs === 2
+        ? `<g fill="${ha}">${[[-22, -178], [-10, -190], [6, -192], [20, -182], [27, -168], [-28, -164], [-2, -196]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="12"/>`).join('')}</g>`
+        : hs === 3 ? `<circle cx="0" cy="-200" r="12" fill="${ha}"/><path fill="${ha}" d="M-30,-166 Q-30,-198 0,-197 Q30,-198 30,-166 Q20,-182 0,-180 Q-20,-182 -30,-166Z"/>`
+        : `<path fill="${ha}" d="M-30,-164 Q-31,-198 0,-197 Q31,-198 30,-164 Q24,-183 4,-180 Q-6,-186 -14,-178 Q-24,-176 -30,-164Z"/>`;
+      const mouth = o.mouth || `<path d="M-9,-149 Q0,-139 9,-149" fill="none" stroke="#5A2A1A" stroke-width="3.2" stroke-linecap="round"/>`;
+      const arm = (side, inner, hand) => {
+        const d = side < 0 ? 'M-22,-122 L-33,-82' : 'M22,-122 L33,-82', hx = side < 0 ? -34 : 34;
+        return `<g>${inner || ''}<path d="${d}" stroke="${sh}" stroke-width="15" stroke-linecap="round"/><circle cx="${hx}" cy="-79" r="8.5" fill="${sk}"/>${hand || ''}</g>`;
+      };
+      const leg = (side, inner) => `<g>${inner || ''}<path d="M${10 * side},-72 L${12 * side},-12" stroke="${pa}" stroke-width="17" stroke-linecap="round"/><ellipse cx="${16 * side}" cy="-5" rx="14" ry="7.5" fill="${SHOE}"/></g>`;
+      return `<g transform="translate(${o.x} ${o.y}) rotate(${o.lean || 0}) scale(${o.s || 1})">
+        <ellipse cx="0" cy="0" rx="38" ry="8" fill="#000" opacity=".18"/>
+        <g>${o.body || ''}
+          ${leg(-1, o.legL)}${leg(1, o.legR)}
+          <rect x="-27" y="-138" width="54" height="76" rx="22" fill="${sh}"/>
+          <path d="M-12,-136 Q0,-124 12,-136" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round"/>
+          ${arm(-1, o.armL, o.handL)}
+          <g>${o.head || ''}
+            ${hairBack}<circle cx="0" cy="-164" r="29" fill="${sk}"/>${hairTop}
+            <ellipse cx="-10.5" cy="-166" rx="4.3" ry="5.6" fill="#1E1E2E">${blink}</ellipse><ellipse cx="10.5" cy="-166" rx="4.3" ry="5.6" fill="#1E1E2E">${blink}</ellipse>
+            <circle cx="-9" cy="-168.5" r="1.6" fill="#fff"/><circle cx="12" cy="-168.5" r="1.6" fill="#fff"/>
+            <circle cx="-19" cy="-153" r="5.5" fill="#FF6F6F" opacity=".4"/><circle cx="19" cy="-153" r="5.5" fill="#FF6F6F" opacity=".4"/>
+            ${mouth}${o.headExtra || ''}
+          </g>
+          ${arm(1, o.armR, o.handR)}
+        </g></g>`;
+    }
+    const sparkle = (x, y, c, d, b) => `<g transform="translate(${x} ${y})"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3Z" fill="${c}"><animate attributeName="opacity" values="0;1;0" dur="${d}s" begin="${b}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="scale" values=".4;1.2;.4" dur="${d}s" begin="${b}s" repeatCount="indefinite"/></path></g>`;
+    const note = (x, y, c, d, b, ch = '♪') => `<text x="${x}" y="${y}" font-size="34" font-weight="700" fill="${c}" font-family="sans-serif">${ch}<animateTransform attributeName="transform" type="translate" values="0 0;-10 -70;8 -140" dur="${d}s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="${d}s" begin="${b}s" repeatCount="indefinite"/></text>`;
+    const frame = (inner, floor = '#2A4A7A', wall = ['#16325E', '#0F2547']) => `<svg viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs><linearGradient id="scWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${wall[0]}"/><stop offset="1" stop-color="${wall[1]}"/></linearGradient></defs>
+      <rect width="800" height="480" fill="url(#scWall)"/><rect y="300" width="800" height="180" fill="${floor}"/><rect y="300" width="800" height="4" fill="rgba(255,255,255,.12)"/>${inner}</svg>`;
+
+    /* 1) paper fish: fan it with a folder into the circle */
+    function peces() {
+      const D = 6, lanes = [
+        { gx: 300, gy: 352, s: .74, from: [372, 345], to: [575, 388], c: '#F2C12E', shirt: '#1E9E4F', skin: SKIN[1], hair: HAIR[0], hs: 0, arrive: .62, at: 0 },
+        { gx: 120, gy: 462, s: 1.05, from: [232, 452], to: [645, 418], c: '#19C3E6', shirt: '#D62839', skin: SKIN[0], hair: HAIR[3], hs: 1, arrive: .74, at: .25 },
+      ];
+      let out = `<ellipse cx="615" cy="402" rx="128" ry="40" fill="rgba(255,255,255,.08)" stroke="#fff" stroke-width="4" stroke-dasharray="14 10"/>
+        <text x="615" y="460" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="22" fill="rgba(255,255,255,.75)" letter-spacing="4">META</text>`;
+      lanes.forEach((L, i) => {
+        // folder fanning: the arm swings the folder up and down 2 times a second
+        const folder = `<g transform="translate(34 -79) rotate(-8)"><rect x="-6" y="-4" width="52" height="38" rx="4" fill="#3E7BD6" stroke="#fff" stroke-width="2"/><rect x="-6" y="-4" width="52" height="10" rx="4" fill="#2F64B4"/></g>`;
+        const fan = rot([-62, -28, -62], 22, -122, .5, -L.at, smooth(2));
+        out += guy({ x: L.gx, y: L.gy, s: L.s, lean: 8, shirt: L.shirt, skin: L.skin, hair: L.hair, hs: L.hs, armR: fan, handR: folder, armL: rot([18], -22, -122, 1), blinkAt: i * 1.3,
+          mouth: `<ellipse cx="0" cy="-147" rx="6" ry="5" fill="#5A2A1A"/>` });
+        // air puffs in front of the folder
+        const ax = L.gx + 78 * L.s, ay = L.gy - 30 * L.s;
+        out += `<g fill="none" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">${[0, 1, 2].map(k => `<path d="M${ax + k * 4},${ay - 12 + k * 12} q14,-4 28,0"><animate attributeName="opacity" values="0;1;0" dur=".5s" begin="${-L.at + k * .08}s" repeatCount="indefinite"/></path>`).join('')}</g>`;
+        // fish hops toward the circle, rests, then starts again
+        const hops = 9, vals = [], kt = [];
+        for (let h = 0; h <= hops; h++) { const f = h / hops; vals.push([n(L.from[0] + (L.to[0] - L.from[0]) * f), n(L.from[1] + (L.to[1] - L.from[1]) * f)]); kt.push(n(L.arrive * f)); }
+        vals.push(vals[hops], vals[0]); kt.push(.97, 1);
+        const splines = Array(vals.length - 1).fill('.2 .7 .4 1'); splines[splines.length - 1] = '0 0 1 1';
+        out += `<g><animateTransform attributeName="transform" type="translate" values="${vals.map(p => p.join(' ')).join(';')}" keyTimes="${kt.join(';')}" calcMode="spline" keySplines="${splines.join(';')}" dur="${D}s" begin="${L.at}s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.93;.97;1" dur="${D}s" begin="${L.at}s" repeatCount="indefinite"/>
+          <g transform="scale(${n(L.s * 1.45)})"><ellipse cx="0" cy="6" rx="26" ry="5" fill="#000" opacity=".2"/>
+          <g>${rot([-6, 6, -6], 0, 0, .5, -L.at, smooth(2))}<path d="M-28,0 Q-6,-20 18,-2 L30,-14 L28,10 L18,2 Q-6,20 -28,0Z" fill="${L.c}" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><circle cx="-14" cy="-3" r="3" fill="#1E1E2E"/><path d="M-2,-8 L-2,8" stroke="rgba(0,0,0,.25)" stroke-width="2"/></g></g></g>`;
+        out += `<g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;${n(L.arrive)};${n(L.arrive + .02)};.93;.97" dur="${D}s" begin="${L.at}s" repeatCount="indefinite"/>${sparkle(L.to[0] - 30, L.to[1] - 40, '#F2C12E', .9, 0)}${sparkle(L.to[0] + 34, L.to[1] - 30, '#fff', .9, .3)}</g>`;
+      });
+      return frame(out, '#2C5B4A', ['#1C4A5E', '#123245']);
+    }
+
+    /* 2) podcast: two hosts with headphones talk in turns */
+    function podcast() {
+      const D = 4, phones = `<path d="M-33,-162 A33,33 0 0 1 33,-162" fill="none" stroke="#26262E" stroke-width="7" stroke-linecap="round"/><rect x="-41" y="-178" width="13" height="26" rx="6" fill="#33333F"/><rect x="28" y="-178" width="13" height="26" rx="6" fill="#33333F"/>`;
+      const talk = first => {
+        const open = [5.5, 1.5, 6, 2.5, 5, 1.2, 6, 2], shut = Array(8).fill(1.2), v = first ? open.concat(shut) : shut.concat(open);
+        return `<ellipse cx="0" cy="-147" rx="7" ry="2" fill="#5A2A1A"><animate attributeName="ry" values="${v.join(';')};${v[0]}" dur="${D}s" repeatCount="indefinite"/></ellipse>`;
+      };
+      const gesture = first => rot(first ? [-20, -45, -25, -50, -20, -20, -20, -20, -20] : [-20, -20, -20, -20, -20, -45, -25, -50, -20], 22, -122, D);
+      const bob = first => move(first ? [[0, 0], [0, -3], [0, 0], [0, -3], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] : [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, -3], [0, 0], [0, -3], [0, 0]], D);
+      const mic = (x, flip) => `<g transform="translate(${x} 360) scale(${flip} 1)"><ellipse cx="0" cy="2" rx="22" ry="6" fill="#222"/><path d="M0,0 L0,-40 L-30,-66" stroke="#2E2E36" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="-46" y="-92" width="22" height="38" rx="11" fill="#3A3A46" transform="rotate(-30 -35 -73)"/><rect x="-43" y="-88" width="16" height="16" rx="8" fill="#6B6B78" transform="rotate(-30 -35 -73)"/></g>`;
+      const waves = (x, first, dir) => `<g fill="none" stroke="#F2C12E" stroke-width="4" stroke-linecap="round">${[0, 1, 2].map(k => `<path d="M${x + dir * (10 + k * 14)},${262 - 10 - k * 6} q${dir * 10},${18 + k * 6} 0,${36 + k * 12}" opacity="0"><animate attributeName="opacity" values="${first ? '0;.9;0;.9;0;0;0;0;0' : '0;0;0;0;0;.9;0;.9;0'}" dur="${D}s" begin="${k * .12}s" repeatCount="indefinite"/></path>`).join('')}</g>`;
+      let out = `<rect x="300" y="44" width="200" height="50" rx="25" fill="#D62839"><animate attributeName="opacity" values="1;.55;1" dur="1.6s" repeatCount="indefinite"/></rect>
+        <circle cx="330" cy="69" r="8" fill="#fff"/><text x="415" y="78" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="24" fill="#fff" letter-spacing="3">EN VIVO</text>
+        <rect x="80" y="130" width="120" height="120" rx="14" fill="rgba(255,255,255,.06)"/><rect x="600" y="130" width="120" height="120" rx="14" fill="rgba(255,255,255,.06)"/>`;
+      out += guy({ x: 262, y: 432, shirt: '#2F80ED', skin: SKIN[2], hair: HAIR[2], hs: 2, headExtra: phones, mouth: talk(true), armR: gesture(true), head: bob(true), blinkAt: .4 });
+      out += guy({ x: 538, y: 432, shirt: '#F2C12E', skin: SKIN[3], hair: HAIR[1], hs: 3, headExtra: phones, mouth: talk(false), armL: rot([20, 20, 20, 20, 20, 45, 25, 50, 20], -22, -122, D), head: bob(false), blinkAt: 1.7 });
+      out += `<rect x="110" y="352" width="580" height="22" rx="8" fill="#9A7458"/><rect x="130" y="374" width="540" height="96" rx="6" fill="#7A5A44"/><rect x="130" y="374" width="540" height="10" fill="rgba(0,0,0,.18)"/>`;
+      out += mic(330, 1) + mic(470, -1) + waves(300, true, 1) + waves(500, false, -1);
+      out += `<rect x="372" y="336" width="56" height="18" rx="4" fill="#20232C"/><circle cx="386" cy="345" r="4" fill="#19C3E6"/><circle cx="400" cy="345" r="4" fill="#1E9E4F"/><circle cx="414" cy="345" r="4" fill="#F2C12E"/>`;
+      return frame(out, '#3A2E4E', ['#2A2350', '#171433']);
+    }
+
+    /* 3) dance: three people dancing with music notes and party lights */
+    function baile() {
+      const D = .8, people = [
+        { x: 200, shirt: '#D62839', skin: SKIN[0], hair: HAIR[3], hs: 1, at: 0 },
+        { x: 400, shirt: '#1E9E4F', skin: SKIN[4], hair: HAIR[2], hs: 2, at: .27 },
+        { x: 600, shirt: '#2F80ED', skin: SKIN[3], hair: HAIR[0], hs: 3, at: .53 },
+      ];
+      let out = `<g opacity=".5">${['#F2C12E', '#D62839', '#19C3E6', '#1E9E4F'].map((c, i) => `<path d="M400,40 L${180 + i * 150},480 L${260 + i * 150},480Z" fill="${c}" opacity=".22">${rot([-14, 14, -14], 400, 40, 3 + i * .7, -i, smooth(2))}</path>`).join('')}</g>
+        <circle cx="400" cy="42" r="26" fill="#C9D2E3"/><g fill="#fff" opacity=".7">${[[-10, -8], [8, -12], [12, 6], [-6, 10], [0, 0]].map(([x, y]) => `<rect x="${400 + x - 3}" y="${42 + y - 3}" width="6" height="6"/>`).join('')}</g>`;
+      people.forEach((p, i) => {
+        out += guy({ x: p.x, y: 450, shirt: p.shirt, skin: p.skin, hair: p.hair, hs: p.hs, blinkAt: i,
+          body: move([[0, 0], [0, -16], [0, 0]], D, -p.at, smooth(2)),
+          armL: rot([20, 150, 20], -22, -122, D * 2, -p.at, smooth(2)), armR: rot([-150, -20, -150], 22, -122, D * 2, -p.at, smooth(2)),
+          legL: rot([0, 14, 0], -10, -72, D, -p.at, smooth(2)), legR: rot([0, -14, 0], 10, -72, D, -p.at, smooth(2)),
+          mouth: `<path d="M-10,-151 Q0,-136 10,-151Z" fill="#5A2A1A"/>` });
+      });
+      out += note(110, 230, '#F2C12E', 3, 0) + note(300, 200, '#19C3E6', 3.4, 1.1, '♫') + note(500, 220, '#fff', 3.1, .5) + note(680, 210, '#F2C12E', 3.6, 1.8, '♫');
+      return frame(out, '#2B2550', ['#30195A', '#140C2E']);
+    }
+
+    /* 4) hot potato with a ball, passed to anyone (no order) */
+    function papa() {
+      const people = [
+        { x: 160, y: 440, s: .95, shirt: '#D62839', skin: SKIN[1], hair: HAIR[0], hs: 0 },
+        { x: 330, y: 468, s: 1.02, shirt: '#2F80ED', skin: SKIN[0], hair: HAIR[3], hs: 1 },
+        { x: 520, y: 466, s: 1.02, shirt: '#F2C12E', skin: SKIN[4], hair: HAIR[2], hs: 2 },
+        { x: 668, y: 432, s: .93, shirt: '#1E9E4F', skin: SKIN[3], hair: HAIR[1], hs: 3 },
+        { x: 470, y: 352, s: .78, shirt: '#19C3E6', skin: SKIN[2], hair: HAIR[4], hs: 0 },
+        { x: 268, y: 356, s: .78, shirt: '#C8743A', skin: SKIN[5], hair: HAIR[0], hs: 1 },
+      ];
+      const order = [0, 3, 5, 2, 4, 1], hold = .45, fly = .85, step = hold + fly, D = n(order.length * step);
+      const handAt = i => { const p = people[i]; return [n(p.x + 40 * p.s), n(p.y - 222 * p.s)]; };
+      // ball: rests in the raised hand, then flies in an arc to someone else
+      const bv = [], bk = [];
+      order.forEach((who, k) => {
+        const a = handAt(who), b = handAt(order[(k + 1) % order.length]), t0 = k * step;
+        const mid = [n((a[0] + b[0]) / 2), n(Math.min(a[1], b[1]) - 90)];
+        bv.push(a, a, mid, b); bk.push(t0, t0 + hold, t0 + hold + fly / 2, t0 + step - .001);
+      });
+      const kt = bk.map(t => n(Math.min(1, t / D))); kt[0] = 0; kt[kt.length - 1] = 1;
+      let out = `<ellipse cx="410" cy="420" rx="300" ry="70" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3" stroke-dasharray="10 12"/>`;
+      // draw back row first
+      [5, 4, 0, 3, 1, 2].forEach(i => {
+        const p = people[i], ks = [0], vs = [-12];
+        order.forEach((who, k) => { if (who !== i) return; const t0 = k * step / D, t1 = (k * step + hold + .08) / D; ks.push(n(Math.max(.001, t0 - .02)), n(t0), n(t1), n(Math.min(.999, t1 + .04))); vs.push(-12, -150, -150, -12); });
+        ks.push(1); vs.push(-12);
+        const arm = `<animateTransform attributeName="transform" type="rotate" values="${vs.map(a => `${a} 22 -122`).join(';')}" keyTimes="${ks.join(';')}" dur="${D}s" repeatCount="indefinite"/>`;
+        const wide = `<ellipse cx="0" cy="-146" rx="6" ry="6" fill="#5A2A1A"/>`;
+        out += guy({ x: p.x, y: p.y, s: p.s, shirt: p.shirt, skin: p.skin, hair: p.hair, hs: p.hs, armR: arm, armL: rot([16, 26, 16], -22, -122, 1.2, -i * .2, smooth(2)), blinkAt: i * .7, mouth: i % 2 ? wide : undefined });
+      });
+      out += `<g>${`<animateTransform attributeName="transform" type="translate" values="${bv.map(p => p.join(' ')).join(';')}" keyTimes="${kt.join(';')}" dur="${D}s" repeatCount="indefinite"/>`}
+        <circle r="17" fill="#F28C28"/><path d="M-17,0 Q0,-8 17,0 M0,-17 Q8,0 0,17" stroke="#fff" stroke-width="3" fill="none"/><circle cx="-6" cy="-6" r="4" fill="rgba(255,255,255,.5)"/></g>`;
+      out += note(80, 200, '#F2C12E', 3, 0) + note(720, 190, '#19C3E6', 3.3, 1.4, '♫') + note(410, 150, '#fff', 3.6, .7);
+      return frame(out, '#2D4F3E', ['#173A4F', '#0E2636']);
+    }
+    /* a single dancer (phone penitencia and the videobeam banner) */
+    function solo(o = {}) {
+      const D = .7, sh = o.shirt || '#D62839';
+      return `<svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g opacity=".55">${['#F2C12E', '#19C3E6', '#D62839'].map((c, i) => `<path d="M160,0 L${40 + i * 120},300 L${110 + i * 120},300Z" fill="${c}" opacity=".25">${rot([-16, 16, -16], 160, 0, 2.6 + i * .6, -i, smooth(2))}</path>`).join('')}</g>
+        ${guy({ x: 160, y: 285, s: 1.2, shirt: sh, skin: o.skin || SKIN[1], hair: o.hair || HAIR[0], hs: o.hs || 1,
+          body: move([[0, 0], [0, -16], [0, 0]], D, 0, smooth(2)),
+          armL: rot([20, 150, 20], -22, -122, D * 2, 0, smooth(2)), armR: rot([-150, -20, -150], 22, -122, D * 2, 0, smooth(2)),
+          legL: rot([0, 14, 0], -10, -72, D, 0, smooth(2)), legR: rot([0, -14, 0], 10, -72, D, 0, smooth(2)),
+          mouth: `<path d="M-10,-151 Q0,-136 10,-151Z" fill="#5A2A1A"/>` })}
+        ${note(30, 150, '#F2C12E', 2.6, 0)}${note(250, 130, '#19C3E6', 3, .9, '♫')}${note(70, 90, '#fff', 2.8, 1.6)}</svg>`;
+    }
+    return { peces, podcast, baile, papa, solo };
+  })();
+
   let tT; const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tT); tT = setTimeout(() => el.classList.remove('show'), 2200); };
   const brand = sub => `<div class="brand"><img class="mk" src="logo/mara-bandera.svg" alt=""><div><small>Alcaldía Bolivariana de Mara</small><b>${esc(sub)}</b></div></div>`;
   const fmtFecha = f => { try { const [y, m, d] = f.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return f; } };
@@ -1451,6 +1633,28 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   const tsMs = t => !t ? 0 : typeof t === 'number' ? t : t.toMillis ? t.toMillis() : (t.seconds ? t.seconds * 1000 : 0);
   const hora = ms => ms ? new Date(ms).toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit' }) : '';
   const firstName = s => String(s || '').trim().split(/\s+/)[0] || '';
+  let AC = null;
+  const unlockAudio = () => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} };
+  addEventListener('pointerdown', unlockAudio, true); addEventListener('keydown', unlockAudio, true);
+  function beat(secs = 12) {
+    if (!AC) return () => {};
+    const out = AC.createGain(); out.gain.value = .55; out.connect(AC.destination);
+    const t0 = AC.currentTime + .05, spb = 60 / 118, bass = [55, 55, 65.4, 73.4];
+    const noise = AC.createBuffer(1, AC.sampleRate * .3, AC.sampleRate); const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const hit = (t, f0, f1, len, vol, type = 'sine') => { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(g).connect(out); o.start(t); o.stop(t + len + .02); };
+    const hiss = (t, len, vol, hp) => { const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = noise; f.type = 'highpass'; f.frequency.value = hp; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len); s.connect(f).connect(g).connect(out); s.start(t); s.stop(t + len + .02); };
+    const beats = Math.floor(secs / spb);
+    for (let b = 0; b < beats; b++) {
+      const t = t0 + b * spb;
+      hit(t, 140, 45, .32, .9);                                   // kick
+      if (b % 2) hiss(t, .16, .45, 1200);                         // clap
+      hiss(t + spb / 2, .05, .18, 7000);                          // hi-hat
+      const f = bass[Math.floor(b / 2) % 4]; hit(t + spb / 2, f * 2, f * 2, .22, .35, 'triangle');   // bass
+    }
+    const end = t0 + beats * spb;
+    out.gain.setValueAtTime(.55, end - .4); out.gain.linearRampToValueAtTime(0, end);
+    return () => { try { out.gain.cancelScheduledValues(AC.currentTime); out.gain.setValueAtTime(0, AC.currentTime); out.disconnect(); } catch (e) {} };
+  }
   const normName = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zñ ]/g, '').replace(/\s+/g, ' ').trim();
   async function hashCed(ced) {
     const data = new TextEncoder().encode('mara-asist|' + ced);
@@ -1489,6 +1693,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         s.personas[h] = Object.assign({}, persona, { creado: Date.now(), uid }); s.ids[h] = { n: firstName(persona.nombre) };
         s.marcas[sid + '_' + h] = { sesion: sid, persona: h, uid, t: Date.now() }; save(s);
       },
+      async penitencia(n, sid) { const s = st(); (s.penit = s.penit || []).push({ n, sesion: sid, t: Date.now() }); s.penit = s.penit.slice(-20); save(s); },
       async marcar(h, sid) {
         const s = st(); const id = sid + '_' + h;
         if (s.marcas[id] || !s.sesiones[sid] || !s.sesiones[sid].abierta || !s.ids[h]) throw { code: 'permission-denied' };
@@ -1550,6 +1755,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         b.set(F.doc(db, 'asist_marcas', sid + '_' + h), { sesion: sid, persona: h, uid, t: F.serverTimestamp() });
         await b.commit();
       },
+      async penitencia(n, sid) { await F.addDoc(F.collection(db, 'asist_penitencias'), { n: String(n || 'Alguien').slice(0, 30), sesion: sid, t: F.serverTimestamp() }); },
       async marcar(h, sid) {
         const uid = auth.currentUser.uid;
         await F.setDoc(F.doc(db, 'asist_marcas', sid + '_' + h), { sesion: sid, persona: h, uid, t: F.serverTimestamp() });
@@ -1624,12 +1830,28 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       });
     };
     const done = (n, already) => {
+      if (!already && cfg.penit !== false && Math.random() < 1 / Math.max(1, +cfg.penitN || 5)) return penitencia(n);
       if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
       card.innerHTML = `<div class="ok"><div class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <h1>${already ? 'Ya estabas registrado hoy' : '¡Asistencia registrada!'}</h1>
         <p class="muted" style="margin:6px 0 0">${esc(n || '')}${n ? ' · ' : ''}${esc(ses.modulo)}</p><div class="big-time">${already ? '' : hora(Date.now())}</div>
         <button class="btn" id="other" style="margin-top:20px">Marcar a otra persona</button></div>`;
       $('#other').onclick = stepCed;
+    };
+    const penitencia = n => {
+      if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]);
+      DB.penitencia(n, SID).catch(() => {});   // the videobeam shows the name too
+      const sh = ['#D62839', '#1E9E4F', '#2F80ED', '#C8743A'][Math.floor(Math.random() * 4)];
+      card.innerHTML = `<div class="penit"><span class="kick">¡Penitencia!</span>
+        <h1>${n ? esc(n) + ', ¡te' : '¡Te'} toca bailar!</h1>
+        <p class="muted" style="margin:0">Tu asistencia quedó registrada a las ${hora(Date.now())}</p>
+        <div class="dz">${SCN.solo({ shirt: sh })}</div>
+        <p class="muted">Tu nombre sale en la pantalla grande. ¡Todos a aplaudir!</p>
+        <button class="btn primary" id="yaBaile" style="margin-top:16px">¡Ya bailé!</button>
+        <button class="btn" id="other" style="margin-top:10px;width:100%">Marcar a otra persona</button></div>`;
+      const stop = beat();
+      $('#yaBaile').onclick = () => { stop(); done(n, true); card.querySelector('h1').textContent = '¡Asistencia registrada!'; };
+      $('#other').onclick = () => { stop(); stepCed(); };
     };
     stepCed();
   }
@@ -1785,6 +2007,9 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return `<form class="glass pad" id="af" style="margin-top:14px;max-width:640px"><h2>Ajustes</h2>
       <label for="aC">Coordinaciones (una por línea)</label><textarea id="aC">${esc(S.cfg.coordinaciones.join('\n'))}</textarea>
       <label for="aN">Asistencias para culminar</label><input id="aN" type="number" min="1" max="60" value="${S.cfg.culminar || 5}">
+      <label for="aP">Penitencia de baile al marcar</label><select id="aP"><option value="1" ${S.cfg.penit !== false ? 'selected' : ''}>Activada</option><option value="0" ${S.cfg.penit === false ? 'selected' : ''}>Apagada</option></select>
+      <label for="aPN">Le sale a 1 de cada…</label><input id="aPN" type="number" min="1" max="50" value="${S.cfg.penitN || 5}">
+      <p class="muted" style="margin:-4px 0 6px;font-size:13px">1 = a todos · 5 = a una de cada cinco personas, al azar.</p>
       <button class="btn primary" type="submit">Guardar</button></form>`;
   }
   function bind() {
@@ -1803,7 +2028,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
     const af = $('#af'); if (af && !af.dataset.b) af.dataset.b = 1, af.addEventListener('submit', async e => {
       e.preventDefault();
-      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5) };
+      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5), penit: $('#aP').value === '1', penitN: Math.max(1, Math.min(50, +$('#aPN').value || 5)) };
       try { await DB.setConfig(c); S.cfg = c; toast('Ajustes guardados'); } catch (err) { toast('No se pudo guardar'); }
     });
   }

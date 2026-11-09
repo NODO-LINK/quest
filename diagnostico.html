@@ -281,6 +281,17 @@ body.idle #jump{cursor:default}
 #equipo.act #eqSteps{display:none}
 #equipo.act #eqTime{font-size:clamp(36px,6vmin,68px)}
 #equipo.act #eqState{grid-area:state;text-align:left}
+/* penitencia: someone who just marked attendance has to dance */
+#penit{position:fixed;inset:0;z-index:28;display:grid;place-items:center;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s linear .4s;background:radial-gradient(circle at 50% 55%,rgba(10,8,30,.55),rgba(10,8,30,.85))}
+#penit.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .4s ease}
+#penBox{display:flex;align-items:center;gap:clamp(18px,3vw,48px);padding:clamp(18px,2.4vw,34px) clamp(22px,3vw,48px);border-radius:36px;background:linear-gradient(140deg,rgba(52,34,110,.94),rgba(16,12,44,.94));-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:2px solid rgba(255,255,255,.28);box-shadow:0 30px 80px rgba(0,0,0,.5);transform:scale(.7) translateY(40px);transition:transform .55s cubic-bezier(.2,1.4,.4,1);max-width:94vw}
+#penit.open #penBox{transform:none}
+#penDz{width:clamp(220px,28vw,420px);flex:none;border-radius:26px;overflow:hidden;background:linear-gradient(180deg,#30195A,#140C2E)}
+#penDz svg{display:block;width:100%;height:auto}
+#penK{display:inline-block;font:800 clamp(14px,1.4vw,22px) var(--body);letter-spacing:.24em;text-transform:uppercase;color:#0B1426;background:var(--gold,#F2C12E);border-radius:999px;padding:8px 18px;animation:penPulse 1s ease-in-out infinite}
+#penT{font:700 clamp(40px,5.6vw,96px)/1.02 var(--head);margin:14px 0 10px;text-shadow:0 8px 30px rgba(0,0,0,.45);max-width:12ch}
+#penS{font:600 clamp(16px,1.6vw,26px) var(--body);color:var(--lt2)}
+@keyframes penPulse{50%{transform:scale(1.08)}}
 #eqState{margin-top:12px;font:700 clamp(15px,1.7vw,22px) var(--body);color:var(--lt2);min-height:1.4em}
 #equipo.done #eqTime{color:var(--gold);animation:eqDone 1.2s ease-in-out infinite}
 @keyframes eqDone{50%{transform:scale(1.07)}}
@@ -589,6 +600,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
   </div>
 </div>
+<div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penS">Acaba de marcar su asistencia · ¡Un aplauso!</div></div></div></div>
 <div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
   <i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i>
   <div id="eqBox">
@@ -2118,7 +2130,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   $('asis').addEventListener('click', e => { if (e.target === $('asis')) closeAsis(); });
   renderAsis();
   if (new URLSearchParams(location.search).has('demo')) {
-    const readDemo = () => { try { pickSession((JSON.parse(localStorage.getItem('asist-demo-v1')) || {}).sesiones); } catch (e) {} };
+    let lastPen = Date.now();
+    const readDemo = () => { try { const d = JSON.parse(localStorage.getItem('asist-demo-v1')) || {}; pickSession(d.sesiones); (d.penit || []).forEach(p => { if (p.t > lastPen) { lastPen = p.t; showPenit(p.n); } }); } catch (e) {} };
     readDemo(); addEventListener('storage', readDemo); setInterval(readDemo, 3000);
   }
 
@@ -2472,7 +2485,19 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       out += note(80, 200, '#F2C12E', 3, 0) + note(720, 190, '#19C3E6', 3.3, 1.4, '♫') + note(410, 150, '#fff', 3.6, .7);
       return frame(out, '#2D4F3E', ['#173A4F', '#0E2636']);
     }
-    return { peces, podcast, baile, papa };
+    /* a single dancer (phone penitencia and the videobeam banner) */
+    function solo(o = {}) {
+      const D = .7, sh = o.shirt || '#D62839';
+      return `<svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g opacity=".55">${['#F2C12E', '#19C3E6', '#D62839'].map((c, i) => `<path d="M160,0 L${40 + i * 120},300 L${110 + i * 120},300Z" fill="${c}" opacity=".25">${rot([-16, 16, -16], 160, 0, 2.6 + i * .6, -i, smooth(2))}</path>`).join('')}</g>
+        ${guy({ x: 160, y: 285, s: 1.2, shirt: sh, skin: o.skin || SKIN[1], hair: o.hair || HAIR[0], hs: o.hs || 1,
+          body: move([[0, 0], [0, -16], [0, 0]], D, 0, smooth(2)),
+          armL: rot([20, 150, 20], -22, -122, D * 2, 0, smooth(2)), armR: rot([-150, -20, -150], 22, -122, D * 2, 0, smooth(2)),
+          legL: rot([0, 14, 0], -10, -72, D, 0, smooth(2)), legR: rot([0, -14, 0], 10, -72, D, 0, smooth(2)),
+          mouth: `<path d="M-10,-151 Q0,-136 10,-151Z" fill="#5A2A1A"/>` })}
+        ${note(30, 150, '#F2C12E', 2.6, 0)}${note(250, 130, '#19C3E6', 3, .9, '♫')}${note(70, 90, '#fff', 2.8, 1.6)}</svg>`;
+    }
+    return { peces, podcast, baile, papa, solo };
   })();
   const EQ_TITLES = { equipo: ['Trabajo en equipo', 'Cinco generaciones, un solo bloque histórico'], dinamica: ['Dinámica en curso', 'Participa, comparte y aprende'], juego: ['¡Hora del juego!', 'Diviértete y aprende con tu grupo'], pausa: ['Pausa activa', 'Volvemos en unos minutos'],
     peces: ['¡Carrera de peces!', ''], podcast: ['Hora del podcast', ''], baile: ['¡A bailar!', ''], papa: ['Papa caliente', ''] };
@@ -2526,6 +2551,30 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); }
   $('bien').addEventListener('click', closeBien);
+  /* penitencia banner (from the attendance app): queue, 8 s each, click to skip */
+  const penQ = []; let penOn = false, penT = 0;
+  function fanfare() {
+    try {
+      const ac = sfx.ctx(); if (!ac || !soundOn()) return;
+      const t0 = ac.currentTime + .02;
+      [[523, 0], [659, .14], [784, .28], [1047, .46]].forEach(([f, d], i) => {
+        const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t0 + d); g.gain.linearRampToValueAtTime(.22, t0 + d + .02); g.gain.exponentialRampToValueAtTime(.001, t0 + d + (i === 3 ? .9 : .3));
+        o.connect(g).connect(ac.destination); o.start(t0 + d); o.stop(t0 + d + 1);
+      });
+    } catch (e) {}
+  }
+  function showPenit(n) { penQ.push(String(n || '').slice(0, 30)); if (!penOn) nextPenit(); }
+  function nextPenit() {
+    if (!penQ.length) { penOn = false; return; }
+    penOn = true; const n = penQ.shift();
+    $('penDz').innerHTML = SCN.solo({ shirt: ['#D62839', '#1E9E4F', '#2F80ED', '#C8743A'][Math.floor(Math.random() * 4)], hs: Math.floor(Math.random() * 4) });
+    $('penT').textContent = n ? `${n}, ¡te toca bailar!` : '¡Te toca bailar!';
+    $('penit').classList.add('open'); fanfare();
+    clearTimeout(penT); penT = setTimeout(hidePenit, 8000);
+  }
+  function hidePenit() { clearTimeout(penT); $('penit').classList.remove('open'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; nextPenit(); }, 500); }
+  $('penit').addEventListener('click', hidePenit);
   function closeEquipo() { if (!eq.open) return; eq.open = false; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); setTimeout(() => { if (!eq.open) $('eqScene').innerHTML = ''; }, 600); }
   $('eqPlus').addEventListener('click', () => eqAdd(1));
   $('eqPause').addEventListener('click', eqPause);
@@ -2615,6 +2664,12 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         const au = U.getAuth(fa), db2 = F.initializeFirestore(fa, { experimentalAutoDetectLongPolling: true });
         if (!au.currentUser) await U.signInAnonymously(au);
         F.onSnapshot(F.query(F.collection(db2, 'asist_sesiones'), F.where('abierta', '==', true)), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); pickSession(o); }, () => {});
+        // penitencias: someone just marked attendance and has to dance (skip the ones from before this page opened)
+        let firstPen = true;
+        F.onSnapshot(F.query(F.collection(db2, 'asist_penitencias'), F.orderBy('t', 'desc'), F.limit(5)), qs => {
+          if (firstPen) { firstPen = false; return; }
+          qs.docChanges().forEach(c => { if (c.type === 'added') showPenit((c.doc.data() || {}).n); });
+        }, () => {});
       } catch (e) { /* offline or rules not set: the presentation works the same */ }
     })();
     if (!FBCFG) return;
