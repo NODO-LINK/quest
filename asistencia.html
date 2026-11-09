@@ -1997,7 +1997,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <div class="t"><b>${esc(s.modulo)}</b><span>${esc(fmtFecha(s.fecha))} · ${esc(s.coordinacion || '')}${s.lugar ? ' · ' + esc(s.lugar) : ''}</span></div>
       <span class="badge ${s.abierta ? 'b-open' : 'b-closed'}">${s.abierta ? 'Abierta' : 'Cerrada'}</span>
       <b class="num" style="min-width:90px">${(bySes[id] || []).length} asistentes</b>
-      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
+      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm" data-edit="${id}" title="Cambiar fecha, formación, coordinación o lugar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
   }
   function viewSesiones() {
     const coordOpts = S.cfg.coordinaciones.map(c => `<option>${esc(c)}</option>`).join('');
@@ -2113,6 +2113,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const q = $('#q'); if (q && !q.dataset.b) q.dataset.b = 1, q.addEventListener('input', () => { S.q = q.value; render(); });
     document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); bind(); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
+    document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editSesion(b.dataset.edit));
     document.querySelectorAll('[data-print]').forEach(b => b.onclick = () => printList(b.dataset.print));
     const ep = $('#edP'); if (ep && !ep.dataset.b) ep.dataset.b = 1, ep.addEventListener('submit', async e => {
       e.preventDefault();
@@ -2156,6 +2157,33 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       else if (e.key === 'Enter' && !panel.hidden && act >= 0) { e.preventDefault(); pick(act); }
       else if (e.key === 'Escape') close();
     });
+  }
+  /* editar los datos de una sesión (p. ej. la fecha equivocada); las asistencias marcadas no se tocan */
+  function editSesion(id) {
+    const s = S.ses[id]; if (!s) return;
+    const coords = [...new Set([...S.cfg.coordinaciones, s.coordinacion].filter(Boolean))];
+    const n = Object.values(S.mar).filter(m => m.sesion === id).length;
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:60;background:rgba(3,10,25,.72);display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML = `<form class="glass pad" id="esF" style="width:min(560px,100%);background:#0F2C55;max-height:92vh;overflow:auto"><h2 style="margin-top:0">Editar sesión</h2>
+      <p class="muted" style="font-size:14px;margin-top:-6px">${n === 1 ? 'La asistencia ya marcada se mantiene' : `Las ${n} asistencias ya marcadas se mantienen`}; solo cambian los datos de la sesión.</p>
+      <label for="esD">Fecha</label><input id="esD" type="date" value="${esc(s.fecha || '')}" required>
+      <label for="esM">Formación</label><input id="esM" maxlength="160" value="${esc(s.modulo || '')}" required>
+      <label for="esC">Coordinación</label><select id="esC">${coords.map(c => `<option ${c === s.coordinacion ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
+      <label for="esL">Lugar (opcional)</label><input id="esL" maxlength="80" value="${esc(s.lugar || '')}">
+      <div class="row" style="margin-top:16px;gap:10px"><button class="btn primary" type="submit" style="flex:1;margin:0">Guardar</button><button class="btn" type="button" id="esX" style="flex:1">Cancelar</button></div></form>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    $('#esX').onclick = close;
+    $('#esF').addEventListener('submit', async e => {
+      e.preventDefault();
+      const mod = $('#esM').value.trim(), f = FORMACIONES.find(x => formFull(x) === mod);
+      const data = { fecha: $('#esD').value, modulo: mod, coordinacion: $('#esC').value, lugar: $('#esL').value.trim() };
+      if (f) data.deck = f.deck;
+      try { await DB.saveSesion(id, data); close(); toast('Sesión actualizada'); } catch (err) { toast('No se pudo guardar'); }
+    });
+    $('#esD').focus();
   }
   /* listado imprimible de una sesión (alfabético, con firma) + Excel */
   function printList(id) {
