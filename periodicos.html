@@ -2400,7 +2400,10 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     $('snd').innerHTML = (on ? ICO.vol : ICO.mute) + ' Sonido';
     if (on) startMusic(); else music.pause();
   }
+  // no background music during the slides (it got in the way of the talk): only welcome screen, games, penitencia and credits
+  function musicWanted() { try { return bienOpen || eq.open || credOpen || $('penit').classList.contains('open'); } catch (e) { return false; } }
   function startMusic() {
+    if (!musicWanted()) { music.pause(); return; }
     if (!soundOn() || playing || apOpen) return;
     let lvl = MUSIC_VOL; try { if (eq.open || credOpen) lvl = MUSIC_UP; } catch (e) {}
     music.volume = lvl; const p = music.play(); if (p && p.catch) p.catch(() => {});
@@ -2681,7 +2684,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const p = v.play(); if (p && p.catch) p.catch(() => {});
     bienOpen = true; $('bien').classList.add('open'); bienClock(); clearInterval(bienT); bienT = setInterval(bienClock, 5000); startMusic();
   }
-  function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); }
+  function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); startMusic(); }
   $('bien').addEventListener('click', closeBien);
   /* rolling credits after the last slide (or from the phone) */
   var credOpen = false;
@@ -2701,7 +2704,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     credOpen = true; $('creditos').classList.remove('open'); void $('creditos').offsetWidth; $('creditos').classList.add('open');
     music.volume = MUSIC_UP; startMusic(); SHOW.tadan(); wake();
   }
-  function closeCreditos() { if (!credOpen) return; credOpen = false; $('creditos').classList.remove('open'); music.volume = MUSIC_VOL; }
+  function closeCreditos() { if (!credOpen) return; credOpen = false; $('creditos').classList.remove('open'); music.volume = MUSIC_VOL; startMusic(); }
   $('creditos').addEventListener('click', closeCreditos);
   $('credX').addEventListener('click', e => { e.stopPropagation(); closeCreditos(); });
 
@@ -2730,7 +2733,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       SHOW.crash(); SHOW.airhorn(); SHOW.confetti(); SHOW.shake();
       const list = ns.length > 1 ? ns.slice(0, -1).join(', ') + ' y ' + ns[ns.length - 1] : n;
       SHOW.say(ns.length > 1 ? `¡Les toca bailar a ${list}!` : `¡Le toca bailar a ${n}!`, 1300);
-      if (!music.paused) { music.volume = .65; penBeat = () => {}; } else penBeat = SHOW.beat(14);   // dance to the show music
+      startMusic(); if (!music.paused || soundOn()) { music.volume = .65; penBeat = () => {}; } else penBeat = SHOW.beat(14);   // dance to the show music
     } else fanfare();
     clearTimeout(penT); penT = setTimeout(hidePenit, 14000);
   }
@@ -2749,7 +2752,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     step();
   }
   function penStopRoll() { if (penRoll) { penRoll(); penRoll = null; } }
-  function hidePenit() { penStopRoll(); if (penBeat) { penBeat(); penBeat = null; } music.volume = (eq && eq.open) ? MUSIC_UP : MUSIC_VOL; clearTimeout(penT); clearTimeout(penSpin); $('penit').classList.remove('open', 'spin'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; }, 500); }
+  function hidePenit() { penStopRoll(); if (penBeat) { penBeat(); penBeat = null; } music.volume = (eq && eq.open) ? MUSIC_UP : MUSIC_VOL; clearTimeout(penT); clearTimeout(penSpin); $('penit').classList.remove('open', 'spin'); startMusic(); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; }, 500); }
   $('penit').addEventListener('click', hidePenit);
   // chosen by hand from the phone: list of { h, n }
   function penitChosen(list) {
@@ -2776,7 +2779,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     } catch (e) { rtoast('No se pudo escoger. Revisa el internet.'); }
     finally { penBusy = false; }
   }
-  function closeEquipo() { if (!eq.open) return; eq.open = false; music.volume = MUSIC_VOL; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); setTimeout(() => { if (!eq.open) $('eqScene').innerHTML = ''; }, 600); }
+  function closeEquipo() { if (!eq.open) return; eq.open = false; music.volume = MUSIC_VOL; setTimeout(startMusic, 0); clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); setTimeout(() => { if (!eq.open) $('eqScene').innerHTML = ''; }, 600); }
   $('eqPlus').addEventListener('click', () => eqAdd(1));
   $('eqPause').addEventListener('click', eqPause);
   $('eqClose').addEventListener('click', closeEquipo);
