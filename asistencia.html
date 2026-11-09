@@ -1705,6 +1705,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       watchPersonas: cb => watch(s => s.personas, cb),
       watchMarcas: cb => watch(s => s.marcas, cb),
       async deleteMarca(id) { const s = st(); delete s.marcas[id]; save(s); },
+      async updatePersona(h, d) { const s = st(); if (!s.personas[h]) throw { code: 'not-found' }; Object.assign(s.personas[h], d); if (s.ids[h]) s.ids[h].n = firstName(d.nombre); save(s); },
     };
   }
   function fireDB() {
@@ -1774,6 +1775,10 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       watchPersonas: cb => F.onSnapshot(F.collection(db, 'asist_personas'), q => cb(snapMap(q)), e => toast('Sin permiso para leer formados')),
       watchMarcas: cb => F.onSnapshot(F.collection(db, 'asist_marcas'), q => cb(snapMap(q)), e => toast('Sin permiso para leer asistencias')),
       async deleteMarca(id) { await F.deleteDoc(F.doc(db, 'asist_marcas', id)); },
+      async updatePersona(h, d) {
+        await F.updateDoc(F.doc(db, 'asist_personas', h), d);
+        try { await F.updateDoc(F.doc(db, 'asist_ids', h), { n: firstName(d.nombre).slice(0, 30) }); } catch (e) {}
+      },
     };
   }
 
@@ -1969,6 +1974,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   // live data changes: never wipe a form the person is filling in
   function refresh() {
     if (S.tab === 'ajustes') return;
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#edP')) return;
     if (S.tab === 'sesiones' && $('#sesList')) { $('#sesList').innerHTML = sesItems(); bind(); return; }
     render();
   }
@@ -2017,7 +2023,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return `<section class="glass pad" style="margin-top:14px">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Formados (${Object.keys(S.per).length})</h2>
       <input id="q" style="max-width:340px" placeholder="Buscar por nombre o cédula" value="${esc(S.q)}"></div>
-      <p class="muted" style="font-size:14px">Constancia: asistencias de cada persona. Culmina con ${C} asistencias (lo cambias en Ajustes). Toca una fila para ver sus sesiones.</p>
+      <p class="muted" style="font-size:14px">Constancia: asistencias de cada persona. Culmina con ${C} asistencias (lo cambias en Ajustes). Toca una fila para ver sus sesiones o corregir sus datos.</p>
       <div class="tablewrap"><table><thead><tr><th>Nombre</th><th class="num">Cédula</th><th>Coordinación</th><th>Generación</th><th class="num">Asistencias</th><th>Estado</th></tr></thead>
       <tbody>${tr || '<tr><td colspan="6" class="muted">Sin resultados.</td></tr>'}</tbody></table></div>
       <div id="det">${S.det ? detalle(S.det) : ''}</div></section>`;
@@ -2025,7 +2031,15 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function detalle(h) {
     const p = S.per[h]; if (!p) return '';
     const ms = Object.values(S.mar).filter(m => m.persona === h).sort((a, b) => tsMs(a.t) - tsMs(b.t));
+    const coords = [...new Set([...S.cfg.coordinaciones, p.coord].filter(Boolean))];
     return `<div class="glass pad" style="margin-top:14px"><h2>${esc(p.nombre)}</h2><p class="muted">C.I. ${esc(p.cedula)} · ${esc(p.coord)} · ${esc((GENS[p.gen] || {}).n || '')} · ${esc(p.edad)} años</p>
+      <form id="edP" data-h="${h}" class="glass pad" style="margin:0 0 14px;padding:14px 16px"><b>Corregir datos</b>
+        <div class="row" style="align-items:flex-end;gap:10px;flex-wrap:wrap">
+          <div style="flex:2;min-width:220px"><label for="epN">Nombre y apellido</label><input id="epN" maxlength="60" value="${esc(p.nombre)}"></div>
+          <div style="flex:0 0 90px"><label for="epE">Edad</label><input id="epE" inputmode="numeric" maxlength="3" value="${esc(p.edad)}"></div>
+          <div style="flex:2;min-width:240px"><label for="epC">Coordinación</label><select id="epC">${coords.map(c => `<option ${c === p.coord ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></div>
+          <button class="btn sm primary" type="submit" style="width:auto;margin:0">Guardar cambios</button></div>
+        <div class="msg" id="epM"></div></form>
       <div class="list">${ms.map(m => { const s = S.ses[m.sesion] || {}; return `<div class="item"><div class="t"><b>${esc(s.modulo || 'Sesión eliminada')}</b><span>${esc(s.fecha ? fmtFecha(s.fecha) : '')} · marcó a las ${hora(tsMs(m.t))}</span></div></div>`; }).join('') || '<p class="muted">Sin asistencias.</p>'}</div></div>`;
   }
   function vbars(vals, labels, colors) {
@@ -2097,9 +2111,17 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     document.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => openProj(b.dataset.proj));
     document.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(linkOf(b.dataset.copy)); toast('Enlace copiado'); } catch (e) { prompt('Copia el enlace:', linkOf(b.dataset.copy)); } });
     const q = $('#q'); if (q && !q.dataset.b) q.dataset.b = 1, q.addEventListener('input', () => { S.q = q.value; render(); });
-    document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); bind(); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
     document.querySelectorAll('[data-print]').forEach(b => b.onclick = () => printList(b.dataset.print));
+    const ep = $('#edP'); if (ep && !ep.dataset.b) ep.dataset.b = 1, ep.addEventListener('submit', async e => {
+      e.preventDefault();
+      const nombre = $('#epN').value.replace(/\s+/g, ' ').trim(), edad = +$('#epE').value.replace(/\D/g, ''), coord = $('#epC').value;
+      if (nombre.split(' ').length < 2) { $('#epM').textContent = 'Escribe nombre y apellido.'; return; }
+      if (!(edad >= 15 && edad <= 110)) { $('#epM').textContent = 'Escribe una edad válida.'; return; }
+      try { await DB.updatePersona(ep.dataset.h, { nombre, edad, gen: genOf(edad), coord }); document.activeElement && document.activeElement.blur(); toast('Datos corregidos'); render(); }
+      catch (err) { $('#epM').textContent = 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; }
+    });
     const af = $('#af'); if (af && !af.dataset.b) af.dataset.b = 1, af.addEventListener('submit', async e => {
       e.preventDefault();
       const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5) };
