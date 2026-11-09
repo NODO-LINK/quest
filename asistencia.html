@@ -1451,7 +1451,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     { n: 'Genial', r: '18 a 25 años', c: '#19C3E6', min: 0, max: 25 },
   ];
   const genOf = edad => GENS.findIndex(g => edad >= g.min && edad <= g.max);
-  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], culminar: 5, penit: true, penitN: 5 };
+  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], culminar: 5 };
   /* ---------- animated cartoon scenes for the waiting screen (SVG + SMIL, all share one clock) ---------- */
   const SCN = (() => {
     const SKIN = ['#F2C79C', '#D9A066', '#A86B3C', '#E8B98A', '#8A5A35', '#F5D0A9'];
@@ -1693,7 +1693,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         s.personas[h] = Object.assign({}, persona, { creado: Date.now(), uid }); s.ids[h] = { n: firstName(persona.nombre) };
         s.marcas[sid + '_' + h] = { sesion: sid, persona: h, uid, t: Date.now() }; save(s);
       },
-      async penitencia(n, sid) { const s = st(); (s.penit = s.penit || []).push({ n, sesion: sid, t: Date.now() }); s.penit = s.penit.slice(-20); save(s); },
+      watchPenit(h, cb) { let since = Date.now(); setInterval(() => { (st().penit || []).forEach(p => { if (p.p === h && p.t > since) { since = p.t; cb(p); } }); }, 1200); },
       async marcar(h, sid) {
         const s = st(); const id = sid + '_' + h;
         if (s.marcas[id] || !s.sesiones[sid] || !s.sesiones[sid].abierta || !s.ids[h]) throw { code: 'permission-denied' };
@@ -1755,7 +1755,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         b.set(F.doc(db, 'asist_marcas', sid + '_' + h), { sesion: sid, persona: h, uid, t: F.serverTimestamp() });
         await b.commit();
       },
-      async penitencia(n, sid) { await F.addDoc(F.collection(db, 'asist_penitencias'), { n: String(n || 'Alguien').slice(0, 30), sesion: sid, t: F.serverTimestamp() }); },
+      watchPenit(h, cb) { let first = true; F.onSnapshot(F.query(F.collection(db, 'asist_penitencias'), F.where('p', '==', h)), qs => { if (first) { first = false; return; } qs.docChanges().forEach(c => { if (c.type === 'added') cb(c.doc.data()); }); }, () => {}); },
       async marcar(h, sid) {
         const uid = auth.currentUser.uid;
         await F.setDoc(F.doc(db, 'asist_marcas', sid + '_' + h), { sesion: sid, persona: h, uid, t: F.serverTimestamp() });
@@ -1802,8 +1802,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       $('#back').onclick = stepCed;
       $('#go').onclick = async () => {
         $('#go').disabled = true;
-        try { await DB.marcar(h, SID); done(info.n, false); }
-        catch (e) { if (String(e && e.code).includes('permission')) done(info.n, true); else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
+        try { await DB.marcar(h, SID); done(info.n, false, h); }
+        catch (e) { if (String(e && e.code).includes('permission')) done(info.n, true, h); else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
       };
     };
     const stepReg = (h, ced) => {
@@ -1825,12 +1825,14 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         if (!(edad >= 15 && edad <= 110)) { $('#m3').textContent = 'Escribe una edad válida.'; return; }
         if (!coord) { $('#m3').textContent = 'Elige tu coordinación.'; return; }
         e.submitter && (e.submitter.disabled = true);
-        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); done(firstName(nombre), false); }
+        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); done(firstName(nombre), false, h); }
         catch (err) { $('#m3').textContent = String(err && err.code).includes('permission') ? 'Esta cédula ya está registrada o la sesión se cerró. Vuelve a intentarlo.' : 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
       });
     };
-    const done = (n, already) => {
-      if (!already && cfg.penit !== false && Math.random() < 1 / Math.max(1, +cfg.penitN || 5)) return penitencia(n);
+    const watching = new Set();
+    const done = (n, already, h) => {
+      // stay listening: if the presenter picks this person for the penitencia, this phone shows it too
+      if (h && !watching.has(h)) { watching.add(h); try { DB.watchPenit(h, () => penitencia(n)); } catch (e) {} }
       if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
       card.innerHTML = `<div class="ok"><div class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <h1>${already ? 'Ya estabas registrado hoy' : '¡Asistencia registrada!'}</h1>
@@ -1840,17 +1842,16 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     };
     const penitencia = n => {
       if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]);
-      DB.penitencia(n, SID).catch(() => {});   // the videobeam shows the name too
       const sh = ['#D62839', '#1E9E4F', '#2F80ED', '#C8743A'][Math.floor(Math.random() * 4)];
       card.innerHTML = `<div class="penit"><span class="kick">¡Penitencia!</span>
         <h1>${n ? esc(n) + ', ¡te' : '¡Te'} toca bailar!</h1>
-        <p class="muted" style="margin:0">Tu asistencia quedó registrada a las ${hora(Date.now())}</p>
+        <p class="muted" style="margin:0">¡Te escogieron en la pantalla grande!</p>
         <div class="dz">${SCN.solo({ shirt: sh })}</div>
-        <p class="muted">Tu nombre sale en la pantalla grande. ¡Todos a aplaudir!</p>
+        <p class="muted">Pasa al frente y baila. ¡Todos a aplaudir!</p>
         <button class="btn primary" id="yaBaile" style="margin-top:16px">¡Ya bailé!</button>
         <button class="btn" id="other" style="margin-top:10px;width:100%">Marcar a otra persona</button></div>`;
       const stop = beat();
-      $('#yaBaile').onclick = () => { stop(); done(n, true); card.querySelector('h1').textContent = '¡Asistencia registrada!'; };
+      $('#yaBaile').onclick = () => { stop(); done(n, true); card.querySelector('h1').textContent = '¡Gracias por bailar!'; };
       $('#other').onclick = () => { stop(); stepCed(); };
     };
     stepCed();
@@ -2007,9 +2008,6 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return `<form class="glass pad" id="af" style="margin-top:14px;max-width:640px"><h2>Ajustes</h2>
       <label for="aC">Coordinaciones (una por línea)</label><textarea id="aC">${esc(S.cfg.coordinaciones.join('\n'))}</textarea>
       <label for="aN">Asistencias para culminar</label><input id="aN" type="number" min="1" max="60" value="${S.cfg.culminar || 5}">
-      <label for="aP">Penitencia de baile al marcar</label><select id="aP"><option value="1" ${S.cfg.penit !== false ? 'selected' : ''}>Activada</option><option value="0" ${S.cfg.penit === false ? 'selected' : ''}>Apagada</option></select>
-      <label for="aPN">Le sale a 1 de cada…</label><input id="aPN" type="number" min="1" max="50" value="${S.cfg.penitN || 5}">
-      <p class="muted" style="margin:-4px 0 6px;font-size:13px">1 = a todos · 5 = a una de cada cinco personas, al azar.</p>
       <button class="btn primary" type="submit">Guardar</button></form>`;
   }
   function bind() {
@@ -2028,7 +2026,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
     const af = $('#af'); if (af && !af.dataset.b) af.dataset.b = 1, af.addEventListener('submit', async e => {
       e.preventDefault();
-      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5), penit: $('#aP').value === '1', penitN: Math.max(1, Math.min(50, +$('#aPN').value || 5)) };
+      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5) };
       try { await DB.setConfig(c); S.cfg = c; toast('Ajustes guardados'); } catch (err) { toast('No se pudo guardar'); }
     });
   }

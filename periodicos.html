@@ -159,6 +159,11 @@ body.idle #dock{opacity:0;transform:translateY(12px);pointer-events:none}
 #asis .none{grid-column:1/-1;text-align:center}
 #asisX{position:fixed;top:14px;right:14px;font:700 15px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:999px;height:42px;padding:0 16px;cursor:pointer}
 body.idle #asisX{opacity:0;transition:opacity .4s}
+#asisPen{position:fixed;top:14px;right:128px;font:700 15px var(--body);color:#0B1426;border:0;background:var(--gold,#F2C12E);border-radius:999px;height:42px;padding:0 18px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.3)}
+body.idle #asisPen{opacity:0;transition:opacity .4s}
+#penit.spin #penDz{display:grid;place-items:center;aspect-ratio:320/300;font:700 clamp(90px,12vw,190px) var(--head);color:var(--gold,#F2C12E)}
+#penit.spin #penT{animation:none}
+#penit.spin #penS{visibility:hidden}
 #bienQR{position:fixed;right:max(20px,3vw);bottom:max(20px,4vh);display:flex;align-items:center;gap:16px;padding:14px 18px 14px 14px;border-radius:24px;
   background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 14px 40px rgba(0,0,0,.4)}
 #bienQR canvas{width:clamp(110px,13vw,190px);height:auto;border-radius:12px;background:#fff}
@@ -486,7 +491,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
   </div>
 </div>
-<div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penS">Acaba de marcar su asistencia · ¡Un aplauso!</div></div></div></div>
+<div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penS">¡Pasa al frente! · Un aplauso para animar</div></div></div></div>
 <div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
   <i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i>
   <div id="eqBox">
@@ -1765,6 +1770,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 <script>
 (() => {
   const stage = document.getElementById('stage');
+  let penitApi = null;   // attendance data source for the penitencia (demo or Firebase), set further down
   const ICO = { vol: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>', mute: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/></svg>', phone: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="2" width="11" height="20" rx="2.5"/><path d="M11 18h2"/></svg>' };
   const slides = [...stage.querySelectorAll('.slide')];
   const N = slides.length;
@@ -2001,7 +2007,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (asisSes) {
       el.innerHTML = `<canvas id="asisQR" aria-label="Código QR de asistencia"></canvas><div><div class="k">Registro de asistencia · ${escH(fechaLarga(asisSes.fecha))}</div>
         <h2>${escH((asisSes.modulo || '').split(':')[0])}</h2>${(asisSes.modulo || '').includes(':') ? `<p style="color:#fff;font-size:clamp(18px,2.2vw,32px);font-family:var(--head);font-weight:700">${escH(asisSes.modulo.split(':').slice(1).join(':').trim())}</p>` : ''}<p>${escH(asisSes.coordinacion || '')}${asisSes.lugar ? ' · ' + escH(asisSes.lugar) : ''}</p>
-        <p class="go">Escanea el código con la cámara de tu teléfono y escribe tu cédula.</p></div><button id="asisX" type="button">✕ Cerrar</button>`;
+        <p class="go">Escanea el código con la cámara de tu teléfono y escribe tu cédula.</p></div><button id="asisPen" type="button" title="Escoge al azar a alguien que ya marcó asistencia (tecla P)">¿Quién baila?</button><button id="asisX" type="button">✕ Cerrar</button>`;
       qrTo($('asisQR'), asisLink(asisSes.id), 12);
       $('bienQR').hidden = false; qrTo($('bienQRc'), asisLink(asisSes.id), 8);
     } else {
@@ -2009,6 +2015,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       $('bienQR').hidden = true;
     }
     $('asisX').onclick = closeAsis;
+    if ($('asisPen')) $('asisPen').onclick = e => { e.stopPropagation(); penitRandom(); };
   }
   function openAsis() { closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeBien(); closePrensa(); asisOpen = true; renderAsis(); $('asis').classList.add('open'); $('toAsis').setAttribute('aria-current', 'true'); wake(); }
   function closeAsis() { if (!asisOpen) return; asisOpen = false; $('asis').classList.remove('open'); $('toAsis').removeAttribute('aria-current'); }
@@ -2016,8 +2023,13 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   $('asis').addEventListener('click', e => { if (e.target === $('asis')) closeAsis(); });
   renderAsis();
   if (new URLSearchParams(location.search).has('demo')) {
-    let lastPen = Date.now();
-    const readDemo = () => { try { const d = JSON.parse(localStorage.getItem('asist-demo-v1')) || {}; pickSession(d.sesiones); (d.penit || []).forEach(p => { if (p.t > lastPen) { lastPen = p.t; showPenit(p.n); } }); } catch (e) {} };
+    const readDemo = () => { try { pickSession((JSON.parse(localStorage.getItem('asist-demo-v1')) || {}).sesiones); } catch (e) {} };
+    const ld = () => JSON.parse(localStorage.getItem('asist-demo-v1')) || {};
+    penitApi = {
+      async candidatos(sid) { const d = ld(); return Object.values(d.marcas || {}).filter(m => m.sesion === sid).map(m => ({ h: m.persona, n: ((d.ids || {})[m.persona] || {}).n || '' })); },
+      async nombre(h) { return ((ld().ids || {})[h] || {}).n || ''; },
+      async anunciar(sid, c) { const d = ld(); (d.penit = d.penit || []).push({ n: c.n, p: c.h, sesion: sid, t: Date.now() }); d.penit = d.penit.slice(-20); localStorage.setItem('asist-demo-v1', JSON.stringify(d)); },
+    };
     readDemo(); addEventListener('storage', readDemo); setInterval(readDemo, 3000);
   }
 
@@ -2069,6 +2081,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (bienOpen) { if (e.key === 'Escape' || e.key === 'b' || e.key === 'B' || e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter' || e.key === 'PageDown') { e.preventDefault(); closeBien(); } return; }
     if (e.key === 'b' || e.key === 'B') { e.preventDefault(); openBien(); return; }
     if (e.key === 'e' || e.key === 'E') { e.preventDefault(); openEquipo(5, 'equipo'); return; }
+    if (e.key === 'p' || e.key === 'P') { e.preventDefault(); penitRandom(); return; }
     if (apOpen && (e.key === 'Escape' || e.key === 'a' || e.key === 'A')) { e.preventDefault(); closeAplauso(); return; }
     if (apOpen) return;
     if (pickOpen) {                                   // arrows move through the list, Enter opens, Esc closes
@@ -2437,30 +2450,56 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); }
   $('bien').addEventListener('click', closeBien);
-  /* penitencia banner (from the attendance app): queue, 8 s each, click to skip */
-  const penQ = []; let penOn = false, penT = 0;
-  function fanfare() {
+  /* penitencia: the presenter presses P (or the phone / the QR screen button) and someone who already marked attendance has to dance */
+  let penBusy = false, penT = 0, penSpin = 0;
+  const penUsed = new Set();
+  function penTone(f, len, vol, type = 'triangle', at = 0) {
     try {
       const ac = sfx.ctx(); if (!ac || !soundOn()) return;
-      const t0 = ac.currentTime + .02;
-      [[523, 0], [659, .14], [784, .28], [1047, .46]].forEach(([f, d], i) => {
-        const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f;
-        g.gain.setValueAtTime(0, t0 + d); g.gain.linearRampToValueAtTime(.22, t0 + d + .02); g.gain.exponentialRampToValueAtTime(.001, t0 + d + (i === 3 ? .9 : .3));
-        o.connect(g).connect(ac.destination); o.start(t0 + d); o.stop(t0 + d + 1);
-      });
+      const t = ac.currentTime + .02 + at, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + len);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + len + .05);
     } catch (e) {}
   }
-  function showPenit(n) { penQ.push(String(n || '').slice(0, 30)); if (!penOn) nextPenit(); }
-  function nextPenit() {
-    if (!penQ.length) { penOn = false; return; }
-    penOn = true; const n = penQ.shift();
+  const fanfare = () => [[523, 0], [659, .14], [784, .28], [1047, .46]].forEach(([f, d], i) => penTone(f, i === 3 ? .9 : .3, .22, 'triangle', d));
+  function revealPenit(n) {
+    $('penit').classList.remove('spin');
+    $('penK').textContent = '¡Penitencia!';
     $('penDz').innerHTML = SCN.solo({ shirt: ['#D62839', '#1E9E4F', '#2F80ED', '#C8743A'][Math.floor(Math.random() * 4)], hs: Math.floor(Math.random() * 4) });
-    $('penT').textContent = n ? `${n}, ¡te toca bailar!` : '¡Te toca bailar!';
-    $('penit').classList.add('open'); fanfare();
-    clearTimeout(penT); penT = setTimeout(hidePenit, 8000);
+    $('penT').textContent = `${n || 'Alguien'}, ¡te toca bailar!`;
+    fanfare(); clearTimeout(penT); penT = setTimeout(hidePenit, 12000);
   }
-  function hidePenit() { clearTimeout(penT); $('penit').classList.remove('open'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; nextPenit(); }, 500); }
+  function spinPenit(final, names, onReveal) {
+    closePick(); closeVideo(); closeAplauso(); closeBien();
+    const pool = names.length ? names : [final];
+    $('penit').classList.add('open', 'spin'); $('penK').textContent = '¿A quién le toca bailar?'; $('penDz').textContent = '?';
+    let k = 0, wait = 60; const t0 = Date.now(); clearTimeout(penSpin); clearTimeout(penT);
+    const step = () => {
+      $('penT').textContent = pool[k++ % pool.length] || '…'; penTone(880 + (k % 3) * 120, .05, .12, 'square');
+      if (Date.now() - t0 > 2800 && $('penT').textContent === final) { onReveal(); return revealPenit(final); }
+      wait = Math.min(320, wait * 1.12); penSpin = setTimeout(step, wait);
+    };
+    step();
+  }
+  function hidePenit() { clearTimeout(penT); clearTimeout(penSpin); $('penit').classList.remove('open', 'spin'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; }, 500); }
   $('penit').addEventListener('click', hidePenit);
+  async function penitRandom() {
+    if (penBusy) return;
+    if (!asisSes) { rtoast('No hay una sesión de asistencia abierta'); return; }
+    if (!penitApi) { rtoast('Sin conexión con la asistencia'); return; }
+    penBusy = true;
+    try {
+      const list = await penitApi.candidatos(asisSes.id);
+      if (!list.length) { rtoast('Nadie ha marcado asistencia todavía'); return; }
+      let pool = list.filter(c => !penUsed.has(c.h)); if (!pool.length) { penUsed.clear(); pool = list; }   // nobody repeats until everyone has danced
+      const pick = pool[Math.floor(Math.random() * pool.length)]; penUsed.add(pick.h);
+      const others = list.filter(c => c.h !== pick.h).sort(() => Math.random() - .5).slice(0, 9);
+      const named = await Promise.all([pick, ...others].map(async c => ({ h: c.h, n: c.n || await penitApi.nombre(c.h).catch(() => '') || '' })));
+      const sid = asisSes.id, chosen = named[0];
+      spinPenit(chosen.n || 'Alguien', named.map(c => c.n).filter(Boolean).concat(chosen.n ? [] : ['Alguien']), () => penitApi.anunciar(sid, chosen).catch(() => {}));
+    } catch (e) { rtoast('No se pudo escoger. Revisa el internet.'); }
+    finally { penBusy = false; }
+  }
   function closeEquipo() { if (!eq.open) return; eq.open = false; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); setTimeout(() => { if (!eq.open) $('eqScene').innerHTML = ''; }, 600); }
   $('eqPlus').addEventListener('click', () => eqAdd(1));
   $('eqPause').addEventListener('click', eqPause);
@@ -2525,6 +2564,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'closeReveal': { const f = slides[ruletaIdx] && slides[ruletaIdx].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage({ ruleta: 'close' }, '*'); rtoast('Resultado cerrado'); break; }
       case 'video': closePick(); closeAplauso(); openVideo(+arg); rtoast(`Video ${arg}`); break;
       case 'closeVideo': closeVideo(); rtoast('Video cerrado'); break;
+      case 'penit': penitRandom(); break;
       case 'asis': if (arg === 'close') { closeAsis(); rtoast('QR de asistencia cerrado'); } else { openAsis(); rtoast('QR de asistencia'); } break;
       case 'prensa': if (arg === 'close') { closePrensa(); rtoast('Periódicos cerrados'); } else if (prOpen && arg !== 'both') { prShow(arg); rtoast(`Periódico ${arg}`); } else { openPrensa(arg || 'both'); rtoast('Periódicos'); } break;
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
@@ -2550,12 +2590,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         const au = U.getAuth(fa), db2 = F.initializeFirestore(fa, { experimentalAutoDetectLongPolling: true });
         if (!au.currentUser) await U.signInAnonymously(au);
         F.onSnapshot(F.query(F.collection(db2, 'asist_sesiones'), F.where('abierta', '==', true)), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); pickSession(o); }, () => {});
-        // penitencias: someone just marked attendance and has to dance (skip the ones from before this page opened)
-        let firstPen = true;
-        F.onSnapshot(F.query(F.collection(db2, 'asist_penitencias'), F.orderBy('t', 'desc'), F.limit(5)), qs => {
-          if (firstPen) { firstPen = false; return; }
-          qs.docChanges().forEach(c => { if (c.type === 'added') showPenit((c.doc.data() || {}).n); });
-        }, () => {});
+        penitApi = {
+          async candidatos(sid) { const qs = await F.getDocs(F.query(F.collection(db2, 'asist_marcas'), F.where('sesion', '==', sid))); const o = []; qs.forEach(d => { const p = d.data().persona; if (p) o.push({ h: p }); }); return o; },
+          async nombre(h) { const d = await F.getDoc(F.doc(db2, 'asist_ids', h)); return d.exists() ? (d.data().n || '') : ''; },
+          async anunciar(sid, c) { await F.addDoc(F.collection(db2, 'asist_penitencias'), { n: String(c.n || 'Alguien').slice(0, 30), p: c.h, sesion: sid, t: F.serverTimestamp() }); },
+        };
       } catch (e) { /* offline or rules not set: the presentation works the same */ }
     })();
     if (!FBCFG) return;
