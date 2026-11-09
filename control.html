@@ -77,8 +77,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .notes small{display:block;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .fx{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.fxb{flex-direction:column;height:auto!important;min-height:74px;padding:8px 4px!important;font-size:24px!important;line-height:1;gap:6px}
-.fxb span{font-size:12px;font-weight:700}
+.fxb{display:flex!important;flex-direction:column!important;align-items:center;justify-content:center;flex-wrap:nowrap!important;height:auto!important;min-height:74px;padding:8px 4px!important;font-size:24px!important;line-height:1;gap:6px}
+.fxb span{font-size:11.5px;font-weight:700;white-space:nowrap}
 .fxb .ico{width:26px;height:26px}
 .subh{margin:14px 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .pen-info{margin:10px 0 8px;color:var(--muted);font-size:14px}
@@ -258,7 +258,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794185246';
+  const THUMBV = '1794185420';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
