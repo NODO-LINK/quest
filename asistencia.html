@@ -9,13 +9,16 @@
 <!--
   CONTROL DE ASISTENCIA DE LOS FORMADOS — Alcaldía Bolivariana de Mara
   · Formados: escanean el QR de la sesión (asistencia.html?s=CÓDIGO), ponen su cédula y marcan.
-    La primera vez se registran (nombre, edad → generación, coordinación).
+    La primera vez se registran (nombre, edad → generación, coordinación, dirección).
+    Los registrados antes de pedir la dirección la completan una sola vez al marcar.
+  · Sesiones: botón «Imprimir listado» (agrupado por dirección, con firma) y descarga a Excel.
   · Administración: asistencia.html?admin (correo y contraseña de presentador, los mismos de la trivia).
     Sesiones (crear, abrir/cerrar, proyectar QR), Formados (constancia), Panel (gráficos), Repetidos, Ajustes.
   · Prueba sin internet: asistencia.html?demo&admin y asistencia.html?demo&s=CÓDIGO en la misma computadora.
   · Privacidad: la cédula solo la ve la administración; el teléfono del formado solo consulta una huella (hash) de su cédula.
 -->
 <style>
+[hidden]{display:none!important}
 .ico{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
 :root{
   color-scheme:dark;
@@ -1451,7 +1454,21 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     { n: 'Genial', r: '18 a 25 años', c: '#19C3E6', min: 0, max: 25 },
   ];
   const genOf = edad => GENS.findIndex(g => edad >= g.min && edad <= g.max);
-  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], culminar: 5 };
+  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], direcciones: {}, culminar: 5 };
+  // dirección (unidad) a la que pertenece cada formado: lista por coordinación en Ajustes, o texto libre si no hay lista
+  const dirsOf = (cfg, coord) => (((cfg || {}).direcciones || {})[coord] || []);
+  const anyDirs = cfg => Object.values((cfg || {}).direcciones || {}).some(l => l && l.length);
+  const dirLabel = d => !d ? '' : /^direcci[oó]n/i.test(d) ? d : 'Dirección: ' + d;
+  function dirInput(cfg, coord, id, val = '') {
+    const L = dirsOf(cfg, coord);
+    if (!L.length && coord === '' && anyDirs(cfg)) return `<select id="${id}" disabled><option>Primero elige tu coordinación</option></select>`;
+    if (!L.length) return `<input id="${id}" maxlength="100" autocomplete="off" placeholder="Ej.: Dirección de Recursos Humanos" value="${esc(val)}">`;
+    const inL = !val || L.includes(val);
+    return `<select id="${id}"><option value="" disabled ${!val ? 'selected' : ''}>Elige tu dirección</option>${L.map(d => `<option ${d === val ? 'selected' : ''}>${esc(d)}</option>`).join('')}<option value="__otra" ${!inL ? 'selected' : ''}>Otra (escribirla)</option></select>
+      <input id="${id}x" maxlength="100" autocomplete="off" placeholder="Escribe el nombre de tu dirección" ${inL ? 'hidden' : ''} value="${inL ? '' : esc(val)}" style="margin-top:8px">`;
+  }
+  const dirRead = id => { const el = document.getElementById(id); if (!el || el.disabled) return ''; const v = el.value === '__otra' ? (document.getElementById(id + 'x') || {}).value : el.value; return String(v || '').replace(/\s+/g, ' ').trim().slice(0, 100); };
+  const dirBind = id => { const el = document.getElementById(id); if (el && el.tagName === 'SELECT') el.addEventListener('change', () => { const x = document.getElementById(id + 'x'); if (!x) return; x.hidden = el.value !== '__otra'; if (!x.hidden) x.focus(); }); };
   /* ---------- animated cartoon scenes for the waiting screen (SVG + SMIL, all share one clock) ---------- */
   const SCN = (() => {
     const SKIN = ['#F2C79C', '#D9A066', '#A86B3C', '#E8B98A', '#8A5A35', '#F5D0A9'];
@@ -1687,6 +1704,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async getSesion(id) { return st().sesiones[id] || null; },
       async saveSesion(id, data) { const s = st(); s.sesiones[id] = Object.assign({}, s.sesiones[id], data); save(s); },
       async idInfo(h) { return st().ids[h] || null; },
+      async getPersona(h) { return st().personas[h] || null; },
+      async setDir(h, dir) { const s = st(); if (!s.personas[h]) throw { code: 'not-found' }; s.personas[h].dir = dir; save(s); },
       async constancia(h) { const s = st(); return { persona: s.personas[h] || null, marcas: Object.values(s.marcas).filter(m => m.persona === h), sesiones: s.sesiones, cfg: s.config || DEF_CFG }; },
       async registrarYMarcar(h, persona, sid) {
         const s = st(); if (s.personas[h]) throw { code: 'permission-denied' };
@@ -1749,6 +1768,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async getSesion(id) { const d = await F.getDoc(F.doc(db, 'asist_sesiones', id)); return d.exists() ? d.data() : null; },
       async saveSesion(id, data) { await F.setDoc(F.doc(db, 'asist_sesiones', id), data, { merge: true }); },
       async idInfo(h) { const d = await F.getDoc(F.doc(db, 'asist_ids', h)); return d.exists() ? d.data() : null; },
+      async getPersona(h) { const d = await F.getDoc(F.doc(db, 'asist_personas', h)); return d.exists() ? d.data() : null; },
+      async setDir(h, dir) { await F.updateDoc(F.doc(db, 'asist_personas', h), { dir }); },
       async constancia(h) {
         await init();
         const p = await F.getDoc(F.doc(db, 'asist_personas', h));
@@ -1801,18 +1822,26 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         e.submitter && (e.submitter.disabled = true);
         try {
           const h = await hashCed(ced), info = await DB.idInfo(h);
-          info ? stepMark(h, info) : stepReg(h, ced);
+          let per = null; if (info) { try { per = await DB.getPersona(h); } catch (e) {} }
+          info ? stepMark(h, info, per && !per.dir ? per : null) : stepReg(h, ced);
         } catch (err) { $('#m1').textContent = 'No se pudo consultar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
       });
     };
-    const stepMark = (h, info) => {
-      card.innerHTML = head + `<h1 style="margin-top:18px">¡Hola, ${esc(info.n || '')}!</h1><p class="muted">Ya estás registrado. Toca el botón para marcar tu asistencia de hoy.</p>
+    const stepMark = (h, info, falta) => {
+      // registrados antes de pedir la dirección: la completan una sola vez
+      const extra = falta ? `<div class="glass pad" style="margin:14px 0 4px;padding:14px"><b>Falta un dato</b><p class="muted" style="margin:4px 0 0;font-size:14px">¿A qué dirección perteneces? Solo te lo preguntamos esta vez.</p>
+        <label for="mdir">Dirección</label>${dirInput(cfg, falta.coord || '', 'mdir')}</div>` : '';
+      card.innerHTML = head + `<h1 style="margin-top:18px">¡Hola, ${esc(info.n || '')}!</h1><p class="muted">Ya estás registrado. Toca el botón para marcar tu asistencia de hoy.</p>${extra}
         <button class="btn primary" id="go">✓ Marcar mi asistencia</button><button class="btn" id="back" style="width:100%;margin-top:10px">No soy yo</button><div class="msg" id="m2"></div>`;
       $('#back').onclick = stepCed;
+      if (falta) dirBind('mdir');
       $('#go').onclick = async () => {
+        const dir = falta ? dirRead('mdir') : '';
+        if (falta && dir.length < 3) { $('#m2').textContent = 'Escribe o elige tu dirección.'; return; }
         $('#go').disabled = true;
-        try { await DB.marcar(h, SID); done(info.n, false, h); }
-        catch (e) { if (String(e && e.code).includes('permission')) done(info.n, true, h); else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
+        const saveDir = () => dir ? DB.setDir(h, dir).catch(() => {}) : null;
+        try { await DB.marcar(h, SID); await saveDir(); done(info.n, false, h); }
+        catch (e) { if (String(e && e.code).includes('permission')) { await saveDir(); done(info.n, true, h); } else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
       };
     };
     const stepReg = (h, ced) => {
@@ -1822,10 +1851,12 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         <label for="edad">Edad</label><input id="edad" inputmode="numeric" maxlength="3" required>
         <div class="genchip" id="gen"></div>
         <label for="coord">Coordinación</label><select id="coord" required><option value="" disabled selected>Elige tu coordinación</option>${opts}</select>
+        <label for="dir">Dirección a la que perteneces</label><div id="dirBox">${dirInput(cfg, '', 'dir')}</div>
         <button class="btn primary" type="submit">Registrarme y marcar asistencia</button><div class="msg" id="m3"></div></form>`;
       const showGen = () => { const ed = +$('#edad').value.replace(/\D/g, ''); const gi = ed >= 15 && ed <= 110 ? genOf(ed) : -1;
         $('#gen').innerHTML = gi >= 0 ? `<span class="chip" style="background:${GENS[gi].c};color:${gi >= 3 ? '#0B1426' : '#fff'}">Generación ${GENS[gi].n} · ${GENS[gi].r}</span>` : ''; };
       $('#edad').addEventListener('input', showGen);
+      $('#coord').addEventListener('change', () => { const keep = dirRead('dir'); $('#dirBox').innerHTML = dirInput(cfg, $('#coord').value, 'dir', dirsOf(cfg, $('#coord').value).includes(keep) || !anyDirs(cfg) ? keep : ''); dirBind('dir'); });
       $('#nom').focus();
       $('#f2').addEventListener('submit', async e => {
         e.preventDefault();
@@ -1833,8 +1864,10 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         if (nombre.split(' ').length < 2) { $('#m3').textContent = 'Escribe tu nombre y tu apellido.'; return; }
         if (!(edad >= 15 && edad <= 110)) { $('#m3').textContent = 'Escribe una edad válida.'; return; }
         if (!coord) { $('#m3').textContent = 'Elige tu coordinación.'; return; }
+        const dir = dirRead('dir');
+        if (dir.length < 3) { $('#m3').textContent = 'Escribe o elige la dirección a la que perteneces.'; return; }
         e.submitter && (e.submitter.disabled = true);
-        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); done(firstName(nombre), false, h); }
+        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); await DB.setDir(h, dir).catch(() => {}); done(firstName(nombre), false, h); }
         catch (err) { $('#m3').textContent = String(err && err.code).includes('permission') ? 'Esta cédula ya está registrada o la sesión se cerró. Vuelve a intentarlo.' : 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
       });
     };
@@ -1891,7 +1924,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       const mod = (ms.map(m => (r.sesiones[m.sesion] || {}).modulo).find(Boolean)) || formFull(FORMACIONES[0]);
       const g = GENS[p.gen] || { n: '' }, n = ms.length, ok = n >= C;
       shell(`<p class="muted" style="margin:0 0 12px">Generando tu constancia…</p>`);
-      const url = await drawCert({ nombre: p.nombre, ced: fmtCed(ced), gen: g.n, coord: p.coord, mod, n, fechas, ok, C, code: (await hashCed(ced)).slice(0, 8).toUpperCase() });
+      const url = await drawCert({ nombre: p.nombre, ced: fmtCed(ced), gen: g.n, coord: p.coord, dir: p.dir, mod, n, fechas, ok, C, code: (await hashCed(ced)).slice(0, 8).toUpperCase() });
       shell(`<img src="${url}" alt="Constancia de participación de ${esc(p.nombre)}" style="width:100%;border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.35)">
         <p class="muted" style="margin:12px 0 0;text-align:center">¡Gracias por participar!</p>
         <a class="btn primary" style="display:flex;align-items:center;justify-content:center;margin-top:14px;text-decoration:none" href="${url}" download="Constancia-${esc(firstName(p.nombre))}.png">Descargar imagen</a>
@@ -1919,7 +1952,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     center(d.nombre.toUpperCase(), 655, '700 76px Georgia, serif', '#B21E30');
     x.fillStyle = '#C9A227'; x.fillRect(W / 2 - 360, 690, 720, 3);
     center(`C.I. ${d.ced}${d.gen ? '  ·  Generación ' + d.gen : ''}`, 750, '600 32px system-ui, sans-serif', '#0B1426');
-    let y = wrap(d.coord ? 'Coordinación: ' + d.coord : '', 800, '400 30px system-ui, sans-serif', '#445066', 1500, 40);
+    let y = wrap([d.dir ? dirLabel(d.dir) : '', d.coord ? 'Coordinación: ' + d.coord : ''].filter(Boolean).join('  ·  '), 800, '400 30px system-ui, sans-serif', '#445066', 1500, 40);
     y = wrap(`participó en el ${d.mod}, con ${d.n} ${d.n === 1 ? 'asistencia' : 'asistencias'}${d.fechas.length ? ' (' + d.fechas.slice(0, 8).map(f => f.split('-').reverse().join('/')).join(', ') + (d.fechas.length > 8 ? '…' : '') + ')' : ''}.`, y + 70, '400 34px system-ui, sans-serif', '#0B1426', 1600, 48);
     const badge = `${d.n} ${d.n === 1 ? 'ASISTENCIA REGISTRADA' : 'ASISTENCIAS REGISTRADAS'}`;   // no required number: it changes per formation
     x.font = '800 30px system-ui, sans-serif'; const bw = x.measureText(badge).width + 80, by = Math.min(y + 70, 1110);
@@ -1968,6 +2001,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   // live data changes: never wipe a form the person is filling in
   function refresh() {
     if (S.tab === 'ajustes') return;
+    if (document.activeElement && document.activeElement.id === 'edDirI') return;
     if (S.tab === 'sesiones' && $('#sesList')) { $('#sesList').innerHTML = sesItems(); bind(); return; }
     render();
   }
@@ -1990,7 +2024,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <div class="t"><b>${esc(s.modulo)}</b><span>${esc(fmtFecha(s.fecha))} · ${esc(s.coordinacion || '')}${s.lugar ? ' · ' + esc(s.lugar) : ''}</span></div>
       <span class="badge ${s.abierta ? 'b-open' : 'b-closed'}">${s.abierta ? 'Abierta' : 'Cerrada'}</span>
       <b class="num" style="min-width:90px">${(bySes[id] || []).length} asistentes</b>
-      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
+      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
   }
   function viewSesiones() {
     const coordOpts = S.cfg.coordinaciones.map(c => `<option>${esc(c)}</option>`).join('');
@@ -2008,23 +2042,26 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function viewFormados() {
     const { byPer } = stats(), C = S.cfg.culminar || 5, q = normName(S.q), qd = S.q.replace(/\D/g, '');
     const rows = Object.entries(S.per).map(([h, p]) => ({ h, p, n: (byPer[h] || []).length, last: Math.max(0, ...(byPer[h] || []).map(m => tsMs(m.t))) }))
-      .filter(r => !q && !qd || (q && normName(r.p.nombre).includes(q)) || (qd && String(r.p.cedula).includes(qd)))
+      .filter(r => !q && !qd || (q && (normName(r.p.nombre).includes(q) || normName(r.p.dir).includes(q))) || (qd && String(r.p.cedula).includes(qd)))
       .sort((a, b) => normName(a.p.nombre).localeCompare(normName(b.p.nombre)));
     const tr = rows.map(r => { const g = GENS[r.p.gen] || {}; const ok = r.n >= C;
-      return `<tr data-per="${r.h}"><td><b>${esc(r.p.nombre)}</b></td><td class="num">${esc(r.p.cedula)}</td><td>${esc(r.p.coord)}</td><td><span class="dot" style="background:${g.c || '#999'}"></span>${esc(g.n || '—')}</td>
+      return `<tr data-per="${r.h}"><td><b>${esc(r.p.nombre)}</b></td><td class="num">${esc(r.p.cedula)}</td><td>${r.p.dir ? esc(r.p.dir) : '<span class="muted">Sin dirección</span>'}<br><span class="muted" style="font-size:13px">${esc(r.p.coord)}</span></td><td><span class="dot" style="background:${g.c || '#999'}"></span>${esc(g.n || '—')}</td>
         <td class="num"><b>${r.n}</b> / ${C}</td><td>${ok ? '<span class="badge b-done">Culminó ✓</span>' : `<span class="badge b-closed">Le faltan ${C - r.n}</span>`}</td></tr>`; }).join('');
     return `<section class="glass pad" style="margin-top:14px">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Formados (${Object.keys(S.per).length})</h2>
-      <input id="q" style="max-width:340px" placeholder="Buscar por nombre o cédula" value="${esc(S.q)}"></div>
+      <input id="q" style="max-width:340px" placeholder="Buscar por nombre, cédula o dirección" value="${esc(S.q)}"></div>
       <p class="muted" style="font-size:14px">Constancia: asistencias de cada persona. Culmina con ${C} asistencias (lo cambias en Ajustes). Toca una fila para ver sus sesiones.</p>
-      <div class="tablewrap"><table><thead><tr><th>Nombre</th><th class="num">Cédula</th><th>Coordinación</th><th>Generación</th><th class="num">Asistencias</th><th>Estado</th></tr></thead>
+      <div class="tablewrap"><table><thead><tr><th>Nombre</th><th class="num">Cédula</th><th>Dirección · Coordinación</th><th>Generación</th><th class="num">Asistencias</th><th>Estado</th></tr></thead>
       <tbody>${tr || '<tr><td colspan="6" class="muted">Sin resultados.</td></tr>'}</tbody></table></div>
       <div id="det">${S.det ? detalle(S.det) : ''}</div></section>`;
   }
   function detalle(h) {
     const p = S.per[h]; if (!p) return '';
     const ms = Object.values(S.mar).filter(m => m.persona === h).sort((a, b) => tsMs(a.t) - tsMs(b.t));
+    const known = [...new Set([...Object.values(S.cfg.direcciones || {}).flat(), ...Object.values(S.per).map(x => x.dir)].filter(Boolean))].sort();
     return `<div class="glass pad" style="margin-top:14px"><h2>${esc(p.nombre)}</h2><p class="muted">C.I. ${esc(p.cedula)} · ${esc(p.coord)} · ${esc((GENS[p.gen] || {}).n || '')} · ${esc(p.edad)} años</p>
+      <form class="row" id="edDir" data-h="${h}" style="margin:-4px 0 14px;align-items:flex-end"><div style="flex:1;min-width:220px"><label for="edDirI">Dirección</label><input id="edDirI" list="dirsDL" maxlength="100" value="${esc(p.dir || '')}" placeholder="Sin dirección"></div>
+      <datalist id="dirsDL">${known.map(d => `<option value="${esc(d)}">`).join('')}</datalist><button class="btn sm" type="submit">Guardar dirección</button></form>
       <div class="list">${ms.map(m => { const s = S.ses[m.sesion] || {}; return `<div class="item"><div class="t"><b>${esc(s.modulo || 'Sesión eliminada')}</b><span>${esc(s.fecha ? fmtFecha(s.fecha) : '')} · marcó a las ${hora(tsMs(m.t))}</span></div></div>`; }).join('') || '<p class="muted">Sin asistencias.</p>'}</div></div>`;
   }
   function vbars(vals, labels, colors) {
@@ -2045,6 +2082,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const byCoord = coords.map(c => [c, formados.filter(([, p]) => p.coord === c).length, '#2F80ED']).filter(r => r[1] > 0 || S.cfg.coordinaciones.includes(r[0]));
     const culmCoord = coords.map(c => { const all = per.filter(([, p]) => p.coord === c); const ok = all.filter(([h]) => (byPer[h] || []).length >= C).length; return [c, all.length ? Math.round(ok / all.length * 100) : 0, '#2BB673', '%']; }).filter(r => S.cfg.coordinaciones.includes(r[0]) || r[1] > 0);
     const ses = sesionesOrden().slice(0, 10).reverse();
+    const dirCount = {}; formados.forEach(([, p]) => { const k = p.dir || 'Sin dirección'; dirCount[k] = (dirCount[k] || 0) + 1; });
+    const byDir = Object.entries(dirCount).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, v]) => [k, v, k === 'Sin dirección' ? '#8A93A6' : '#1E9E4F']);
     return `<div style="margin-top:14px;display:flex;flex-direction:column;gap:14px">
       <div class="kpis">
         <div class="glass kpi"><small>Formados registrados</small><b>${per.length}</b><span>${formados.length} con asistencia</span></div>
@@ -2055,6 +2094,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <div class="grid2">
         <section class="glass pad chart"><h3>Formados por generación</h3><p>Personas con al menos una asistencia</p>${vbars(byGen, GENS.map(g => g.n), GENS.map(g => g.c))}</section>
         <section class="glass pad chart"><h3>Formados por coordinación</h3><p>Personas con al menos una asistencia</p>${hbars(byCoord)}</section>
+        <section class="glass pad chart"><h3>Formados por dirección</h3><p>Personas con al menos una asistencia${Object.keys(dirCount).length > 12 ? ' · las 12 con más' : ''}</p>${byDir.length ? hbars(byDir) : '<p class="muted">Sin datos.</p>'}</section>
         <section class="glass pad chart"><h3>Culminación por coordinación</h3><p>% de registrados con ${C} o más asistencias</p>${hbars(culmCoord)}</section>
         <section class="glass pad chart"><h3>Asistentes por sesión</h3><p>Últimas ${ses.length} sesiones</p>${ses.length ? hbars(ses.map(([id, s]) => [`${s.fecha ? s.fecha.slice(8, 10) + '/' + s.fecha.slice(5, 7) : ''} · ${s.modulo}`, (bySes[id] || []).length, '#F2C12E'])) : '<p class="muted">Sin sesiones.</p>'}</section>
       </div></div>`;
@@ -2081,9 +2121,16 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function viewAjustes() {
     return `<form class="glass pad" id="af" style="margin-top:14px;max-width:640px"><h2>Ajustes</h2>
       <label for="aC">Coordinaciones (una por línea)</label><textarea id="aC">${esc(S.cfg.coordinaciones.join('\n'))}</textarea>
+      <h3 style="margin:22px 0 2px">Direcciones de cada coordinación</h3>
+      <p class="muted" style="font-size:14px;margin:0 0 6px">Una por línea. Los formados la escogen de la lista al registrarse; si una coordinación queda vacía, la escriben ellos.</p>
+      <div id="aDirs">${dirAreas(S.cfg.coordinaciones, S.cfg.direcciones || {})}</div>
       <label for="aN">Asistencias para culminar</label><input id="aN" type="number" min="1" max="60" value="${S.cfg.culminar || 5}">
       <button class="btn primary" type="submit">Guardar</button></form>`;
   }
+  function dirAreas(coords, dirs) {
+    return coords.map((c, i) => `<label for="aD${i}">${esc(c)}</label><textarea id="aD${i}" data-coord="${esc(c)}" rows="4" placeholder="Ej.: Dirección de Recursos Humanos">${esc((dirs[c] || []).join('\n'))}</textarea>`).join('');
+  }
+  const readDirAreas = () => { const o = {}; document.querySelectorAll('#aDirs textarea').forEach(t => { const l = [...new Set(t.value.split('\n').map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean))]; if (l.length) o[t.dataset.coord] = l; }); return o; };
   function bind() {
     const nf = $('#nf'); if (nf && !nf.dataset.b) nf.dataset.b = 1, nf.addEventListener('submit', async e => {
       e.preventDefault();
@@ -2096,11 +2143,15 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     document.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => openProj(b.dataset.proj));
     document.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(linkOf(b.dataset.copy)); toast('Enlace copiado'); } catch (e) { prompt('Copia el enlace:', linkOf(b.dataset.copy)); } });
     const q = $('#q'); if (q && !q.dataset.b) q.dataset.b = 1, q.addEventListener('input', () => { S.q = q.value; render(); });
-    document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); bind(); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
+    const aC = $('#aC'); if (aC && !aC.dataset.b) aC.dataset.b = 1, aC.addEventListener('input', () => { const d = readDirAreas(); $('#aDirs').innerHTML = dirAreas(aC.value.split('\n').map(s => s.trim()).filter(Boolean), Object.assign({}, S.cfg.direcciones, d)); });
+    document.querySelectorAll('[data-print]').forEach(b => b.onclick = () => printList(b.dataset.print));
+    const ed = $('#edDir'); if (ed && !ed.dataset.b) ed.dataset.b = 1, ed.addEventListener('submit', async e => { e.preventDefault(); const v = $('#edDirI').value.replace(/\s+/g, ' ').trim().slice(0, 100); try { await DB.setDir(ed.dataset.h, v); toast('Dirección guardada'); } catch (err) { toast('No se pudo guardar'); } });
     const af = $('#af'); if (af && !af.dataset.b) af.dataset.b = 1, af.addEventListener('submit', async e => {
       e.preventDefault();
-      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), culminar: Math.max(1, +$('#aN').value || 5) };
+      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), direcciones: {}, culminar: Math.max(1, +$('#aN').value || 5) };
+      const d = readDirAreas(); c.coordinaciones.forEach(k => { if (d[k]) c.direcciones[k] = d[k]; });
       try { await DB.setConfig(c); S.cfg = c; toast('Ajustes guardados'); } catch (err) { toast('No se pudo guardar'); }
     });
   }
@@ -2132,6 +2183,65 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       else if (e.key === 'Enter' && !panel.hidden && act >= 0) { e.preventDefault(); pick(act); }
       else if (e.key === 'Escape') close();
     });
+  }
+  /* listado imprimible de una sesión (agrupado por dirección o alfabético) + Excel */
+  function printList(id) {
+    const s = S.ses[id]; if (!s) return;
+    const w = window.open('', '_blank'); if (!w) { toast('Permite las ventanas emergentes para imprimir'); return; }
+    const fmtCed = c => c ? 'V-' + String(c).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+    const rows = Object.values(S.mar).filter(m => m.sesion === id).map(m => { const p = S.per[m.persona] || {}; return { nom: p.nombre || '(sin registro)', ced: p.cedula || '', dir: p.dir || '', coord: p.coord || '', gen: (GENS[p.gen] || {}).n || '', t: tsMs(m.t) }; });
+    const byName = (a, b) => normName(a.nom).localeCompare(normName(b.nom));
+    const logo = new URL('logo/mara-logo.svg', location.href).href, gen = new Date().toLocaleString('es-VE', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const file = `Asistencia ${s.fecha || ''} ${String(s.modulo || '').slice(0, 40)}`.replace(/[\\/:*?"<>|]+/g, '').trim();
+    const css = `@page{size:letter;margin:12mm 11mm}*{box-sizing:border-box}body{font:12px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#0B1426;margin:0;padding:18px;background:#fff}
+      .np{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#0A2346;color:#fff;padding:12px 16px;border-radius:10px;margin-bottom:18px;font-size:14px}
+      .np button{font:600 14px system-ui;padding:9px 16px;border-radius:8px;border:0;cursor:pointer;background:#fff;color:#0A2346}.np button.p{background:#F4C20D}.np label{display:flex;gap:6px;align-items:center;cursor:pointer}.np span{opacity:.75;margin-left:auto}
+      .band{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-bottom:12px}.band i{flex:1}
+      header{display:flex;gap:16px;align-items:center;border-bottom:2px solid #0A2346;padding-bottom:10px}header img{height:62px}header small{display:block;color:#445066;font-size:11px;letter-spacing:.03em}header h1{margin:2px 0 0;font:700 19px Georgia,"Times New Roman",serif;letter-spacing:.04em}
+      .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 18px;margin:12px 0 14px}.meta div{border-left:3px solid #F2C12E;padding:2px 0 2px 8px}.meta b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#5A6478}.meta .wide{grid-column:span 2}
+      table{width:100%;border-collapse:collapse}th{background:#0A2346;color:#fff;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:6px}td{border-bottom:1px solid #D5DAE3;padding:6px;vertical-align:top}
+      tr{break-inside:avoid}td.n{color:#5A6478;width:28px;text-align:right}td.c{white-space:nowrap}td.f{width:120px}td small{color:#5A6478}tr.g td{background:#EEF3FA;font-weight:700;border-bottom:1px solid #9FB3D1;padding-top:9px}tr.g td em{font-style:normal;font-weight:400;color:#5A6478}
+      h2{font:700 13px system-ui;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.05em}.res{width:auto;min-width:50%}.res td:last-child{text-align:right;font-weight:700}
+      .firmas{display:flex;gap:60px;margin-top:56px;break-inside:avoid}.firmas div{flex:1;border-top:1px solid #0B1426;padding-top:6px;text-align:center;font-size:11px}
+      .pie{margin-top:18px;color:#8A93A6;font-size:10px;display:flex;justify-content:space-between}
+      @media print{body{padding:0}.np{display:none}th,tr.g td{-webkit-print-color-adjust:exact;print-color-adjust:exact}}`;
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(file)}</title><style>${css}</style></head><body>
+      <div class="np"><button class="p" id="pp">Imprimir / guardar PDF</button><button id="xl">Descargar Excel</button><label><input type="checkbox" id="gg" checked> Agrupar por dirección</label><span>${rows.length} asistentes</span></div>
+      <div id="doc"></div></body></html>`);
+    w.document.close();
+    const draw = grouped => {
+      const list = rows.slice().sort(grouped ? (a, b) => (a.dir ? 0 : 1) - (b.dir ? 0 : 1) || normName(a.dir).localeCompare(normName(b.dir)) || byName(a, b) : byName);
+      let body = '', last = null, n = 0;
+      const cnt = {}; list.forEach(r => { const k = r.dir || 'Sin dirección'; cnt[k] = (cnt[k] || 0) + 1; });
+      list.forEach(r => {
+        const k = r.dir || 'Sin dirección';
+        if (grouped && k !== last) { body += `<tr class="g"><td colspan="6">${esc(k)} <em>· ${cnt[k]} ${cnt[k] === 1 ? 'asistente' : 'asistentes'}</em></td></tr>`; last = k; }
+        n++;
+        body += `<tr><td class="n">${n}</td><td><b>${esc(r.nom)}</b>${r.gen ? `<br><small>Generación ${esc(r.gen)}</small>` : ''}</td><td class="c">${esc(fmtCed(r.ced))}</td>
+          <td>${grouped ? '' : `${esc(r.dir || '—')}<br>`}<small>${esc(r.coord)}</small></td><td class="c">${esc(hora(r.t))}</td><td class="f"></td></tr>`;
+      });
+      const res = Object.entries(cnt).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('');
+      w.document.getElementById('doc').innerHTML = `<div class="band"><i style="background:#1E9E4F"></i><i style="background:#F2C12E"></i><i style="background:#2F80ED"></i><i style="background:#D62839"></i></div>
+        <header><img src="${logo}" alt="Alcaldía Bolivariana de Mara"><div><small>ALCALDÍA BOLIVARIANA DE MARA · DIRECCIÓN GENERAL · DIRECCIÓN DE PLANIFICACIÓN Y DESARROLLO</small><h1>LISTADO DE ASISTENCIA</h1></div></header>
+        <div class="meta"><div class="wide"><b>Formación</b>${esc(s.modulo || '')}</div><div><b>Fecha</b>${esc(fmtFecha(s.fecha))}</div>
+          <div><b>Coordinación</b>${esc(s.coordinacion || '—')}</div><div><b>Lugar</b>${esc(s.lugar || '—')}</div><div><b>Asistentes</b>${rows.length}${s.abierta ? ' · sesión aún abierta' : ' · sesión cerrada'}</div></div>
+        <table><thead><tr><th>N°</th><th>Nombre y apellido</th><th>Cédula</th><th>${grouped ? 'Coordinación' : 'Dirección · Coordinación'}</th><th>Hora</th><th>Firma</th></tr></thead>
+        <tbody>${body || '<tr><td colspan="6">Nadie marcó asistencia en esta sesión.</td></tr>'}</tbody></table>
+        ${Object.keys(cnt).length > 1 ? `<h2>Resumen por dirección</h2><table class="res"><tbody>${res}<tr><td><b>Total</b></td><td>${rows.length}</td></tr></tbody></table>` : ''}
+        <div class="firmas"><div>Facilitador(a)</div><div>Responsable de la coordinación</div></div>
+        <div class="pie"><span>Generado el ${esc(gen)}</span><span>Plan de Formación · Alcaldía Bolivariana de Mara</span></div>`;
+    };
+    draw(true);
+    w.document.getElementById('gg').onchange = e => draw(e.target.checked);
+    w.document.getElementById('pp').onclick = () => w.print();
+    w.document.getElementById('xl').onclick = () => {
+      const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+      const list = rows.slice().sort((a, b) => normName(a.dir).localeCompare(normName(b.dir)) || byName(a, b));
+      const csv = '﻿' + [['N°', 'Nombre y apellido', 'Cédula', 'Dirección', 'Coordinación', 'Generación', 'Hora'].map(q).join(';'),
+        ...list.map((r, i) => [i + 1, r.nom, r.ced, r.dir, r.coord, r.gen, hora(r.t)].map(q).join(';'))].join('\r\n');
+      const a = w.document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = file + '.csv'; w.document.body.appendChild(a); a.click(); a.remove();
+    };
   }
   const linkOf = id => { const u = new URL(location.href); u.search = (DB.demo ? '?demo&' : '?') + 's=' + id; u.hash = ''; return u.toString(); };
 
