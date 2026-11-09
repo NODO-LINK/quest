@@ -1893,7 +1893,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       shell(`<p class="muted" style="margin:0 0 12px">Generando tu constancia…</p>`);
       const url = await drawCert({ nombre: p.nombre, ced: fmtCed(ced), gen: g.n, coord: p.coord, mod, n, fechas, ok, C, code: (await hashCed(ced)).slice(0, 8).toUpperCase() });
       shell(`<img src="${url}" alt="Constancia de participación de ${esc(p.nombre)}" style="width:100%;border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.35)">
-        <p class="muted" style="margin:12px 0 0;text-align:center">${ok ? '¡Felicitaciones, culminaste la formación!' : `Llevas ${n} de ${C} asistencias para culminar.`}</p>
+        <p class="muted" style="margin:12px 0 0;text-align:center">¡Gracias por participar!</p>
         <a class="btn primary" style="display:flex;align-items:center;justify-content:center;margin-top:14px;text-decoration:none" href="${url}" download="Constancia-${esc(firstName(p.nombre))}.png">Descargar imagen</a>
         <button class="btn" id="cpdf" style="width:100%;margin-top:10px">Guardar como PDF / imprimir</button>
         <button class="btn" id="cotra" style="width:100%;margin-top:10px">Ver otra cédula</button>`);
@@ -1921,9 +1921,9 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     center(`C.I. ${d.ced}${d.gen ? '  ·  Generación ' + d.gen : ''}`, 750, '600 32px system-ui, sans-serif', '#0B1426');
     let y = wrap(d.coord ? 'Coordinación: ' + d.coord : '', 800, '400 30px system-ui, sans-serif', '#445066', 1500, 40);
     y = wrap(`participó en el ${d.mod}, con ${d.n} ${d.n === 1 ? 'asistencia' : 'asistencias'}${d.fechas.length ? ' (' + d.fechas.slice(0, 8).map(f => f.split('-').reverse().join('/')).join(', ') + (d.fechas.length > 8 ? '…' : '') + ')' : ''}.`, y + 70, '400 34px system-ui, sans-serif', '#0B1426', 1600, 48);
-    const badge = d.ok ? 'CULMINÓ LA FORMACIÓN' : `FORMACIÓN EN CURSO · ${d.n} DE ${d.C} ASISTENCIAS`;
+    const badge = `${d.n} ${d.n === 1 ? 'ASISTENCIA REGISTRADA' : 'ASISTENCIAS REGISTRADAS'}`;   // no required number: it changes per formation
     x.font = '800 30px system-ui, sans-serif'; const bw = x.measureText(badge).width + 80, by = Math.min(y + 70, 1110);
-    x.fillStyle = d.ok ? '#1E9E4F' : '#2F80ED'; x.beginPath(); x.roundRect((W - bw) / 2, by, bw, 66, 33); x.fill(); center(badge, by + 44, '800 30px system-ui, sans-serif', '#FFFFFF');
+    x.fillStyle = '#1E9E4F'; x.beginPath(); x.roundRect((W - bw) / 2, by, bw, 66, 33); x.fill(); center(badge, by + 44, '800 30px system-ui, sans-serif', '#FFFFFF');
     const today = new Date().toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
     center(`Municipio Mara, ${today}`, 1240, '400 28px system-ui, sans-serif', '#445066');
     center('Dirección General  ·  Dirección de Planificación y Desarrollo', 1285, '600 26px system-ui, sans-serif', '#0B1426');
