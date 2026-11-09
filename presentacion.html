@@ -295,6 +295,10 @@ body.idle #jump{cursor:default}
 #penDz svg{display:block;width:100%;height:auto}
 #penK{display:inline-block;font:800 clamp(14px,1.4vw,22px) var(--body);letter-spacing:.24em;text-transform:uppercase;color:#0B1426;background:var(--gold,#F2C12E);border-radius:999px;padding:8px 18px;animation:penPulse 1s ease-in-out infinite}
 #penT{font:700 clamp(40px,5.6vw,96px)/1.02 var(--head);margin:14px 0 10px;text-shadow:0 8px 30px rgba(0,0,0,.45);max-width:12ch}
+#penL{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px;max-width:60vw}
+#penL:empty{display:none}
+#penL span{font:700 clamp(20px,2.3vw,40px) var(--head);background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 20px;animation:penIn .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes penIn{from{opacity:0;transform:scale(.4)}}
 #penS{font:600 clamp(16px,1.6vw,26px) var(--body);color:var(--lt2)}
 @keyframes penPulse{50%{transform:scale(1.08)}}
 #eqState{margin-top:12px;font:700 clamp(15px,1.7vw,22px) var(--body);color:var(--lt2);min-height:1.4em}
@@ -579,7 +583,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
   </div>
 </div>
-<div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penS">¡Pasa al frente! · Un aplauso para animar</div></div></div></div>
+<div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penL"></div><div id="penS">¡Pasa al frente! · Un aplauso para animar</div></div></div></div>
 <div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
   <i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i>
   <div id="eqBox">
@@ -2550,28 +2554,40 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     } catch (e) {}
   }
   const fanfare = () => [[523, 0], [659, .14], [784, .28], [1047, .46]].forEach(([f, d], i) => penTone(f, i === 3 ? .9 : .3, .22, 'triangle', d));
-  function revealPenit(n) {
+  function revealPenit(ns) {
+    ns = [].concat(ns).map(x => x || 'Alguien'); const n = ns[0];
     $('penit').classList.remove('spin');
     $('penK').textContent = '¡Penitencia!';
+    $('penL').innerHTML = ns.length > 1 ? ns.map((x, i) => `<span style="animation-delay:${i * .12}s">${escH(x)}</span>`).join('') : '';
     $('penDz').innerHTML = SCN.solo({ shirt: ['#D62839', '#1E9E4F', '#2F80ED', '#C8743A'][Math.floor(Math.random() * 4)], hs: Math.floor(Math.random() * 4) });
-    $('penT').textContent = `${n || 'Alguien'}, ¡te toca bailar!`;
+    $('penT').textContent = ns.length > 1 ? '¡Les toca bailar!' : `${n}, ¡te toca bailar!`;
+    $('penS').textContent = ns.length > 1 ? '¡Pasen al frente! · Un aplauso para animar' : '¡Pasa al frente! · Un aplauso para animar';
     fanfare(); clearTimeout(penT); penT = setTimeout(hidePenit, 12000);
   }
-  function spinPenit(final, names, onReveal) {
+  function spinPenit(finals, names, onReveal) {
     closePick(); closeVideo(); closeAplauso(); closeBien();
-    const pool = names.length ? names : [final];
+    finals = [].concat(finals); const final = finals[0], many = finals.length > 1;
+    const pool = names.length ? names : finals; $('penL').innerHTML = '';
     $('penit').classList.add('open', 'spin'); $('penK').textContent = '¿A quién le toca bailar?'; $('penDz').textContent = '?';
     let k = 0, wait = 60; const t0 = Date.now(); clearTimeout(penSpin); clearTimeout(penT);
     const step = () => {
       $('penT').textContent = pool[k++ % pool.length] || '…'; penTone(880 + (k % 3) * 120, .05, .12, 'square');
-      if (Date.now() - t0 > 2800 && $('penT').textContent === final) { onReveal(); return revealPenit(final); }
+      if (Date.now() - t0 > (many ? 2000 : 2800) && (many || $('penT').textContent === final)) { onReveal(); return revealPenit(finals); }
       wait = Math.min(320, wait * 1.12); penSpin = setTimeout(step, wait);
     };
     step();
   }
   function hidePenit() { clearTimeout(penT); clearTimeout(penSpin); $('penit').classList.remove('open', 'spin'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; }, 500); }
   $('penit').addEventListener('click', hidePenit);
-  async function penitRandom() {
+  // chosen by hand from the phone: list of { h, n }
+  function penitChosen(list) {
+    list = list.filter(c => c && (c.h || c.n)).slice(0, 12); if (!list.length) return;
+    list.forEach(c => c.h && penUsed.add(c.h));
+    const sid = asisSes ? asisSes.id : '';
+    spinPenit(list.map(c => c.n || 'Alguien'), list.map(c => c.n).filter(Boolean), () => { if (penitApi && sid) list.forEach(c => c.h && penitApi.anunciar(sid, c).catch(() => {})); });
+  }
+  async function penitRandom(list) {
+    if (Array.isArray(list) && list.length) return penitChosen(list);
     if (penBusy) return;
     if (!asisSes) { rtoast('No hay una sesión de asistencia abierta'); return; }
     if (!penitApi) { rtoast('Sin conexión con la asistencia'); return; }
@@ -2652,7 +2668,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'closeReveal': { const f = slides[ruletaIdx] && slides[ruletaIdx].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage({ ruleta: 'close' }, '*'); rtoast('Resultado cerrado'); break; }
       case 'video': closePick(); closeAplauso(); openVideo(+arg); rtoast(`Video ${arg}`); break;
       case 'closeVideo': closeVideo(); rtoast('Video cerrado'); break;
-      case 'penit': penitRandom(); break;
+      case 'penit': penitRandom(arg && arg.list); break;
       case 'asis': if (arg === 'close') { closeAsis(); rtoast('QR de asistencia cerrado'); } else { openAsis(); rtoast('QR de asistencia'); } break;
       case 'prensa': if (arg === 'close') { closePrensa(); rtoast('Periódicos cerrados'); } else if (prOpen && arg !== 'both') { prShow(arg); rtoast(`Periódico ${arg}`); } else { openPrensa(arg || 'both'); rtoast('Periódicos'); } break;
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;

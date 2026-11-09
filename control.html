@@ -76,6 +76,15 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .notes{padding:14px 16px;font-size:16px;line-height:1.45;color:#E8EEF8}
 .notes small{display:block;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
+.subh{margin:14px 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pen-info{margin:10px 0 8px;color:var(--muted);font-size:14px}
+.pen-q{width:100%;font:600 16px var(--font);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:14px;height:46px;padding:0 14px;margin-bottom:10px;-webkit-user-select:text;user-select:text}
+.pen-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;padding-right:2px}
+.pen-list button{display:flex;align-items:center;gap:10px;text-align:left;font:600 15px var(--font);color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;min-height:46px;padding:6px 12px}
+.pen-list button i{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid rgba(255,255,255,.5);display:grid;place-items:center;font-style:normal;font-size:14px}
+.pen-list button[aria-pressed=true]{background:rgba(215,38,61,.28);border-color:#F06A7A}
+.pen-list button[aria-pressed=true] i{background:#fff;color:#B21E30;border-color:#fff}
+.pen-list button span{color:var(--muted);font-weight:500;font-size:13px;margin-left:auto}
 .chip{font:700 14px var(--font);color:#fff;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);border-radius:999px;height:40px;padding:0 14px}
 .chip[aria-pressed=true]{background:#fff;color:#0A2346;border-color:#fff}
 .lbl{font-size:12px;color:var(--muted);margin:10px 2px 6px}
@@ -136,7 +145,14 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn green" type="button" data-cmd="asis" data-arg="open">Mostrar QR de asistencia</button>
           <button class="btn" type="button" data-cmd="asis" data-arg="close">Quitar</button>
         </div>
-        <div class="row" style="margin-top:8px"><button class="btn red" type="button" data-cmd="penit" style="flex:1">¿Quién baila? · Penitencia</button></div>
+        <h3 class="subh">Penitencia: ¿quién baila?</h3>
+        <div class="row"><button class="btn" type="button" id="penLoad" style="flex:1">Escoger de la lista</button><button class="btn" type="button" data-cmd="penit">1 al azar</button></div>
+        <div id="penBox" hidden>
+          <p class="pen-info" id="penInfo"></p>
+          <input id="penQ" class="pen-q" type="search" placeholder="Buscar nombre…" autocomplete="off">
+          <div class="pen-list" id="penList"></div>
+          <div class="row" style="margin-top:10px"><button class="btn red" type="button" id="penGo" style="flex:2.2;white-space:nowrap" disabled>¡A bailar!</button><button class="btn" type="button" id="penClr" style="flex:1">Limpiar</button><button class="btn" type="button" id="penRef" style="flex:.6" aria-label="Actualizar la lista">↻</button></div>
+        </div>
       </section>
       <section class="sec glass"><h2>Bienvenida (antes de empezar)</h2>
         <div class="row">
@@ -223,9 +239,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: 'Penitencia: escogiendo a alguien…', asis: 'QR de asistencia' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794183035';
+  const THUMBV = '1794184345';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
@@ -317,12 +333,56 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   }));
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.deck === deck)));
 
+  /* penitencia: list of people who marked attendance in the open session of this deck; pick them by hand */
+  let attApi = null; const penSel = new Map(); let penPeople = [];
+  const shortName = s => String(s || '').trim().split(/\s+/).slice(0, 2).join(' ');
+  function penRender() {
+    const q = $('penQ').value.trim().toLowerCase();
+    const list = penPeople.filter(p => !q || p.nombre.toLowerCase().includes(q));
+    $('penList').innerHTML = list.map(p => `<button type="button" data-h="${p.h}" aria-pressed="${penSel.has(p.h)}"><i>${penSel.has(p.h) ? '✓' : ''}</i>${escT(p.nombre)}<span>${p.hora || ''}</span></button>`).join('') || '<p class="pen-info">Nadie con ese nombre.</p>';
+    $('penList').querySelectorAll('button').forEach(b => b.onclick = () => { const p = penPeople.find(x => x.h === b.dataset.h); if (penSel.has(p.h)) penSel.delete(p.h); else penSel.set(p.h, p); penRender(); });
+    $('penGo').disabled = !penSel.size; $('penGo').textContent = penSel.size ? `¡A bailar! (${penSel.size})` : '¡A bailar!';
+  }
+  async function penLoad() {
+    $('penBox').hidden = false; $('penInfo').textContent = 'Cargando…';
+    if (!attApi) { $('penInfo').textContent = 'Sin conexión con la asistencia.'; return; }
+    try {
+      const r = await attApi.lista(deck);
+      if (!r) { penPeople = []; $('penInfo').textContent = 'No hay una sesión de asistencia abierta.'; penRender(); return; }
+      penPeople = r.people; [...penSel.keys()].forEach(h => { if (!penPeople.some(p => p.h === h)) penSel.delete(h); });
+      $('penInfo').textContent = penPeople.length ? `${penPeople.length} marcaron asistencia · toca a quienes van a bailar` : 'Nadie ha marcado asistencia todavía.';
+      penRender();
+    } catch (e) { $('penInfo').textContent = 'No se pudo cargar la lista. Revisa el internet.'; }
+  }
+  const escT = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  $('penLoad').addEventListener('click', penLoad);
+  $('penRef').addEventListener('click', penLoad);
+  $('penQ').addEventListener('input', penRender);
+  $('penClr').addEventListener('click', () => { penSel.clear(); penRender(); });
+  $('penGo').addEventListener('click', () => {
+    const list = [...penSel.values()].map(p => ({ h: p.h, n: shortName(p.nombre) }));
+    command('penit', { list }); penSel.clear(); penRender();
+  });
+  const pickOpen = (sesiones, d) => {
+    const open = Object.entries(sesiones || {}).filter(([, x]) => x && x.abierta), mine = open.filter(([, x]) => x.deck === d);
+    const l = (mine.length ? mine : open).sort((a, b) => (b[1].fecha || '').localeCompare(a[1].fecha || '') || (b[1].creada || 0) - (a[1].creada || 0));
+    return l.length ? l[0][0] : null;
+  };
+  const hhmm = ms => ms ? new Date(ms).toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit' }) : '';
+  const tms = t => !t ? 0 : typeof t === 'number' ? t : t.toMillis ? t.toMillis() : 0;
+
   let sendFor = null, laserFor = null;
   async function start() {
     if (DEMO) {           // same computer, no internet: BroadcastChannel
       sendFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage(m); };
       laserFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage({ laser: m }); };
-      send = sendFor(deck); sendLaser = laserFor(deck); $('app').hidden = false; status('Modo demo', 'ok'); loadNames(); return;
+      send = sendFor(deck); sendLaser = laserFor(deck); $('app').hidden = false; status('Modo demo', 'ok'); loadNames();
+      attApi = { async lista(d) {
+        const x = JSON.parse(localStorage.getItem('asist-demo-v1') || '{}'), sid = pickOpen(x.sesiones, d); if (!sid) return null;
+        const people = Object.values(x.marcas || {}).filter(m => m.sesion === sid).map(m => ({ h: m.persona, nombre: ((x.personas || {})[m.persona] || {}).nombre || ((x.ids || {})[m.persona] || {}).n || 'Sin nombre', hora: hhmm(m.t) }));
+        return { sid, people: people.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')) };
+      } };
+      return;
     }
     try {
       const V = '10.12.2';
@@ -335,6 +395,18 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
       sendFor = d => m => F.setDoc(F.doc(db, 'trivia', 'remote-' + d), Object.assign(m, { at: F.serverTimestamp() }));
       laserFor = d => (m, k) => F.setDoc(F.doc(db, 'trivia', `remote-${d}-laser${k}`), m);
+      attApi = { async lista(d) {
+        const so = {}; (await F.getDocs(F.query(F.collection(db, 'asist_sesiones'), F.where('abierta', '==', true)))).forEach(x => so[x.id] = x.data());
+        const sid = pickOpen(so, d); if (!sid) return null;
+        const marks = []; (await F.getDocs(F.query(F.collection(db, 'asist_marcas'), F.where('sesion', '==', sid)))).forEach(x => marks.push(x.data()));
+        const people = await Promise.all(marks.map(async m => {
+          let nombre = '';
+          try { const p = await F.getDoc(F.doc(db, 'asist_personas', m.persona)); nombre = p.exists() ? p.data().nombre : ''; } catch (e) {}
+          if (!nombre) { try { const i = await F.getDoc(F.doc(db, 'asist_ids', m.persona)); nombre = i.exists() ? i.data().n : ''; } catch (e) {} }
+          return { h: m.persona, nombre: nombre || 'Sin nombre', hora: hhmm(tms(m.t)) };
+        }));
+        return { sid, people: people.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')) };
+      } };
       // no password: the phone signs in anonymously
       U.onAuthStateChanged(auth, user => {
         if (!user) { U.signInAnonymously(auth).catch(() => { status('Sin conexión', 'bad'); }); return; }
