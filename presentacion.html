@@ -2129,7 +2129,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       say(`¡Bienvenidos! Comenzamos: ${title}`, 3000);
     }
     const BOARD = {
-      aplausos: () => applause(5), wow: () => wow(), ovacion: () => wow(), grillos: () => { const was = music.volume; music.volume = 0; crickets(); clearTimeout(BOARD.gT); BOARD.gT = setTimeout(() => { if (music.volume === 0) music.volume = was || MUSIC_VOL; }, 10200); }, tadan: () => { tadan(); confetti(2600); },
+      aplausos: () => applause(5), wow: () => wow(), ovacion: () => wow(), grillos: () => { const was = music.volume; music.volume = 0; crickets(); clearTimeout(BOARD.gT); BOARD.gT = setTimeout(() => { if (music.volume === 0) music.volume = was || MUSIC_VOL; }, 2200); }, tadan: () => { tadan(); confetti(2600); },
       bocina: () => { airhorn(); shake(); }, error: () => { buzz(); shake(); }, redoble: () => drumroll(2.4, true), intro: () => intro(),
     };
     return { showOn, on, rec, ready, drumroll, crash, airhorn, tadan, fanfare, ding, buzz, applause, wow, crickets, swoosh, beat, say, confetti, shake, intro, introDone: () => introDone, play: k => BOARD[k] && BOARD[k]() };
