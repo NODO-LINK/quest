@@ -1977,35 +1977,68 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(o.vol || .2, t + (o.att || .003)); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
       s.connect(f).connect(g).connect(o.dest || out(a)); s.start(t, Math.random() * 1.5); s.stop(t + len + .05);
     }
+    // ---- real recordings (CC0): Meta Open Sound, hosted with the site; BigSoundBank (Joseph Sardin), loaded from their site ----
+    const BSB = n => `https://bigsoundbank.com/UPLOAD/mp3/${n}.mp3`, LOC = f => `presentacion/sfx/${f}.mp3`;
+    const SAMPLES = {
+      aplausos: [BSB('0019')], ovacion: [BSB('0237')], bocina: [BSB('1831')], redoble: [BSB('2402')],
+      tadan: [LOC('tadan')], tadanLargo: [LOC('tadan_largo')], error: [LOC('error')], record: [LOC('record')],
+      crash: [LOC('crash')], grillos: [LOC('grillos')], campanas: [LOC('campanas')],
+      whoosh: [1, 2, 3, 4, 5, 6].map(i => LOC('whoosh' + i)),
+    };
+    const bank = {};
+    Object.entries(SAMPLES).forEach(([k, urls]) => {
+      bank[k] = urls.map(u => { const el = new Audio(); el.preload = 'auto'; el.src = u; const o = { el, ok: false }; el.addEventListener('canplaythrough', () => o.ok = true, { once: true }); el.addEventListener('error', () => o.ok = false); return o; });
+    });
+    const ready = k => (bank[k] || []).some(o => o.ok);
+    // play a recording; returns a stop(fadeSeconds) function, or null when it is not available (then the synth version plays)
+    function rec(k, o = {}) {
+      if (!on()) return () => {};
+      const opts = (bank[k] || []).filter(x => x.ok); if (!opts.length) return null;
+      const src = opts[Math.floor(Math.random() * opts.length)].el, el = src.cloneNode(true);
+      const vol = Math.max(0, Math.min(1, o.vol == null ? .9 : o.vol)); el.volume = vol; el.loop = !!o.loop;
+      try { el.currentTime = o.from || 0; } catch (e) {}
+      const p = el.play(); if (p && p.catch) p.catch(() => {});
+      let fadeT = 0;
+      const stop = (fade = .4) => { clearInterval(fadeT); const t0 = performance.now(), v0 = el.volume; fadeT = setInterval(() => { const k2 = (performance.now() - t0) / (fade * 1000); if (k2 >= 1) { clearInterval(fadeT); el.pause(); } else el.volume = v0 * (1 - k2); }, 40); };
+      if (o.dur) setTimeout(() => stop(o.fade || .8), o.dur * 1000);
+      return stop;
+    }
     const snare = (a, t, vol) => { nz(a, { t, len: .09, f: 1700 + Math.random() * 300, q: .9, vol }); tone(a, { t, f: 190, f2: 110, len: .08, vol: vol * .5 }); };
     // ---- the sounds ----
     function drumroll(secs = 2.4, crashAtEnd = false) {
-      const a = A(); if (!a || !on()) return () => {};
+      if (!on()) return () => {};
+      const r = rec('redoble', { loop: secs > 4.5, vol: 1 });
+      if (r) { const t = setTimeout(() => { r(.15); if (crashAtEnd) crash(); }, secs * 1000); return () => { clearTimeout(t); r(.15); }; }
+      const a = A(); if (!a) return () => {};
       let stop = false, t = 0; const hits = [];
       while (t < secs) { const p = t / secs; hits.push([t, .05 + .16 * p]); t += .1 - .06 * p; }
       const t0 = a.currentTime;
       const timer = setInterval(() => { if (stop) return; const now = a.currentTime - t0; while (hits.length && hits[0][0] < now + .15) { const [ht, v] = hits.shift(); snare(a, Math.max(0, ht - now), v * (.85 + Math.random() * .3)); } if (!hits.length) { clearInterval(timer); if (crashAtEnd) crash(); } }, 50);
       return () => { stop = true; clearInterval(timer); };
     }
-    function crash() { const a = A(); if (!a || !on()) return; nz(a, { type: 'highpass', f: 4200, len: 1.9, vol: .32, att: .002 }); nz(a, { f: 9000, q: .5, len: 1.2, vol: .14 }); tone(a, { f: 80, f2: 40, len: .4, vol: .35 }); }
+    function crash() { if (rec('crash', { vol: 1 })) return; const a = A(); if (!a || !on()) return; nz(a, { type: 'highpass', f: 4200, len: 1.9, vol: .32, att: .002 }); nz(a, { f: 9000, q: .5, len: 1.2, vol: .14 }); tone(a, { f: 80, f2: 40, len: .4, vol: .35 }); }
     function airhorn() {
+      if (rec('bocina', { vol: 1 })) return;
       const a = A(); if (!a || !on()) return;
       [0, .62].forEach((st, k) => [415, 523, 622].forEach((f, i) => [-8, 6].forEach(d => tone(a, { t: st, f: f * .98, f2: f, glide: .08, type: 'sawtooth', len: k ? .95 : .5, hold: k ? .8 : .38, vol: .07, att: .02, detune: d + i, lp: 2600 }))));
     }
-    function tadan() {
+    function tadan(big) {
+      if (rec(big ? 'tadanLargo' : 'tadan', { vol: 1 })) return;
       const a = A(); if (!a || !on()) return;
       const brass = (t, fs, len) => fs.forEach(f => [-7, 7].forEach(d => tone(a, { t, f, type: 'sawtooth', len, hold: len * .7, vol: .055, att: .03, detune: d, lp: 2200 })));
       brass(0, [392, 494, 587], .16); brass(.2, [523, 659, 784, 1047], 1.5);
       tone(a, { t: .2, f: 130.8, type: 'triangle', len: 1.4, vol: .25 });
     }
     function fanfare() {
+      if (rec('record', { vol: 1 })) return;
       const a = A(); if (!a || !on()) return;
       [[523, 0], [659, .14], [784, .28]].forEach(([f, d]) => [-6, 6].forEach(dt => tone(a, { t: d, f, type: 'sawtooth', len: .26, vol: .06, detune: dt, lp: 2400 })));
       [523, 659, 784, 1047].forEach(f => [-7, 7].forEach(dt => tone(a, { t: .46, f, type: 'sawtooth', len: 1.3, hold: .9, vol: .05, att: .02, detune: dt, lp: 2400 })));
     }
     function ding() { const a = A(); if (!a || !on()) return; [[1318.5, 0], [1760, .16]].forEach(([f, t]) => { tone(a, { t, f, len: 1.1, vol: .22 }); tone(a, { t, f: f * 2.01, len: .5, vol: .06 }); }); }
-    function buzz() { const a = A(); if (!a || !on()) return; [110, 116.5].forEach(f => tone(a, { f, type: 'square', len: .75, hold: .6, vol: .12, lp: 1400 })); }
+    function buzz() { if (rec('error', { vol: 1 })) return; const a = A(); if (!a || !on()) return; [110, 116.5].forEach(f => tone(a, { f, type: 'square', len: .75, hold: .6, vol: .12, lp: 1400 })); }
     function applause(secs = 3.5) {
+      if (rec('aplausos', { vol: 1, from: .3, dur: secs + 1, fade: 1.6 })) return;
       const a = A(); if (!a || !on()) return;
       const n = Math.floor(secs * 45);
       for (let i = 0; i < n; i++) {
@@ -2014,7 +2047,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       }
       nz(a, { len: secs, f: 1800, q: .4, vol: .05, att: .3 });
     }
-    function wow() {   // crowd "uuuuh!"
+    function wow() {   // crowd cheering ("¡yeah!" + applause); synthesized "uuuh" only as a fallback
+      if (rec('ovacion', { vol: 1 })) return;
       const a = A(); if (!a || !on()) return;
       const f1 = a.createBiquadFilter(), f2 = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
       f1.type = 'bandpass'; f1.frequency.value = 380; f1.Q.value = 3; f2.type = 'bandpass'; f2.frequency.value = 820; f2.Q.value = 4;
@@ -2028,12 +2062,13 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       }
     }
     function crickets(secs = 3.2) {
+      if (rec('grillos', { vol: 1 })) return;
       const a = A(); if (!a || !on()) return;
       [[4600, 0], [4150, .27]].forEach(([f, off]) => {
         for (let t = off; t < secs; t += .62 + Math.random() * .1) for (let k = 0; k < 3; k++) tone(a, { t: t + k * .055, f, len: .04, vol: .05, att: .004 });
       });
     }
-    function swoosh() { const a = A(); if (!a || !on()) return; nz(a, { f: 300, f2: 3200, len: .45, vol: .18, q: .9 }); tone(a, { f: 90, f2: 45, len: .35, vol: .2 }); }
+    function swoosh() { if (rec('whoosh', { vol: .8 })) return; const a = A(); if (!a || !on()) return; nz(a, { f: 300, f2: 3200, len: .45, vol: .18, q: .9 }); tone(a, { f: 90, f2: 45, len: .35, vol: .2 }); }
     // dance beat while the penitencia banner is up
     function beat(secs = 12) {
       const a = A(); if (!a || !on()) return () => {};
@@ -2090,14 +2125,14 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       introDone = true;
       const title = (document.title.split('·')[0] || '').trim();
       drumroll(2.3);
-      setTimeout(() => { crash(); tadan(); confetti(); shake(); }, 2350);
+      setTimeout(() => { crash(); tadan(true); confetti(); shake(); }, 2350);
       say(`¡Bienvenidos! Comenzamos: ${title}`, 3000);
     }
     const BOARD = {
-      aplausos: () => applause(4), wow: () => wow(), grillos: () => crickets(), tadan: () => { tadan(); confetti(2600); },
+      aplausos: () => applause(5), wow: () => wow(), ovacion: () => wow(), grillos: () => crickets(), tadan: () => { tadan(); confetti(2600); },
       bocina: () => { airhorn(); shake(); }, error: () => { buzz(); shake(); }, redoble: () => drumroll(2.4, true), intro: () => intro(),
     };
-    return { showOn, on, drumroll, crash, airhorn, tadan, fanfare, ding, buzz, applause, wow, crickets, swoosh, beat, say, confetti, shake, intro, introDone: () => introDone, play: k => BOARD[k] && BOARD[k]() };
+    return { showOn, on, rec, ready, drumroll, crash, airhorn, tadan, fanfare, ding, buzz, applause, wow, crickets, swoosh, beat, say, confetti, shake, intro, introDone: () => introDone, play: k => BOARD[k] && BOARD[k]() };
   })();
 
   const timers = new Map();
@@ -2135,7 +2170,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (tr === 'curtain') { const c = $('curtain'); c.classList.remove('run'); void c.offsetWidth; c.classList.add('run'); }
     if (/^(zoom|slide|slideback|iris|wipe)$/.test(tr)) { sl.style.transition = 'none'; sl.classList.add('from-' + tr); void sl.offsetWidth; sl.style.transition = ''; }
     sl.classList.add('cur'); sl.classList.remove('from-zoom', 'from-slide', 'from-slideback', 'from-iris', 'from-wipe');
-    if (!first) sfx.whoosh(tr);
+    if (!first) { let real = false; try { real = SHOW.on() && SHOW.ready('whoosh') && !!SHOW.rec('whoosh', { vol: .55 }); } catch (e) {} if (!real) sfx.whoosh(tr); }
     if (!first && i === PORTADA && !SHOW.introDone() && SHOW.on()) setTimeout(() => { if (cur === PORTADA && !SHOW.introDone()) SHOW.intro(); }, 900);   // arriving at the cover starts the show
     sfx.entrances(sl);
     requestAnimationFrame(() => requestAnimationFrame(() => { sl.classList.add('on'); sl.querySelectorAll('[data-count]').forEach(countUp); }));
@@ -2749,6 +2784,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       + sec('Las cinco generaciones', ['Precursora', 'Fundadora', 'Intermedia', 'De Oro', 'Genial'])
       + sec('Pensamiento pedagógico', ['Antonio Pérez Esclarín'])
       + sec('Y el protagonista de este show', ['Tú, que participaste'])
+      + sec('Efectos de sonido', ['Meta Open Sound · BigSoundBank (Joseph Sardin)', 'Licencia CC0'])
       + `<div class="fin">¡Gracias por participar!</div><p>Con el pueblo siempre</p>`;
     credOpen = true; $('creditos').classList.remove('open'); void $('creditos').offsetWidth; $('creditos').classList.add('open');
     music.volume = MUSIC_UP; startMusic(); SHOW.tadan(); wake();
@@ -2782,7 +2818,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       SHOW.crash(); SHOW.airhorn(); SHOW.confetti(); SHOW.shake();
       const list = ns.length > 1 ? ns.slice(0, -1).join(', ') + ' y ' + ns[ns.length - 1] : n;
       SHOW.say(ns.length > 1 ? `¡Les toca bailar a ${list}!` : `¡Le toca bailar a ${n}!`, 1300);
-      penBeat = SHOW.beat(14);
+      if (!music.paused) { music.volume = .65; penBeat = () => {}; } else penBeat = SHOW.beat(14);   // dance to the show music
     } else fanfare();
     clearTimeout(penT); penT = setTimeout(hidePenit, 14000);
   }

@@ -421,6 +421,19 @@ html.embed .stage{max-width:700px}
     const g = ac.createGain(); g.gain.value = 0.16;
     s.connect(f).connect(g).connect(ac.destination); s.start(t);
   }
+  // real recordings (CC0): drum roll from BigSoundBank, crash and "ta-dan" from Meta Open Sound; synthesized ones are the fallback
+  const REAL = (() => {
+    const mk = u => { const el = new Audio(); el.preload = 'auto'; el.src = u; const o = { el, ok: false }; el.addEventListener('canplaythrough', () => o.ok = true, { once: true }); return o; };
+    const roll = mk('https://bigsoundbank.com/UPLOAD/mp3/2402.mp3'), crash = mk('presentacion/sfx/crash.mp3'), tadan = mk('presentacion/sfx/tadan_largo.mp3');
+    let rollEl = null;
+    const play = (o, loop) => { if (!soundOn || !o.ok) return null; const el = o.el.cloneNode(true); el.loop = !!loop; el.volume = 1; const p = el.play(); if (p && p.catch) p.catch(() => {}); return el; };
+    return {
+      rollStart() { if (rollEl) rollEl.pause(); rollEl = play(roll, true); return !!rollEl; },
+      rollStop() { if (rollEl) { const el = rollEl; rollEl = null; let v = el.volume; const t = setInterval(() => { v -= .2; if (v <= 0) { clearInterval(t); el.pause(); } else el.volume = v; }, 30); } },
+      rolling: () => !!rollEl,
+      finish() { const a = play(crash), b = play(tadan); return !!(a || b); },
+    };
+  })();
   const tellParent = m => { try { if (window.parent !== window) parent.postMessage({ ruletaSound: m }, '*'); } catch (e) {} };
   function fanfare() {
     if (!soundOn || !ac) return;
@@ -499,7 +512,7 @@ html.embed .stage{max-width:700px}
     windAmt = reduce.matches ? 0 : 0.16; windDur = reduce.matches ? 0 : 320;
     spinDur = reduce.matches ? 1300 : 6200 + rand() * 1300;
     spinStart = performance.now(); spinning = true; winIdx = -1; lastIdx = idxAt(rot); rollNext = 0;
-    tellParent('duck');
+    tellParent('duck'); REAL.rollStart();
     updateUI();
     kick();
   }
@@ -516,7 +529,7 @@ html.embed .stage{max-width:700px}
     history.push(targetN); save();
     updateUI(true);
     $('#live').textContent = `Salió el número ${targetN}`;
-    crash(); fanfare();
+    REAL.rollStop(); if (!REAL.finish()) { crash(); fanfare(); }
     setTimeout(() => { showReveal(targetN); confetti(); fireworks(); }, 380);
     setTimeout(() => tellParent('unduck'), 4500);
   }
@@ -532,7 +545,7 @@ html.embed .stage{max-width:700px}
         pAng = Math.min(pAng, -4) - 16; pVel = 0;
         if (now - lastTick > 28) { tickSound(); lastTick = now; }
       }
-      drumRoll(Math.max(0, (t - windDur) / spinDur));
+      if (!REAL.rolling()) drumRoll(Math.max(0, (t - windDur) / spinDur));
       if (t >= windDur + spinDur) finish();
     }
     pVel += -pAng * 0.3; pVel *= 0.6; pAng += pVel;
