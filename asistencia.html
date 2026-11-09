@@ -1687,6 +1687,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async getSesion(id) { return st().sesiones[id] || null; },
       async saveSesion(id, data) { const s = st(); s.sesiones[id] = Object.assign({}, s.sesiones[id], data); save(s); },
       async idInfo(h) { return st().ids[h] || null; },
+      async constancia(h) { const s = st(); return { persona: s.personas[h] || null, marcas: Object.values(s.marcas).filter(m => m.persona === h), sesiones: s.sesiones, cfg: s.config || DEF_CFG }; },
       async registrarYMarcar(h, persona, sid) {
         const s = st(); if (s.personas[h]) throw { code: 'permission-denied' };
         if (!s.sesiones[sid] || !s.sesiones[sid].abierta) throw { code: 'permission-denied' };
@@ -1748,6 +1749,14 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async getSesion(id) { const d = await F.getDoc(F.doc(db, 'asist_sesiones', id)); return d.exists() ? d.data() : null; },
       async saveSesion(id, data) { await F.setDoc(F.doc(db, 'asist_sesiones', id), data, { merge: true }); },
       async idInfo(h) { const d = await F.getDoc(F.doc(db, 'asist_ids', h)); return d.exists() ? d.data() : null; },
+      async constancia(h) {
+        await init();
+        const p = await F.getDoc(F.doc(db, 'asist_personas', h));
+        const marcas = []; (await F.getDocs(F.query(F.collection(db, 'asist_marcas'), F.where('persona', '==', h)))).forEach(d => marcas.push(d.data()));
+        const sesiones = {}; await Promise.all([...new Set(marcas.map(m => m.sesion))].map(async id => { const d = await F.getDoc(F.doc(db, 'asist_sesiones', id)); if (d.exists()) sesiones[id] = d.data(); }));
+        let cfg = DEF_CFG; try { const c = await F.getDoc(F.doc(db, 'asist_config', 'main')); if (c.exists()) cfg = Object.assign({}, DEF_CFG, c.data()); } catch (e) {}
+        return { persona: p.exists() ? p.data() : null, marcas, sesiones, cfg };
+      },
       async registrarYMarcar(h, persona, sid) {
         const uid = auth.currentUser.uid, b = F.writeBatch(db);
         b.set(F.doc(db, 'asist_personas', h), Object.assign({}, persona, { creado: F.serverTimestamp(), uid }));
@@ -1855,6 +1864,71 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       $('#other').onclick = () => { stop(); stepCed(); };
     };
     stepCed();
+  }
+
+  /* ================= constancia (QR at the end of the formation) ================= */
+  async function constancia() {
+    try { await DB.start(() => {}); } catch (e) {}
+    const shell = inner => { root.innerHTML = `<div class="wrap"><header class="top">${brand('Constancia de participación')}</header><div class="glass pad" id="cc">${inner}</div></div>`; };
+    const ask = () => {
+      shell(`<h1 style="margin-top:0">Tu constancia</h1><p class="muted">Escribe tu cédula para ver y descargar tu constancia de participación.</p>
+        <form id="cf"><label for="cced">Cédula</label><input id="cced" inputmode="numeric" maxlength="10" autocomplete="off" required placeholder="Ej.: 12345678">
+        <button class="btn primary" type="submit" style="margin-top:14px">Ver mi constancia</button><div class="msg" id="cm"></div></form>`);
+      $('#cced').focus();
+      $('#cf').addEventListener('submit', async e => {
+        e.preventDefault(); const ced = $('#cced').value.replace(/\D/g, '');
+        if (ced.length < 5) { $('#cm').textContent = 'Escribe una cédula válida.'; return; }
+        $('#cm').textContent = 'Buscando…';
+        try { const r = await DB.constancia(await hashCed(ced)); if (!r.persona) { $('#cm').textContent = 'No encontramos esa cédula. ¿Marcaste tu asistencia con el QR?'; return; } show(r, ced); }
+        catch (err) { $('#cm').textContent = 'No se pudo consultar. Revisa el internet e intenta de nuevo.'; }
+      });
+    };
+    const fmtCed = c => 'V-' + String(c).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const show = async (r, ced) => {
+      const p = r.persona, C = (r.cfg && r.cfg.culminar) || 5;
+      const ms = r.marcas.slice().sort((a, b) => tsMs(a.t) - tsMs(b.t));
+      const fechas = ms.map(m => (r.sesiones[m.sesion] || {}).fecha).filter(Boolean);
+      const mod = (ms.map(m => (r.sesiones[m.sesion] || {}).modulo).find(Boolean)) || formFull(FORMACIONES[0]);
+      const g = GENS[p.gen] || { n: '' }, n = ms.length, ok = n >= C;
+      shell(`<p class="muted" style="margin:0 0 12px">Generando tu constancia…</p>`);
+      const url = await drawCert({ nombre: p.nombre, ced: fmtCed(ced), gen: g.n, coord: p.coord, mod, n, fechas, ok, C, code: (await hashCed(ced)).slice(0, 8).toUpperCase() });
+      shell(`<img src="${url}" alt="Constancia de participación de ${esc(p.nombre)}" style="width:100%;border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.35)">
+        <p class="muted" style="margin:12px 0 0;text-align:center">${ok ? '¡Felicitaciones, culminaste la formación!' : `Llevas ${n} de ${C} asistencias para culminar.`}</p>
+        <a class="btn primary" style="display:flex;align-items:center;justify-content:center;margin-top:14px;text-decoration:none" href="${url}" download="Constancia-${esc(firstName(p.nombre))}.png">Descargar imagen</a>
+        <button class="btn" id="cpdf" style="width:100%;margin-top:10px">Guardar como PDF / imprimir</button>
+        <button class="btn" id="cotra" style="width:100%;margin-top:10px">Ver otra cédula</button>`);
+      $('#cpdf').onclick = () => { const w = window.open(''); if (!w) return; w.document.write(`<title>Constancia</title><style>@page{size:landscape;margin:0}body{margin:0}img{width:100%;display:block}</style><img src="${url}" onload="setTimeout(()=>print(),200)">`); w.document.close(); };
+      $('#cotra').onclick = ask;
+    };
+    ask();
+  }
+  // the certificate is drawn on a canvas so it can be saved as an image (A4 landscape, 2000 x 1414)
+  async function drawCert(d) {
+    const W = 2000, H = 1414, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
+    const logo = await img('logo/mara-logo.svg');
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, W, H);
+    const band = (y, h) => { [['#1E9E4F', 0], ['#F2C12E', 1], ['#2F80ED', 2], ['#D62839', 3]].forEach(([col, k]) => { x.fillStyle = col; x.fillRect(k * W / 4, y, W / 4, h); }); };
+    band(0, 22); band(H - 22, 22);
+    x.strokeStyle = '#C9A227'; x.lineWidth = 4; x.strokeRect(60, 70, W - 120, H - 140); x.lineWidth = 1.5; x.strokeRect(78, 88, W - 156, H - 176);
+    if (logo) { const lw = 520, lh = lw * 228 / 488; x.drawImage(logo, (W - lw) / 2, 120, lw, lh); }
+    const center = (t, y, font, col) => { x.font = font; x.fillStyle = col; x.textAlign = 'center'; x.fillText(t, W / 2, y); };
+    const wrap = (t, y, font, col, maxW, lh) => { x.font = font; x.fillStyle = col; x.textAlign = 'center'; const words = String(t).split(' '); let line = '', yy = y; for (const w of words) { const test = line ? line + ' ' + w : w; if (x.measureText(test).width > maxW && line) { x.fillText(line, W / 2, yy); line = w; yy += lh; } else line = test; } if (line) x.fillText(line, W / 2, yy); return yy; };
+    center('CONSTANCIA DE PARTICIPACIÓN', 470, '700 64px Georgia, "Times New Roman", serif', '#0B1426');
+    center('Se hace constar que', 560, 'italic 34px Georgia, serif', '#445066');
+    center(d.nombre.toUpperCase(), 655, '700 76px Georgia, serif', '#B21E30');
+    x.fillStyle = '#C9A227'; x.fillRect(W / 2 - 360, 690, 720, 3);
+    center(`C.I. ${d.ced}${d.gen ? '  ·  Generación ' + d.gen : ''}`, 750, '600 32px system-ui, sans-serif', '#0B1426');
+    let y = wrap(d.coord ? 'Coordinación: ' + d.coord : '', 800, '400 30px system-ui, sans-serif', '#445066', 1500, 40);
+    y = wrap(`participó en el ${d.mod}, con ${d.n} ${d.n === 1 ? 'asistencia' : 'asistencias'}${d.fechas.length ? ' (' + d.fechas.slice(0, 8).map(f => f.split('-').reverse().join('/')).join(', ') + (d.fechas.length > 8 ? '…' : '') + ')' : ''}.`, y + 70, '400 34px system-ui, sans-serif', '#0B1426', 1600, 48);
+    const badge = d.ok ? 'CULMINÓ LA FORMACIÓN' : `FORMACIÓN EN CURSO · ${d.n} DE ${d.C} ASISTENCIAS`;
+    x.font = '800 30px system-ui, sans-serif'; const bw = x.measureText(badge).width + 80, by = Math.min(y + 70, 1110);
+    x.fillStyle = d.ok ? '#1E9E4F' : '#2F80ED'; x.beginPath(); x.roundRect((W - bw) / 2, by, bw, 66, 33); x.fill(); center(badge, by + 44, '800 30px system-ui, sans-serif', '#FFFFFF');
+    const today = new Date().toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
+    center(`Municipio Mara, ${today}`, 1240, '400 28px system-ui, sans-serif', '#445066');
+    center('Dirección General  ·  Dirección de Planificación y Desarrollo', 1285, '600 26px system-ui, sans-serif', '#0B1426');
+    x.textAlign = 'right'; x.font = '400 20px system-ui, sans-serif'; x.fillStyle = '#8A93A6'; x.fillText(`Constancia generada en línea · Código ${d.code}`, W - 100, H - 100);
+    return c.toDataURL('image/png');
   }
 
   /* ================= admin ================= */
@@ -2090,7 +2164,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     $('#pr').innerHTML = ms.slice(0, 8).map(m => { const p = S.per[m.persona]; return p ? `<span>${esc(firstName(p.nombre))} ${esc((p.nombre.split(' ')[1] || '').slice(0, 1))}.</span>` : ''; }).join('');
   }
 
-  if (ADMIN) admin(); else if (SID) participant();
+  if (ADMIN) admin(); else if (SID) participant(); else if (P.has('constancia')) constancia();
   else root.innerHTML = `<div class="wrap"><header class="top">${brand('Registro de asistencia')}</header><div class="glass pad"><h2>Escanea el código QR</h2><p class="muted">Para marcar tu asistencia, escanea el código QR que proyecta el facilitador en la sesión.</p></div></div>`;
 })();
 </script>

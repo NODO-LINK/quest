@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A2346">
+<title>Tu mensaje · Plan de Formación · Alcaldía de Mara</title>
+<link rel="icon" href="logo/mara-bandera.svg" type="image/svg+xml">
+<!--
+  MENSAJES DEL PÚBLICO (se abre con el QR de la esquina de cada diapositiva de generación)
+  · mensajes.html?g=precursora|fundadora|intermedia|oro|genial
+  · El mensaje aparece en la esquina de la diapositiva de esa generación.
+  · Prueba sin internet: mensajes.html?demo&g=fundadora
+-->
+<style>
+:root{color-scheme:dark;--bg:#0A2346;--ink:#fff;--muted:#B8C7DD;--gc:#F2C12E;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);background-image:radial-gradient(60vmax 45vmax at 110% 110%,rgba(30,158,79,.3),transparent 60%),radial-gradient(55vmax 40vmax at -10% 0%,rgba(42,100,180,.45),transparent 60%),linear-gradient(170deg,#0E3366,#0A2346 55%,#081B38);background-attachment:fixed;padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+.wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{height:42px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+.brand small{display:block;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.brand b{display:block;font-size:17px}
+.card{border-radius:24px;padding:20px;background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.35),0 14px 36px rgba(2,10,30,.35)}
+.chip{display:inline-block;font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#0B1426;background:var(--gc);border-radius:999px;padding:6px 14px}
+h1{font-size:24px;line-height:1.25;margin:14px 0 6px}
+p{margin:0;color:var(--muted);line-height:1.45}
+label{display:block;font-size:14px;font-weight:700;margin:16px 0 6px}
+textarea,input{width:100%;font:600 17px var(--font);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.26);border-radius:16px;padding:12px 14px}
+textarea{min-height:96px;resize:none}
+.count{text-align:right;font-size:12px;color:var(--muted);margin-top:4px}
+.btn{width:100%;margin-top:16px;font:800 17px var(--font);color:#0B1426;background:var(--gc);border:0;border-radius:16px;height:54px;cursor:pointer}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}
+.msg{min-height:1.2em;margin-top:10px;color:#FFB4B4;font-size:14px}
+.ok{text-align:center;padding:10px 0}
+.ok .tick{width:76px;height:76px;border-radius:50%;margin:6px auto 12px;display:grid;place-items:center;background:#1E9E4F}
+.ok blockquote{margin:14px 0 0;font-size:18px;font-style:italic;color:#fff}
+:focus-visible{outline:3px solid #9EC0F5;outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="logo/mara-bandera.svg" alt=""><div><small>Alcaldía Bolivariana de Mara</small><b>Plan de Formación</b></div></div>
+  <main class="card" id="card"><p>Cargando…</p></main>
+</div>
+<script type="module">
+const FB = {
+    apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y",
+    authDomain: "nodocount.firebaseapp.com",
+    projectId: "nodocount",
+    storageBucket: "nodocount.firebasestorage.app",
+    messagingSenderId: "344018240488",
+    appId: "1:344018240488:web:4f53aad4801445f21b5a5d"
+  };
+const P = new URLSearchParams(location.search), DEMO = P.has('demo') || !FB;
+const GQ = {
+  precursora: ['Precursora', '#C8743A', '¿Qué enseñanza de nuestros mayores debemos conservar?'],
+  fundadora: ['Fundadora', '#D62839', '¿Qué consejo le darías a las nuevas generaciones?'],
+  intermedia: ['Intermedia', '#2F80ED', '¿Cómo unimos la experiencia con las ideas nuevas?'],
+  oro: ['De Oro', '#F2C12E', '¿Qué crearías para tu comunidad: un podcast, un video, una app…?'],
+  genial: ['Genial', '#19C3E6', '¿Qué problema de Mara resolverías con tecnología?'],
+};
+const BAD = /\b(mierda|co[ñn]o|carajo|put[ao]s?|marico|maric[oó]n|mamague[vb]o|verga|joder|pendej[oa]|hu?e[vb]?[oó]n|idiota|est[uú]pid[oa]|maldit[oa]|cul[oe]|chupa|gonorrea|malparid[oa])\b/i;
+const $ = s => document.querySelector(s), card = $('#card');
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const g = GQ[P.get('g')] ? P.get('g') : null;
+if (!g) { card.innerHTML = '<h1>Código no válido</h1><p>Escanea de nuevo el QR que está en la pantalla.</p>'; throw 0; }
+const [gName, gColor, question] = GQ[g];
+document.documentElement.style.setProperty('--gc', gColor);
+let lastSent = 0, savedName = '';
+try { savedName = localStorage.getItem('msg-name') || ''; } catch (e) {}
+
+// data: Firebase (nodocount) or localStorage in ?demo
+let send;
+if (DEMO) {
+  send = async (t, n) => { const d = JSON.parse(localStorage.getItem('msg-demo-v1') || '{}'); (d[g] = d[g] || []).push({ id: Math.random().toString(36).slice(2), t, n, at: Date.now() }); localStorage.setItem('msg-demo-v1', JSON.stringify(d)); };
+} else {
+  const V = '10.12.2';
+  const [A, U, F] = await Promise.all([import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`), import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`), import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)]);
+  const app = A.initializeApp(FB, 'mensajes'), auth = U.getAuth(app), db = F.initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+  await new Promise(r => U.onAuthStateChanged(auth, u => { if (u) r(); else U.signInAnonymously(auth).catch(() => r()); }));
+  send = async (t, n) => { await F.addDoc(F.collection(db, 'msg', g, 'items'), { t, n, at: F.serverTimestamp(), uid: auth.currentUser.uid }); };
+}
+
+function form() {
+  card.innerHTML = `<span class="chip">Generación ${esc(gName)}</span>
+    <h1>${esc(question)}</h1><p>Tu mensaje sale en la pantalla grande, en la esquina de esta generación.</p>
+    <form id="f"><label for="t">Tu mensaje</label><textarea id="t" maxlength="90" required placeholder="Escribe una frase corta…"></textarea><div class="count" id="cnt">0 / 90</div>
+    <label for="n">Tu nombre (opcional)</label><input id="n" maxlength="20" autocomplete="given-name" placeholder="Ej.: María" value="${esc(savedName)}">
+    <button class="btn" type="submit" id="go">Enviar a la pantalla</button><div class="msg" id="m" role="alert"></div></form>`;
+  $('#t').addEventListener('input', () => { $('#cnt').textContent = `${$('#t').value.length} / 90`; });
+  $('#t').focus();
+  $('#f').addEventListener('submit', async e => {
+    e.preventDefault(); $('#m').textContent = '';
+    const t = $('#t').value.replace(/\s+/g, ' ').trim(), n = $('#n').value.replace(/\s+/g, ' ').trim().slice(0, 20);
+    if (t.length < 2) { $('#m').textContent = 'Escribe un mensaje un poco más largo.'; return; }
+    if (BAD.test(t + ' ' + n)) { $('#m').textContent = 'Usa otras palabras, por favor: es para todo el público.'; return; }
+    const wait = 15 - Math.floor((Date.now() - lastSent) / 1000);
+    if (wait > 0) { $('#m').textContent = `Espera ${wait} segundos para enviar otro.`; return; }
+    $('#go').disabled = true;
+    try { await send(t, n); lastSent = Date.now(); try { localStorage.setItem('msg-name', n); } catch (x) {} savedName = n; done(t, n); }
+    catch (err) { $('#m').textContent = /permission/i.test(String(err && err.code)) ? 'No se pudo enviar (faltan las reglas en Firebase).' : 'No se pudo enviar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; }
+  });
+}
+function done(t, n) {
+  if (navigator.vibrate) navigator.vibrate(40);
+  card.innerHTML = `<div class="ok"><div class="tick"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h1 style="margin:0">¡Enviado!</h1><p>Míralo en la pantalla grande.</p><blockquote>“${esc(t)}”${n ? `<br><small>— ${esc(n)}</small>` : ''}</blockquote>
+    <button class="btn ghost" id="again">Enviar otro mensaje</button></div>`;
+  $('#again').onclick = form;
+}
+form();
+</script>
+</body>
+</html>

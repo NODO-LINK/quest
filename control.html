@@ -170,6 +170,18 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn fxb" type="button" data-cmd="sfx" data-arg="intro"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5Z"/></svg><span>Arrancar show</span></button>
         </div>
         <div class="row" style="margin-top:8px"><button class="btn" type="button" data-cmd="creditos">Créditos finales</button><button class="btn" type="button" data-cmd="creditos" data-arg="close">Quitar créditos</button></div>
+        <div class="row" style="margin-top:8px"><button class="btn green" type="button" data-cmd="constancia">QR de constancia</button><button class="btn" type="button" data-cmd="constancia" data-arg="close">Quitar</button></div>
+      </section>
+      <section class="sec glass"><h2>Mensajes del público</h2>
+        <p class="pen-info" style="margin-top:0">Salen en la esquina de las diapositivas de cada generación. Toca ✕ para quitar uno de la pantalla.</p>
+        <div class="chips" id="mgTabs">
+          <button class="chip" type="button" data-g="precursora" aria-pressed="true">Precursora</button>
+          <button class="chip" type="button" data-g="fundadora" aria-pressed="false">Fundadora</button>
+          <button class="chip" type="button" data-g="intermedia" aria-pressed="false">Intermedia</button>
+          <button class="chip" type="button" data-g="oro" aria-pressed="false">De Oro</button>
+          <button class="chip" type="button" data-g="genial" aria-pressed="false">Genial</button>
+        </div>
+        <div class="pen-list" id="mgList" style="margin-top:10px"></div>
       </section>
       <section class="sec glass"><h2>Bienvenida (antes de empezar)</h2>
         <div class="row">
@@ -256,9 +268,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos'];
-  const THUMBV = '1794186039';
+  const THUMBV = '1794191946';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
@@ -388,12 +400,24 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const hhmm = ms => ms ? new Date(ms).toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit' }) : '';
   const tms = t => !t ? 0 : typeof t === 'number' ? t : t.toMillis ? t.toMillis() : 0;
 
+  /* messages from the audience (corner of the generation slides): list + remove */
+  let msgCtl = null, mgG = 'precursora';
+  function mgRender(list) {
+    $('mgList').innerHTML = list.length ? list.map(m => `<button type="button" data-id="${escT(m.id)}"><i>✕</i>“${escT(m.t)}”${m.n ? ` — ${escT(m.n)}` : ''}<span>${hhmm(tms(m.at))}</span></button>`).join('') : '<p class="pen-info">Todavía no hay mensajes de esta generación.</p>';
+    $('mgList').querySelectorAll('button').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar este mensaje de la pantalla?')) return; try { await msgCtl.del(mgG, b.dataset.id); toast('Mensaje quitado'); } catch (e) { toast('No se pudo quitar'); } });
+  }
+  $('mgTabs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('mgTabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); mgG = b.dataset.g; if (msgCtl) msgCtl.watch(mgG, mgRender); }));
+
   let sendFor = null, laserFor = null;
   async function start() {
     if (DEMO) {           // same computer, no internet: BroadcastChannel
       sendFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage(m); };
       laserFor = d => { const ch = new BroadcastChannel('remote-' + d); return async m => ch.postMessage({ laser: m }); };
       send = sendFor(deck); sendLaser = laserFor(deck); $('app').hidden = false; status('Modo demo', 'ok'); loadNames();
+      let mgT = 0;
+      msgCtl = { watch(g, cb) { clearInterval(mgT); const f = () => { try { const d = JSON.parse(localStorage.getItem('msg-demo-v1') || '{}'); cb((d[g] || []).slice().sort((a, b) => b.at - a.at).slice(0, 20)); } catch (e) {} }; f(); mgT = setInterval(f, 1500); },
+        async del(g, id) { const d = JSON.parse(localStorage.getItem('msg-demo-v1') || '{}'); d[g] = (d[g] || []).filter(x => x.id !== id); localStorage.setItem('msg-demo-v1', JSON.stringify(d)); } };
+      msgCtl.watch(mgG, mgRender);
       attApi = { async lista(d) {
         const x = JSON.parse(localStorage.getItem('asist-demo-v1') || '{}'), sid = pickOpen(x.sesiones, d); if (!sid) return null;
         const people = Object.values(x.marcas || {}).filter(m => m.sesion === sid).map(m => ({ h: m.persona, nombre: ((x.personas || {})[m.persona] || {}).nombre || ((x.ids || {})[m.persona] || {}).n || 'Sin nombre', hora: hhmm(m.t) }));
@@ -412,6 +436,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
       const auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
       sendFor = d => m => F.setDoc(F.doc(db, 'trivia', 'remote-' + d), Object.assign(m, { at: F.serverTimestamp() }));
       laserFor = d => (m, k) => F.setDoc(F.doc(db, 'trivia', `remote-${d}-laser${k}`), m);
+      let mgUn = null;
+      msgCtl = { watch(g, cb) { if (mgUn) mgUn(); mgUn = F.onSnapshot(F.query(F.collection(db, 'msg', g, 'items'), F.orderBy('at', 'desc'), F.limit(20)), qs => { const l = []; qs.forEach(x => l.push(Object.assign({ id: x.id }, x.data()))); cb(l); }, () => {}); },
+        async del(g, id) { await F.deleteDoc(F.doc(db, 'msg', g, 'items', id)); } };
+      setTimeout(() => msgCtl.watch(mgG, mgRender), 1500);
       attApi = { async lista(d) {
         const so = {}; (await F.getDocs(F.query(F.collection(db, 'asist_sesiones'), F.where('abierta', '==', true)))).forEach(x => so[x.id] = x.data());
         const sid = pickOpen(so, d); if (!sid) return null;

@@ -312,6 +312,44 @@ html.showShake body{animation:showShake .6s cubic-bezier(.36,.07,.19,.97)}
 #credRoll .fin{font:700 clamp(40px,5vw,84px)/1.1 var(--head);margin:120px 0 30px}
 #credX{position:fixed;top:14px;right:14px;z-index:27;font:700 15px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:999px;height:42px;padding:0 16px;cursor:pointer}
 body.idle #credX{opacity:0;transition:opacity .4s}
+/* corner card on the generation slides: QR + question + the audience's messages, live */
+#genq{position:absolute;z-index:6;display:flex;gap:14px;align-items:center;padding:12px 16px 12px 12px;border-radius:20px;background:rgba(8,14,30,.72);border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 14px 34px rgba(0,0,0,.4);opacity:0;transform:translateY(-10px);transition:opacity .5s ease .6s,transform .5s ease .6s}
+#genq.on{opacity:1;transform:none}
+#genq.pa{left:1172px;top:18px;width:412px;height:156px}
+#genq.pb{left:860px;top:668px;width:690px;height:142px}
+#genq canvas{flex:none;width:122px;height:122px;border-radius:10px;background:#fff;padding:6px;image-rendering:pixelated}
+#genq.pb canvas{width:116px;height:116px}
+#genq .gq{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+#genq .gk{font:800 13px var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--gc,#F2C12E)}
+#genq .gt{font:700 16px/1.25 var(--body);color:#fff}
+#genq.pb .gt{font-size:18px}
+#genq .gm{font:italic 600 15px/1.3 var(--body);color:#FFE9A8;min-height:20px;max-height:40px;overflow:hidden}
+#genq.pb .gm{font-size:17px;max-height:44px}
+#genq .gm.new{animation:gmIn .6s ease}
+#genq .gm b{font-style:normal;color:var(--gc,#F2C12E)}
+#genq .gc{font:700 13px var(--body);color:rgba(255,255,255,.6)}
+@keyframes gmIn{from{opacity:0;transform:translateY(8px)}}
+/* live welcome: someone just marked attendance */
+#welc{position:fixed;right:18px;bottom:84px;z-index:24;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+#welc div{font:700 clamp(15px,1.5vw,22px) var(--body);color:#0B1426;background:linear-gradient(90deg,#F2C12E,#FFE07A);border-radius:999px;padding:10px 20px;box-shadow:0 10px 26px rgba(0,0,0,.35);animation:wIn .55s cubic-bezier(.2,1.4,.4,1) both}
+#welc div span{font-weight:600;opacity:.7;margin-left:8px}
+#welc div.out{animation:wOut .5s ease forwards}
+@keyframes wIn{from{opacity:0;transform:translateX(120%)}}
+@keyframes wOut{to{opacity:0;transform:translateX(120%)}}
+body.asisOpen #welc,body.bienOpen #welc{right:50%;top:auto;bottom:9vh;transform:translateX(50%);align-items:center}
+body.asisOpen #welc div,body.bienOpen #welc div{font-size:clamp(22px,2.6vw,40px);padding:14px 30px}
+#asisCount{margin-top:14px;font:700 clamp(18px,2vw,30px) var(--body);color:#fff}
+#asisCount b{font-family:var(--head);font-size:1.6em;color:var(--gold);margin-right:8px}
+/* constancia QR at the end */
+#constQR{position:fixed;inset:0;z-index:27;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4vw;align-items:center;padding:5vh 6vw;background:radial-gradient(120% 90% at 30% 40%,#16325E,#070B18);opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
+#constQR.open{opacity:1;visibility:visible;transition:opacity .5s ease}
+#constQR canvas{width:min(42vh,34vw);height:min(42vh,34vw);background:#fff;border-radius:22px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#constQR .k{font:700 clamp(13px,1.5vw,20px) var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+#constQR h2{font:700 clamp(40px,5.4vw,90px)/1.05 var(--head);margin:12px 0 16px}
+#constQR p{font:400 clamp(18px,2vw,30px)/1.4 var(--body);color:var(--lt2);max-width:26ch;margin:0}
+#constX{position:fixed;top:14px;right:14px;font:700 15px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:999px;height:42px;padding:0 16px;cursor:pointer}
+body.idle #constX{opacity:0;transition:opacity .4s}
+#credQR{display:block;margin:30px auto 10px;width:220px;height:220px;background:#fff;border-radius:18px;padding:12px}
 #penL{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px;max-width:60vw}
 #penL:empty{display:none}
 #penL span{font:700 clamp(20px,2.3vw,40px) var(--head);background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 20px;animation:penIn .5s cubic-bezier(.2,1.5,.4,1) both}
@@ -444,6 +482,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
 <section class="slide" data-tr="wipe" data-name="Para conversar en grupo" data-notes="Abre la dinámica: forma grupos con personas de distintas generaciones. Desde el teléfono lanza la pantalla «Trabajo en equipo» con el cronómetro. Al final cada grupo comparte una idea." aria-label="Para conversar en grupo"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/bg_loop_poster.jpg" data-src="presentacion/media/bg_loop.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="foot" style="left:672px;top:840px;width:768px;height:36px">Mara en la prensa  ·  Memoria histórica  ·  Alcaldía Bolivariana de Mara</div><div class="foot num" style="left:1456px;top:840px;width:72px;height:36px">7</div><div class="t a" data-a="words" style="--d:0ms;--t:600ms;left:72px;top:48px;width:1456px;height:102px;font-size:56.7px;font-family:var(--head);font-weight:700;display:flex;align-items:center"><span class="wds"><span class="wd" style="--wd:0ms">Para</span> <span class="wd" style="--wd:110ms">conversar</span> <span class="wd" style="--wd:220ms">en</span> <span class="wd" style="--wd:330ms">grupo</span></span></div><div class="tline a" data-a="wipe" style="--d:500ms;--t:900ms;left:72px;top:139.2px;width:180px;height:5.4px;"></div><div class="t a" data-a="fade" style="--d:250ms;--t:500ms;left:72px;top:146.4px;width:1456px;height:50.4px;font-size:28.3px;font-weight:700;color:var(--gold)">Dinámica: mezcla generaciones en cada grupo</div><div class="card row a" data-a="flyR" style="--d:500ms;--t:750ms;left:72px;top:234px;width:1456px;height:158.4px;"><div class="ic" style="width:102px;height:102px;background:#C8743A"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" color="#fff" aria-hidden="true" style="color:#fff" height="40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="M504 255.531c.253 136.64-111.18 248.372-247.82 248.468-59.015.042-113.223-20.53-155.822-54.911-11.077-8.94-11.905-25.541-1.839-35.607l11.267-11.267c8.609-8.609 22.353-9.551 31.891-1.984C173.062 425.135 212.781 440 256 440c101.705 0 184-82.311 184-184 0-101.705-82.311-184-184-184-48.814 0-93.149 18.969-126.068 49.932l50.754 50.754c10.08 10.08 2.941 27.314-11.313 27.314H24c-8.837 0-16-7.163-16-16V38.627c0-14.254 17.234-21.393 27.314-11.314l49.372 49.372C129.209 34.136 189.552 8 256 8c136.81 0 247.747 110.78 248 247.531zm-180.912 78.784l9.823-12.63c8.138-10.463 6.253-25.542-4.21-33.679L288 256.349V152c0-13.255-10.745-24-24-24h-16c-13.255 0-24 10.745-24 24v135.651l65.409 50.874c10.463 8.137 25.541 6.253 33.679-4.21z"></path></svg></div><div class="big" style="font-size:56.7px;color:#C8743A;min-width:96px">01</div><div style="font-size:38.3px;font-weight:700;line-height:1.2">¿Qué ha cambiado en Mara desde que se publicaron estas noticias?</div></div><div class="card row a" data-a="flyR" style="--d:800ms;--t:750ms;left:72px;top:414px;width:1456px;height:158.4px;"><div class="ic" style="width:102px;height:102px;background:#D62839"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 640 512" color="#fff" aria-hidden="true" style="color:#fff" height="40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z"></path></svg></div><div class="big" style="font-size:56.7px;color:#D62839;min-width:96px">02</div><div style="font-size:38.3px;font-weight:700;line-height:1.2">¿Qué le toca a cada generación frente al hambre y la pobreza?</div></div><div class="card row a" data-a="flyR" style="--d:1100ms;--t:750ms;left:72px;top:594px;width:1456px;height:158.4px;"><div class="ic" style="width:102px;height:102px;background:#2F80ED"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 640 512" color="#fff" aria-hidden="true" style="color:#fff" height="40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="M488 192H336v56c0 39.7-32.3 72-72 72s-72-32.3-72-72V126.4l-64.9 39C107.8 176.9 96 197.8 96 220.2v47.3l-80 46.2C.7 322.5-4.6 342.1 4.3 357.4l80 138.6c8.8 15.3 28.4 20.5 43.7 11.7L231.4 448H368c35.3 0 64-28.7 64-64h16c17.7 0 32-14.3 32-32v-64h8c13.3 0 24-10.7 24-24v-48c0-13.3-10.7-24-24-24zm147.7-37.4L555.7 16C546.9.7 527.3-4.5 512 4.3L408.6 64H306.4c-12 0-23.7 3.4-33.9 9.7L239 94.6c-9.4 5.8-15 16.1-15 27.1V248c0 22.1 17.9 40 40 40s40-17.9 40-40v-88h184c30.9 0 56 25.1 56 56v28.5l80-46.2c15.3-8.9 20.5-28.4 11.7-43.7z"></path></svg></div><div class="big" style="font-size:56.7px;color:#2F80ED;min-width:96px">03</div><div style="font-size:38.3px;font-weight:700;line-height:1.2">¿Cómo puede la comunidad organizada responder hoy?</div></div><div class="t a" data-a="fade" style="--d:1800ms;--t:600ms;left:72px;top:780px;width:1456px;height:48px;font-size:25.0px;font-style:italic;color:var(--gold);text-align:right">Cada grupo comparte una idea al final · usa la pantalla «Trabajo en equipo» con el cronómetro</div></section>
 <section class="slide live" data-tr="curtain" data-name="Gran sorteo" data-notes="Desde el teléfono: 🎡 Girar, Cerrar resultado y vuelve a girar. Para seguir, toca «Salir de la ruleta»." aria-label="Gran sorteo"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/bg_loop_poster.jpg" data-src="presentacion/media/bg_loop.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(10,35,70,.45)"></div><iframe id="ruleta" title="Ruleta del gran sorteo" data-src="ruleta.html?embed=1" allow="autoplay; fullscreen"></iframe></section>
 <section class="slide" data-tr="zoom" data-name="Cierre" data-notes="Cierra recordando que la memoria de la comunidad orienta lo que hacemos hoy. Agradece la participación." aria-label="Cierre"><video class="bg kb" muted loop playsinline preload="none" poster="presentacion/media/sunrise_poster.jpg" data-src="presentacion/media/sunrise.mp4" style="left:0px;top:0px;width:1600px;height:900px;"></video><div class="shade" style="background:rgba(11,20,38,0.42)"></div><div class="t a" data-a="words" style="--d:200ms;--t:700ms;left:72px;top:162px;width:1456px;height:156px;font-size:110.0px;font-family:var(--head);font-weight:700;text-align:center;display:flex;align-items:center;justify-content:center;text-shadow:0 4px 14px rgba(0,0,0,.45)"><span class="wds"><span class="wd" style="--wd:200ms">¡Gracias!</span></span></div><div class="t a" data-a="float" style="--d:900ms;--t:700ms;left:72px;top:324px;width:1456px;height:66px;font-size:43.3px;font-style:italic;color:var(--gold);text-align:center">La memoria de la comunidad orienta lo que hacemos hoy</div><div class="dot a" data-a="zoom" style="--d:1400ms;--t:400ms;left:650px;top:426px;width:26.4px;height:26.4px;background:#C8743A"></div><div class="dot a" data-a="zoom" style="--d:1520ms;--t:400ms;left:718.4px;top:426px;width:26.4px;height:26.4px;background:#D62839"></div><div class="dot a" data-a="zoom" style="--d:1640ms;--t:400ms;left:786.8px;top:426px;width:26.4px;height:26.4px;background:#2F80ED"></div><div class="dot a" data-a="zoom" style="--d:1760ms;--t:400ms;left:855.2px;top:426px;width:26.4px;height:26.4px;background:#F2C12E"></div><div class="dot a" data-a="zoom" style="--d:1880ms;--t:400ms;left:923.6px;top:426px;width:26.4px;height:26.4px;background:#19C3E6"></div><div class="t a" data-a="flyB" style="--d:2000ms;--t:700ms;left:72px;top:486px;width:1456px;height:54px;font-size:30.0px;font-weight:700;text-align:center">Alcaldía Bolivariana de Mara  ·  Con el pueblo siempre</div></section>
+<div id="genq" aria-live="polite" hidden><canvas id="genqQR" aria-label="Código QR para enviar tu mensaje"></canvas><div class="gq"><div class="gk">Tu mensaje · escanea</div><div class="gt" id="genqT"></div><div class="gm" id="genqM"></div><div class="gc" id="genqC"></div></div></div>
 <div id="lights" aria-hidden="true"><i></i><i></i><i></i></div>
 <canvas id="dust" width="1600" height="900" aria-hidden="true"></canvas>
 <div id="curtain" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
@@ -513,6 +552,8 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
   </div>
 </div>
+<div id="welc" aria-live="polite"></div>
+<div id="constQR" role="dialog" aria-label="Constancia"><canvas id="constC" aria-label="Código QR de la constancia"></canvas><div><div class="k">Fin de la formación</div><h2>Descarga tu constancia</h2><p>Escanea con tu teléfono y escribe tu cédula: te sale tu constancia de participación con tus asistencias, lista para guardar.</p></div><button id="constX" type="button">✕ Cerrar</button></div>
 <div id="creditos" role="dialog" aria-label="Créditos"><div id="credRoll"></div><button id="credX" type="button">✕ Cerrar</button></div>
 <div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penL"></div><div id="penS">¡Pasa al frente! · Un aplauso para animar</div></div></div></div>
 <div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
@@ -1794,6 +1835,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 (() => {
   const stage = document.getElementById('stage');
   let penitApi = null;   // attendance data source for the penitencia (demo or Firebase), set further down
+  let msgApi = null, gqKey = null, welcApi = null, welcSid = null, welcCount = 0, welcKnown = null, constOpen = false;   // messages, live welcome, constancia
   const ICO = { vol: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>', mute: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/></svg>', phone: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="2" width="11" height="20" rx="2.5"/><path d="M11 18h2"/></svg>' };
   const slides = [...stage.querySelectorAll('.slide')];
   const N = slides.length;
@@ -2058,6 +2100,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     i = Math.max(0, Math.min(N - 1, i));
     if (i === cur) return;
     if (credOpen) closeCreditos();
+    setTimeout(() => gqShow(slides[cur]), 0);
     if (slides[i] && slides[i].classList.contains('live') && cur >= 0) SHOW.say('¡Llegó el momento de la ruleta!', 700);
     setTimeout(() => pubState(), 0);
     const prev = slides[cur], back = cur >= 0 && i < cur, first = cur < 0;
@@ -2224,6 +2267,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const mine = open.filter(([, s]) => s.deck === deck);
     const list = (mine.length ? mine : open).sort((a, b) => (b[1].fecha || '').localeCompare(a[1].fecha || '') || (b[1].creada || 0) - (a[1].creada || 0));
     asisSes = list.length ? { id: list[0][0], ...list[0][1] } : null;
+    if ((asisSes && asisSes.id) !== welcSid) { welcSid = asisSes && asisSes.id; welcCount = 0; welcKnown = null; if (welcApi) welcApi.watch(welcSid); }
     renderAsis();
   }
   function renderAsis() {
@@ -2231,7 +2275,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (asisSes) {
       el.innerHTML = `<canvas id="asisQR" aria-label="Código QR de asistencia"></canvas><div><div class="k">Registro de asistencia · ${escH(fechaLarga(asisSes.fecha))}</div>
         <h2>${escH((asisSes.modulo || '').split(':')[0])}</h2>${(asisSes.modulo || '').includes(':') ? `<p style="color:#fff;font-size:clamp(18px,2.2vw,32px);font-family:var(--head);font-weight:700">${escH(asisSes.modulo.split(':').slice(1).join(':').trim())}</p>` : ''}<p>${escH(asisSes.coordinacion || '')}${asisSes.lugar ? ' · ' + escH(asisSes.lugar) : ''}</p>
-        <p class="go">Escanea el código con la cámara de tu teléfono y escribe tu cédula.</p></div><button id="asisPen" type="button" title="Escoge al azar a alguien que ya marcó asistencia (tecla P)">¿Quién baila?</button><button id="asisX" type="button">✕ Cerrar</button>`;
+        <p class="go">Escanea el código con la cámara de tu teléfono y escribe tu cédula.</p><div id="asisCount">${welcCount ? `<b>${welcCount}</b> ${welcCount === 1 ? 'presente' : 'presentes'}` : ''}</div></div><button id="asisPen" type="button" title="Escoge al azar a alguien que ya marcó asistencia (tecla P)">¿Quién baila?</button><button id="asisX" type="button">✕ Cerrar</button>`;
       qrTo($('asisQR'), asisLink(asisSes.id), 12);
       $('bienQR').hidden = false; qrTo($('bienQRc'), asisLink(asisSes.id), 8);
     } else {
@@ -2241,14 +2285,22 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     $('asisX').onclick = closeAsis;
     if ($('asisPen')) $('asisPen').onclick = e => { e.stopPropagation(); penitRandom(); };
   }
-  function openAsis() { closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeBien(); closePrensa(); asisOpen = true; renderAsis(); $('asis').classList.add('open'); $('toAsis').setAttribute('aria-current', 'true'); wake(); }
-  function closeAsis() { if (!asisOpen) return; asisOpen = false; $('asis').classList.remove('open'); $('toAsis').removeAttribute('aria-current'); }
+  function openAsis() { closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeBien(); closePrensa(); asisOpen = true; document.body.classList.add('asisOpen'); renderAsis(); $('asis').classList.add('open'); $('toAsis').setAttribute('aria-current', 'true'); wake(); }
+  function closeAsis() { if (!asisOpen) return; asisOpen = false; document.body.classList.remove('asisOpen'); $('asis').classList.remove('open'); $('toAsis').removeAttribute('aria-current'); }
   $('toAsis').addEventListener('click', e => { e.stopPropagation(); asisOpen ? closeAsis() : openAsis(); });
   $('asis').addEventListener('click', e => { if (e.target === $('asis')) closeAsis(); });
   renderAsis();
   if (new URLSearchParams(location.search).has('demo')) {
     const readDemo = () => { try { pickSession((JSON.parse(localStorage.getItem('asist-demo-v1')) || {}).sesiones); } catch (e) {} };
     const ld = () => JSON.parse(localStorage.getItem('asist-demo-v1')) || {};
+    let mk = null, mLast = '';
+    msgApi = { watch(k) { mk = k; mLast = ''; }, del(g, id) { try { const d = JSON.parse(localStorage.getItem('msg-demo-v1') || '{}'); d[g] = (d[g] || []).filter(x => x.id !== id); localStorage.setItem('msg-demo-v1', JSON.stringify(d)); } catch (e) {} } };
+    setInterval(() => { if (!mk) return; try { const d = JSON.parse(localStorage.getItem('msg-demo-v1') || '{}'), list = (d[mk] || []).slice().sort((a, b) => b.at - a.at).slice(0, 15), sig = list.map(x => x.id).join(); if (sig !== mLast) { const fresh = mLast !== '' && list.length && !mLast.includes(list[0].id); mLast = sig; gqIncoming(mk, list, fresh); } } catch (e) {} }, 1200);
+    if (gqKey) msgApi.watch(gqKey);
+    welcApi = { watch() {} };
+    setInterval(() => { try { const d = ld(), sid = asisSes && asisSes.id; if (!sid) return; const ms = Object.values(d.marcas || {}).filter(m => m.sesion === sid); const ids = new Set(ms.map(m => m.persona));
+      if (welcKnown) ms.forEach(m => { if (!welcKnown.has(m.persona)) { welcSetCount(ids.size); welcome(((d.ids || {})[m.persona] || {}).n); } });
+      welcKnown = ids; welcSetCount(ids.size); } catch (e) {} }, 1200);
     penitApi = {
       async candidatos(sid) { const d = ld(); return Object.values(d.marcas || {}).filter(m => m.sesion === sid).map(m => ({ h: m.persona, n: ((d.ids || {})[m.persona] || {}).n || '' })); },
       async nombre(h) { return ((ld().ids || {})[h] || {}).n || ''; },
@@ -2682,10 +2734,64 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeTrivia();
     const v = $('bien').querySelector('video'); if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); }
     const p = v.play(); if (p && p.catch) p.catch(() => {});
-    bienOpen = true; $('bien').classList.add('open'); bienClock(); clearInterval(bienT); bienT = setInterval(bienClock, 5000); startMusic();
+    bienOpen = true; document.body.classList.add('bienOpen'); $('bien').classList.add('open'); bienClock(); clearInterval(bienT); bienT = setInterval(bienClock, 5000); startMusic();
   }
-  function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); startMusic(); }
+  function closeBien() { if (!bienOpen) return; bienOpen = false; document.body.classList.remove('bienOpen'); clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); startMusic(); }
   $('bien').addEventListener('click', closeBien);
+  /* ---------- the audience's messages: a corner card on each generation slide (QR + question + live messages) ---------- */
+  const DEMO_Q = new URLSearchParams(location.search).has('demo');
+  const GQ = {
+    precursora: ['Precursora', '#C8743A', '¿Qué enseñanza de nuestros mayores debemos conservar?'],
+    fundadora: ['Fundadora', '#D62839', '¿Qué consejo le darías a las nuevas generaciones?'],
+    intermedia: ['Intermedia', '#2F80ED', '¿Cómo unimos la experiencia con las ideas nuevas?'],
+    oro: ['De Oro', '#F2C12E', '¿Qué crearías para tu comunidad: un podcast, un video, una app…?'],
+    genial: ['Genial', '#19C3E6', '¿Qué problema de Mara resolverías con tecnología?'],
+  };
+  const BAD = /\b(mierda|co[ñn]o|carajo|put[ao]s?|marico|maric[oó]n|mamague[vb]o|verga|joder|pendej[oa]|hu?e[vb]?[oó]n|idiota|est[uú]pid[oa]|maldit[oa]|cul[oe]|chupa|gonorrea|malparid[oa])\b/i;
+  const okMsg = x => x && x.t && !BAD.test(String(x.t) + ' ' + String(x.n || ''));
+  const msgLink = k => new URL('mensajes.html?' + (DEMO_Q ? 'demo&' : '') + 'g=' + k, location.href).toString();
+  const constLink = () => new URL('asistencia.html?' + (DEMO_Q ? 'demo&' : '') + 'constancia', location.href).toString();
+  let gqRot = 0, gqI = 0; const msgs = {};
+  function gqShow(sl) {
+    const el = $('genq'), k = sl && sl.dataset.gen;
+    if (!k || !GQ[k]) { el.classList.remove('on'); el.hidden = true; gqKey = null; clearInterval(gqRot); return; }
+    el.hidden = false; el.classList.remove('pa', 'pb'); el.classList.add('p' + (sl.dataset.gpos || 'a')); el.style.setProperty('--gc', GQ[k][1]);
+    if (gqKey !== k) { gqKey = k; qrTo($('genqQR'), msgLink(k), 4); $('genqT').textContent = GQ[k][2]; gqI = 0; gqRender(); if (msgApi) msgApi.watch(k); }
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    clearInterval(gqRot); gqRot = setInterval(() => { gqI++; gqRender(true); }, 6000);
+  }
+  function gqRender(anim) {
+    if (!gqKey) return;
+    const list = (msgs[gqKey] || []).filter(okMsg), m = $('genqM');
+    if (!list.length) { m.textContent = 'Sé el primero en escribir'; $('genqC').textContent = ''; return; }
+    const x = list[gqI % list.length];
+    m.innerHTML = `“${escH(x.t)}”${x.n ? ` <b>— ${escH(x.n)}</b>` : ''}`;
+    if (anim) { m.classList.remove('new'); void m.offsetWidth; m.classList.add('new'); }
+    $('genqC').textContent = list.length === 1 ? '1 mensaje' : `${list.length} mensajes`;
+  }
+  function gqIncoming(k, list, fresh) {
+    msgs[k] = list;
+    if (k !== gqKey) return;
+    if (fresh) gqI = 0;   // a new message shows right away (no sound: the speaker is talking)
+    gqRender(true);
+  }
+
+  /* ---------- live welcome: each person who marks attendance pops up on screen ---------- */
+  function welcome(n) {
+    const box = $('welc'), d = document.createElement('div');
+    d.innerHTML = `¡Llegó ${escH(n || 'un compañero')}!<span>${welcCount} ${welcCount === 1 ? 'presente' : 'presentes'}</span>`;
+    box.appendChild(d); while (box.children.length > 3) box.firstChild.remove();
+    setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 520); }, 4500);
+    if (asisOpen || bienOpen) { try { SHOW.rec('campanas', { vol: .35, dur: 1.4, fade: .6 }); } catch (e) {} }
+  }
+  function welcSetCount(c) { welcCount = c; const el = $('asisCount'); if (el) el.innerHTML = c ? `<b>${c}</b> ${c === 1 ? 'presente' : 'presentes'}` : ''; }
+
+  /* ---------- constancia QR at the end ---------- */
+  function openConst() { closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeBien(); closeAsis(); closeCreditos(); qrTo($('constC'), constLink(), 10); constOpen = true; $('constQR').classList.add('open'); SHOW.tadan(); SHOW.say('¡Descarga tu constancia!', 900); wake(); }
+  function closeConst() { if (!constOpen) return; constOpen = false; $('constQR').classList.remove('open'); }
+  $('constX').addEventListener('click', e => { e.stopPropagation(); closeConst(); });
+  $('constQR').addEventListener('click', e => { if (e.target === $('constQR')) closeConst(); });
+
   /* rolling credits after the last slide (or from the phone) */
   var credOpen = false;
   function openCreditos() {
@@ -2700,7 +2806,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       + sec('Pensamiento pedagógico', ['Antonio Pérez Esclarín'])
       + sec('Y el protagonista de este show', ['Tú, que participaste'])
       + sec('Efectos de sonido', ['Meta Open Sound · BigSoundBank (Joseph Sardin)', 'Licencia CC0'])
-      + `<div class="fin">¡Gracias por participar!</div><p>Con el pueblo siempre</p>`;
+      + `<div class="fin">¡Gracias por participar!</div><p>Con el pueblo siempre</p><h3>Descarga tu constancia</h3><canvas id="credQR"></canvas><p>Escanea y escribe tu cédula</p>`;
+    qrTo($('credQR'), constLink(), 6);
     credOpen = true; $('creditos').classList.remove('open'); void $('creditos').offsetWidth; $('creditos').classList.add('open');
     music.volume = MUSIC_UP; startMusic(); SHOW.tadan(); wake();
   }
@@ -2846,6 +2953,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'penit': penitRandom(arg && arg.list); break;
       case 'sfx': SHOW.play(arg); rtoast('Efecto: ' + ({ aplausos: 'aplausos', wow: '¡uuuh!', grillos: 'grillos', tadan: '¡ta-dan!', bocina: 'bocina', error: 'error', redoble: 'redoble', intro: 'arranque del show' }[arg] || arg)); break;
       case 'creditos': if (arg === 'close') closeCreditos(); else openCreditos(); break;
+      case 'constancia': if (arg === 'close') { closeConst(); rtoast('QR de constancia cerrado'); } else { openConst(); rtoast('QR de constancia'); } break;
+      case 'msgDel': if (msgApi && arg) msgApi.del(arg.g, arg.id); break;
       case 'asis': if (arg === 'close') { closeAsis(); rtoast('QR de asistencia cerrado'); } else { openAsis(); rtoast('QR de asistencia'); } break;
       case 'prensa': if (arg === 'close') { closePrensa(); rtoast('Periódicos cerrados'); } else if (prOpen && arg !== 'both') { prShow(arg); rtoast(`Periódico ${arg}`); } else { openPrensa(arg || 'both'); rtoast('Periódicos'); } break;
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
@@ -2871,6 +2980,30 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         const au = U.getAuth(fa), db2 = F.initializeFirestore(fa, { experimentalAutoDetectLongPolling: true });
         if (!au.currentUser) await U.signInAnonymously(au);
         F.onSnapshot(F.query(F.collection(db2, 'asist_sesiones'), F.where('abierta', '==', true)), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); pickSession(o); }, () => {});
+        msgApi = {
+          un: null,
+          watch(k) {
+            if (this.un) this.un(); let first = true;
+            this.un = F.onSnapshot(F.query(F.collection(db2, 'msg', k, 'items'), F.orderBy('at', 'desc'), F.limit(15)), qs => {
+              const list = []; qs.forEach(d => list.push(Object.assign({ id: d.id }, d.data())));
+              gqIncoming(k, list, !first && qs.docChanges().some(c => c.type === 'added')); first = false;
+            }, () => {});
+          },
+          del(g, id) { F.deleteDoc(F.doc(db2, 'msg', g, 'items', id)).catch(() => {}); },
+        };
+        if (gqKey) msgApi.watch(gqKey);
+        welcApi = {
+          un: null,
+          watch(sid) {
+            if (this.un) { this.un(); this.un = null; } if (!sid) return; let first = true;
+            this.un = F.onSnapshot(F.query(F.collection(db2, 'asist_marcas'), F.where('sesion', '==', sid)), qs => {
+              welcSetCount(qs.size);
+              if (first) { first = false; return; }
+              qs.docChanges().forEach(async c => { if (c.type !== 'added') return; let n = ''; try { const d = await F.getDoc(F.doc(db2, 'asist_ids', c.doc.data().persona)); n = d.exists() ? d.data().n : ''; } catch (e) {} welcome(n); });
+            }, () => {});
+          },
+        };
+        if (welcSid) welcApi.watch(welcSid);
         penitApi = {
           async candidatos(sid) { const qs = await F.getDocs(F.query(F.collection(db2, 'asist_marcas'), F.where('sesion', '==', sid))); const o = []; qs.forEach(d => { const p = d.data().persona; if (p) o.push({ h: p }); }); return o; },
           async nombre(h) { const d = await F.getDoc(F.doc(db2, 'asist_ids', h)); return d.exists() ? (d.data().n || '') : ''; },
