@@ -378,11 +378,18 @@ html.embed .stage{max-width:700px}
     o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + 0.02);
     return o;
   }
+  // TV wheel "clack": a woody click plus a short bright tick each time a peg passes the pointer
   function tickSound() {
     if (!soundOn || !ac) return;
     const t = ac.currentTime;
-    const o = blip(2300, t, 0.045, 0.09, 'triangle');
-    o.frequency.exponentialRampToValueAtTime(900, t + 0.035);
+    const o = blip(2600, t, 0.03, 0.16, 'square');
+    o.frequency.exponentialRampToValueAtTime(1100, t + 0.025);
+    const w = blip(520, t, 0.06, 0.2, 'triangle');
+    w.frequency.exponentialRampToValueAtTime(260, t + 0.05);
+    const len = 0.02, b = ac.createBuffer(1, Math.floor(ac.sampleRate * len), ac.sampleRate), x = b.getChannelData(0);
+    for (let k = 0; k < x.length; k++) x[k] = (Math.random() * 2 - 1) * (1 - k / x.length);
+    const s = ac.createBufferSource(); s.buffer = b; const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3000;
+    const g = ac.createGain(); g.gain.value = 0.25; s.connect(f).connect(g).connect(ac.destination); s.start(t);
   }
   // drum roll while the wheel turns: snare hits that speed up and swell, then a cymbal crash on the result
   let rollNext = 0, rollT0 = 0;

@@ -295,6 +295,23 @@ body.idle #jump{cursor:default}
 #penDz svg{display:block;width:100%;height:auto}
 #penK{display:inline-block;font:800 clamp(14px,1.4vw,22px) var(--body);letter-spacing:.24em;text-transform:uppercase;color:#0B1426;background:var(--gold,#F2C12E);border-radius:999px;padding:8px 18px;animation:penPulse 1s ease-in-out infinite}
 #penT{font:700 clamp(40px,5.6vw,96px)/1.02 var(--head);margin:14px 0 10px;text-shadow:0 8px 30px rgba(0,0,0,.45);max-width:12ch}
+.showConfetti{position:fixed;inset:0;width:100%;height:100%;z-index:70;pointer-events:none}
+html.showShake body{animation:showShake .6s cubic-bezier(.36,.07,.19,.97)}
+@keyframes showShake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(5px,-3px)}30%,50%,70%{transform:translate(-9px,4px)}40%,60%{transform:translate(9px,-4px)}}
+#shw[aria-pressed=false]{opacity:.55}
+#creditos{position:fixed;inset:0;z-index:26;overflow:hidden;background:radial-gradient(120% 80% at 50% 110%,#16325E 0%,#070B18 60%,#03050C 100%);opacity:0;visibility:hidden;transition:opacity .8s ease,visibility 0s linear .8s;cursor:pointer}
+#creditos.open{opacity:1;visibility:visible;transition:opacity .8s ease}
+#credRoll{position:absolute;left:50%;top:100%;width:min(900px,90vw);transform:translateX(-50%);text-align:center}
+#creditos.open #credRoll{animation:credUp var(--dur,42s) linear forwards}
+@keyframes credUp{to{transform:translate(-50%,calc(-100% - 100vh))}}
+#credRoll img{width:min(520px,70vw);margin:0 auto 30px;display:block}
+#credRoll h2{font:700 clamp(30px,3.6vw,60px)/1.1 var(--head);margin:0 0 70px}
+#credRoll h3{font:800 clamp(14px,1.3vw,20px) var(--body);letter-spacing:.32em;text-transform:uppercase;color:var(--gold,#F2C12E);margin:0 0 14px}
+#credRoll p{font:600 clamp(20px,2vw,34px)/1.45 var(--body);margin:0 0 64px;color:#fff}
+#credRoll p span{display:block}
+#credRoll .fin{font:700 clamp(40px,5vw,84px)/1.1 var(--head);margin:120px 0 30px}
+#credX{position:fixed;top:14px;right:14px;z-index:27;font:700 15px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);border-radius:999px;height:42px;padding:0 16px;cursor:pointer}
+body.idle #credX{opacity:0;transition:opacity .4s}
 #penL{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px;max-width:60vw}
 #penL:empty{display:none}
 #penL span{font:700 clamp(20px,2.3vw,40px) var(--head);background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 20px;animation:penIn .5s cubic-bezier(.2,1.5,.4,1) both}
@@ -431,13 +448,14 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
 <canvas id="dust" width="1600" height="900" aria-hidden="true"></canvas>
 <div id="curtain" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 </div>
-<audio id="music" loop preload="auto"><source src="presentacion/audio/musica.m4a" type="audio/mp4"><source src="presentacion/audio/musica.ogg" type="audio/ogg; codecs=opus"></audio>
+<audio id="music" loop preload="auto"><source src="presentacion/audio/show.m4a" type="audio/mp4"><source src="presentacion/audio/show.ogg" type="audio/ogg; codecs=opus"></audio>
 <div id="bar"></div>
 <nav id="dock" aria-label="Controles de la presentación">
   <button id="prev" type="button" aria-label="Diapositiva anterior">‹</button>
   <button id="count" type="button" aria-label="Elegir diapositiva">1 / 14</button>
   <button id="next" type="button" aria-label="Diapositiva siguiente">›</button>
   <button id="snd" type="button" aria-label="Música y sonidos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg> Sonido</button>
+  <button id="shw" type="button" aria-label="Efectos de show y anunciador" aria-pressed="true"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/></svg> Show</button>
   <button id="full" type="button" aria-label="Pantalla completa">Pantalla completa</button>
 </nav>
 <nav id="jump" aria-label="Atajos">
@@ -495,6 +513,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
     <div id="bienDots"><i style="background:#C8743A"></i><i style="background:#D62839"></i><i style="background:#2F80ED"></i><i style="background:#F2C12E"></i><i style="background:#19C3E6"></i></div>
   </div>
 </div>
+<div id="creditos" role="dialog" aria-label="Créditos"><div id="credRoll"></div><button id="credX" type="button">✕ Cerrar</button></div>
 <div id="penit" aria-live="assertive"><div id="penBox"><div id="penDz"></div><div id="penTx"><div id="penK">¡Penitencia!</div><div id="penT"></div><div id="penL"></div><div id="penS">¡Pasa al frente! · Un aplauso para animar</div></div></div></div>
 <div id="equipo" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
   <i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i><i class="blob"></i>
@@ -1807,6 +1826,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(2600, t + d * 0.55); f.frequency.exponentialRampToValueAtTime(700, t + d);
       const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + d * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
       s.connect(f).connect(g).connect(ac.destination); s.start(t); s.stop(t + d + 0.05);
+      try { if (localStorage.getItem('pres-show') !== 'off') {   // TV-style low hit under the swoosh
+        const o = ac.createOscillator(), og = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(95, t + d * .3); o.frequency.exponentialRampToValueAtTime(42, t + d * .3 + .3);
+        og.gain.setValueAtTime(0.0001, t + d * .3); og.gain.exponentialRampToValueAtTime(0.22, t + d * .3 + .01); og.gain.exponentialRampToValueAtTime(0.0001, t + d * .3 + .32);
+        o.connect(og).connect(ac.destination); o.start(t + d * .3); o.stop(t + d * .3 + .4);
+      } } catch (e) {}
     }
     function pop(i) {
       if (!on() || !ac || ac.state !== 'running') return;
@@ -1834,13 +1858,172 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     }
     return { ctx, whoosh, entrances, alarm };
   })();
+  /* ---------- SHOW: TV game-show sounds (synthesized), announcer voice, confetti and screen shake ---------- */
+  const SHOW = (() => {
+    const showOn = () => { try { return localStorage.getItem('pres-show') !== 'off'; } catch (e) { return true; } };
+    const on = () => soundOn() && showOn();
+    const A = () => { const a = sfx.ctx(); return a && a.state === 'running' ? a : null; };
+    let master = null, nbuf = null;
+    const out = a => {
+      if (!master) { master = a.createGain(); master.gain.value = .9; const c = a.createDynamicsCompressor(); c.threshold.value = -14; c.ratio.value = 4; master.connect(c).connect(a.destination); }
+      return master;
+    };
+    const noiseBuf = a => { if (!nbuf) { nbuf = a.createBuffer(1, a.sampleRate * 2, a.sampleRate); const d = nbuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return nbuf; };
+    // one oscillator note with an envelope
+    function tone(a, o) {
+      const t = a.currentTime + (o.t || 0), len = o.len || .3, osc = a.createOscillator(), g = a.createGain();
+      osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(o.f, t); if (o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, t + (o.glide || len));
+      if (o.detune) osc.detune.value = o.detune;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(o.vol || .2, t + (o.att || .006));
+      if (o.hold) g.gain.setValueAtTime(o.vol || .2, t + o.hold);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      let node = g;
+      if (o.lp) { const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; g.connect(f); node = f; }
+      osc.connect(g); node.connect(o.dest || out(a)); osc.start(t); osc.stop(t + len + .05);
+      return osc;
+    }
+    // a burst of filtered noise
+    function nz(a, o) {
+      const t = a.currentTime + (o.t || 0), len = o.len || .2, s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+      s.buffer = noiseBuf(a); f.type = o.type || 'bandpass'; f.frequency.setValueAtTime(o.f || 1500, t); if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + len); f.Q.value = o.q || .8;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(o.vol || .2, t + (o.att || .003)); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      s.connect(f).connect(g).connect(o.dest || out(a)); s.start(t, Math.random() * 1.5); s.stop(t + len + .05);
+    }
+    const snare = (a, t, vol) => { nz(a, { t, len: .09, f: 1700 + Math.random() * 300, q: .9, vol }); tone(a, { t, f: 190, f2: 110, len: .08, vol: vol * .5 }); };
+    // ---- the sounds ----
+    function drumroll(secs = 2.4, crashAtEnd = false) {
+      const a = A(); if (!a || !on()) return () => {};
+      let stop = false, t = 0; const hits = [];
+      while (t < secs) { const p = t / secs; hits.push([t, .05 + .16 * p]); t += .1 - .06 * p; }
+      const t0 = a.currentTime;
+      const timer = setInterval(() => { if (stop) return; const now = a.currentTime - t0; while (hits.length && hits[0][0] < now + .15) { const [ht, v] = hits.shift(); snare(a, Math.max(0, ht - now), v * (.85 + Math.random() * .3)); } if (!hits.length) { clearInterval(timer); if (crashAtEnd) crash(); } }, 50);
+      return () => { stop = true; clearInterval(timer); };
+    }
+    function crash() { const a = A(); if (!a || !on()) return; nz(a, { type: 'highpass', f: 4200, len: 1.9, vol: .32, att: .002 }); nz(a, { f: 9000, q: .5, len: 1.2, vol: .14 }); tone(a, { f: 80, f2: 40, len: .4, vol: .35 }); }
+    function airhorn() {
+      const a = A(); if (!a || !on()) return;
+      [0, .62].forEach((st, k) => [415, 523, 622].forEach((f, i) => [-8, 6].forEach(d => tone(a, { t: st, f: f * .98, f2: f, glide: .08, type: 'sawtooth', len: k ? .95 : .5, hold: k ? .8 : .38, vol: .07, att: .02, detune: d + i, lp: 2600 }))));
+    }
+    function tadan() {
+      const a = A(); if (!a || !on()) return;
+      const brass = (t, fs, len) => fs.forEach(f => [-7, 7].forEach(d => tone(a, { t, f, type: 'sawtooth', len, hold: len * .7, vol: .055, att: .03, detune: d, lp: 2200 })));
+      brass(0, [392, 494, 587], .16); brass(.2, [523, 659, 784, 1047], 1.5);
+      tone(a, { t: .2, f: 130.8, type: 'triangle', len: 1.4, vol: .25 });
+    }
+    function fanfare() {
+      const a = A(); if (!a || !on()) return;
+      [[523, 0], [659, .14], [784, .28]].forEach(([f, d]) => [-6, 6].forEach(dt => tone(a, { t: d, f, type: 'sawtooth', len: .26, vol: .06, detune: dt, lp: 2400 })));
+      [523, 659, 784, 1047].forEach(f => [-7, 7].forEach(dt => tone(a, { t: .46, f, type: 'sawtooth', len: 1.3, hold: .9, vol: .05, att: .02, detune: dt, lp: 2400 })));
+    }
+    function ding() { const a = A(); if (!a || !on()) return; [[1318.5, 0], [1760, .16]].forEach(([f, t]) => { tone(a, { t, f, len: 1.1, vol: .22 }); tone(a, { t, f: f * 2.01, len: .5, vol: .06 }); }); }
+    function buzz() { const a = A(); if (!a || !on()) return; [110, 116.5].forEach(f => tone(a, { f, type: 'square', len: .75, hold: .6, vol: .12, lp: 1400 })); }
+    function applause(secs = 3.5) {
+      const a = A(); if (!a || !on()) return;
+      const n = Math.floor(secs * 45);
+      for (let i = 0; i < n; i++) {
+        const t = Math.random() * secs, p = t / secs, sw = p < .25 ? p / .25 : p > .7 ? (1 - p) / .3 : 1;
+        nz(a, { t, len: .02 + Math.random() * .03, f: 900 + Math.random() * 2200, q: 1.2, vol: (.05 + Math.random() * .1) * sw + .002, att: .001 });
+      }
+      nz(a, { len: secs, f: 1800, q: .4, vol: .05, att: .3 });
+    }
+    function wow() {   // crowd "uuuuh!"
+      const a = A(); if (!a || !on()) return;
+      const f1 = a.createBiquadFilter(), f2 = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
+      f1.type = 'bandpass'; f1.frequency.value = 380; f1.Q.value = 3; f2.type = 'bandpass'; f2.frequency.value = 820; f2.Q.value = 4;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.9, t + .35); g.gain.setValueAtTime(.9, t + 1.1); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
+      f1.connect(g); f2.connect(g); g.connect(out(a));
+      for (let v = 0; v < 9; v++) {
+        const base = 150 + Math.random() * 170, o = a.createOscillator(), lfo = a.createOscillator(), lg = a.createGain();
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(base * .9, t); o.frequency.linearRampToValueAtTime(base * 1.12, t + .55); o.frequency.linearRampToValueAtTime(base * .82, t + 1.9);
+        lfo.frequency.value = 4.5 + Math.random() * 2; lg.gain.value = base * .02; lfo.connect(lg).connect(o.frequency);
+        o.connect(f1); o.connect(f2); o.start(t + Math.random() * .08); o.stop(t + 2); lfo.start(t); lfo.stop(t + 2);
+      }
+    }
+    function crickets(secs = 3.2) {
+      const a = A(); if (!a || !on()) return;
+      [[4600, 0], [4150, .27]].forEach(([f, off]) => {
+        for (let t = off; t < secs; t += .62 + Math.random() * .1) for (let k = 0; k < 3; k++) tone(a, { t: t + k * .055, f, len: .04, vol: .05, att: .004 });
+      });
+    }
+    function swoosh() { const a = A(); if (!a || !on()) return; nz(a, { f: 300, f2: 3200, len: .45, vol: .18, q: .9 }); tone(a, { f: 90, f2: 45, len: .35, vol: .2 }); }
+    // dance beat while the penitencia banner is up
+    function beat(secs = 12) {
+      const a = A(); if (!a || !on()) return () => {};
+      const g = a.createGain(); g.gain.value = 1; g.connect(out(a));
+      const spb = 60 / 120, bass = [55, 55, 65.4, 73.4], beats = Math.floor(secs / spb);
+      for (let b = 0; b < beats; b++) {
+        const t = .05 + b * spb;
+        tone(a, { t, f: 140, f2: 45, len: .3, vol: .5, dest: g });
+        if (b % 2) nz(a, { t, len: .15, f: 1400, vol: .2, dest: g });
+        nz(a, { t: t + spb / 2, len: .05, type: 'highpass', f: 7000, vol: .1, dest: g });
+        const f = bass[Math.floor(b / 2) % 4]; tone(a, { t: t + spb / 2, f: f * 2, len: .22, vol: .18, type: 'triangle', dest: g });
+      }
+      return () => { try { g.gain.setValueAtTime(g.gain.value, a.currentTime); g.gain.linearRampToValueAtTime(0, a.currentTime + .3); setTimeout(() => g.disconnect(), 400); } catch (e) {} };
+    }
+    // ---- announcer (the browser's Spanish voice) ----
+    let voice = null;
+    const pickVoice = () => {
+      const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+      const es = vs.filter(v => /^es/i.test(v.lang));
+      voice = es.find(v => /es-(VE|CO|MX|US|419)/i.test(v.lang) && /google|natural|online/i.test(v.name)) || es.find(v => /google|natural|online/i.test(v.name)) || es.find(v => /es-(VE|CO|MX|US|419)/i.test(v.lang)) || es[0] || null;
+    };
+    try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+    function say(text, delay = 0) {
+      if (!on() || !window.speechSynthesis) return;
+      setTimeout(() => {
+        try {
+          speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text); if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'es-ES';
+          u.rate = 1.02; u.pitch = 1.08; u.volume = 1;
+          const was = music.volume; u.onstart = () => { music.volume = Math.min(music.volume, .08); }; u.onend = u.onerror = () => { music.volume = was; };
+          speechSynthesis.speak(u);
+        } catch (e) {}
+      }, delay);
+    }
+    // ---- visuals ----
+    function confetti(ms = 3800) {
+      if (!showOn() || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const c = document.createElement('canvas'); c.className = 'showConfetti'; document.body.appendChild(c);
+      const x = c.getContext('2d'), W = c.width = innerWidth * devicePixelRatio, H = c.height = innerHeight * devicePixelRatio;
+      const cols = ['#F2C12E', '#D62839', '#2F80ED', '#1E9E4F', '#19C3E6', '#C8743A', '#fff'];
+      const ps = Array.from({ length: 220 }, (_, i) => ({ x: (i % 2 ? .15 : .85) * W + (Math.random() - .5) * W * .3, y: H * (.95 + Math.random() * .1), vx: (Math.random() - .5) * W * .012 + (i % 2 ? 1 : -1) * W * .004, vy: -H * (.018 + Math.random() * .016), r: (5 + Math.random() * 8) * devicePixelRatio, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: cols[i % cols.length] }));
+      const t0 = performance.now();
+      const fr = now => {
+        const k = now - t0; x.clearRect(0, 0, W, H);
+        ps.forEach(p => { p.vy += H * .00045; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.a += p.va; x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.fillStyle = p.c; x.globalAlpha = Math.max(0, Math.min(1, (ms - k) / 600)); x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); });
+        if (k < ms) requestAnimationFrame(fr); else c.remove();
+      };
+      requestAnimationFrame(fr);
+    }
+    function shake() { if (!showOn()) return; const h = document.documentElement; h.classList.remove('showShake'); void h.offsetWidth; h.classList.add('showShake'); setTimeout(() => h.classList.remove('showShake'), 650); }
+    // ---- the moments ----
+    let introDone = false;
+    function intro() {
+      introDone = true;
+      const title = (document.title.split('·')[0] || '').trim();
+      drumroll(2.3);
+      setTimeout(() => { crash(); tadan(); confetti(); shake(); }, 2350);
+      say(`¡Bienvenidos! Comenzamos: ${title}`, 3000);
+    }
+    const BOARD = {
+      aplausos: () => applause(4), wow: () => wow(), grillos: () => crickets(), tadan: () => { tadan(); confetti(2600); },
+      bocina: () => { airhorn(); shake(); }, error: () => { buzz(); shake(); }, redoble: () => drumroll(2.4, true), intro: () => intro(),
+    };
+    return { showOn, on, drumroll, crash, airhorn, tadan, fanfare, ding, buzz, applause, wow, crickets, swoosh, beat, say, confetti, shake, intro, introDone: () => introDone, play: k => BOARD[k] && BOARD[k]() };
+  })();
+
   const timers = new Map();
   const ruletaIdxEarly = slides.findIndex(s => s.classList.contains('live'));
   let beforeRuleta = -1;
+  const PORTADA = Math.max(0, slides.findIndex(sl => sl.querySelector('img[src*="banner.png"]')));
   let pubState = () => {};   // set once Firebase is connected: tells the home dashboard which slide is on screen
   function go(i, instant) {
+    if (i >= N && cur === N - 1) { openCreditos(); return; }                 // past the last slide: rolling credits
+    if (cur >= 0 && cur === PORTADA && i === cur + 1 && !SHOW.introDone() && SHOW.on() && !instant) { SHOW.intro(); return; }   // deck that opens on the cover: the first "next" starts the show
     i = Math.max(0, Math.min(N - 1, i));
     if (i === cur) return;
+    if (credOpen) closeCreditos();
+    if (slides[i] && slides[i].classList.contains('live') && cur >= 0) SHOW.say('¡Llegó el momento de la ruleta!', 700);
     setTimeout(() => pubState(), 0);
     const prev = slides[cur], back = cur >= 0 && i < cur, first = cur < 0;
     let tr = first ? 'fade' : (slides[i].dataset.tr || 'fade');
@@ -1865,6 +2048,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (/^(zoom|slide|slideback|iris|wipe)$/.test(tr)) { sl.style.transition = 'none'; sl.classList.add('from-' + tr); void sl.offsetWidth; sl.style.transition = ''; }
     sl.classList.add('cur'); sl.classList.remove('from-zoom', 'from-slide', 'from-slideback', 'from-iris', 'from-wipe');
     if (!first) sfx.whoosh(tr);
+    if (!first && i === PORTADA && !SHOW.introDone() && SHOW.on()) setTimeout(() => { if (cur === PORTADA && !SHOW.introDone()) SHOW.intro(); }, 900);   // arriving at the cover starts the show
     sfx.entrances(sl);
     requestAnimationFrame(() => requestAnimationFrame(() => { sl.classList.add('on'); sl.querySelectorAll('[data-count]').forEach(countUp); }));
     sl.querySelectorAll('video').forEach(v => { try { v.currentTime = 0; } catch (e) {} const p = v.play(); if (p && p.catch) p.catch(() => {}); });
@@ -1948,6 +2132,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function openTrivia() {
     closeVideo();
     if (!tFrame.getAttribute('src')) tFrame.src = 'trivia.html?pantalla';
+    if (!triviaOpen) { SHOW.tadan(); SHOW.say('¡Llegó la hora de la trivia!', 900); }
     triviaOpen = true;
     $('trivia').classList.add('open'); document.body.classList.add('trivia');
     $('toTrivia').setAttribute('aria-current', 'true');
@@ -2173,6 +2358,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 
   /* ---------- sound: soft music loop + whoosh on slide change + light pops as things land ---------- */
   var music = $('music');
+  const MUSIC_VOL = 0.3, MUSIC_UP = 0.5;   // normal level, and louder for games and credits
   function soundOn() { try { return localStorage.getItem('pres-sound') !== 'off'; } catch (e) { return true; } }
   function setSound(on) {
     try { localStorage.setItem('pres-sound', on ? 'on' : 'off'); } catch (e) {}
@@ -2181,13 +2367,17 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   function startMusic() {
     if (!soundOn() || playing || apOpen) return;
-    music.volume = 0.32; const p = music.play(); if (p && p.catch) p.catch(() => {});
+    let lvl = MUSIC_VOL; try { if (eq.open || credOpen) lvl = MUSIC_UP; } catch (e) {}
+    music.volume = lvl; const p = music.play(); if (p && p.catch) p.catch(() => {});
   }
   $('snd').addEventListener('click', e => { e.stopPropagation(); setSound(!soundOn()); });
+  const setShowBtn = () => $('shw').setAttribute('aria-pressed', String(SHOW.showOn()));
+  $('shw').addEventListener('click', e => { e.stopPropagation(); try { localStorage.setItem('pres-show', SHOW.showOn() ? 'off' : 'on'); } catch (x) {} setShowBtn(); try { speechSynthesis.cancel(); } catch (x) {} rtoast(SHOW.showOn() ? 'Efectos de show activados' : 'Efectos de show apagados (la música sigue)'); });
+  setShowBtn();
   $('snd').innerHTML = (soundOn() ? ICO.vol : ICO.mute) + ' Sonido';
 
   /* ---------- applause meter (microphone level) ---------- */
-  var apOpen = false, apStream = null, apRaf = 0, apRec = 0;
+  var apOpen = false, apStream = null, apRaf = 0, apRec = 0, apCelebrated = 0, apHoldMsg = 0;
   async function openAplauso() {
     closeVideo(); apOpen = true; music.pause(); $('aplauso').classList.add('open'); wake();
     $('apMsg').textContent = 'Pidiendo permiso para usar el micrófono…';
@@ -2203,11 +2393,14 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         const v = Math.max(0, Math.min(100, (db + 55) * 100 / 50));
         lvl += (v - lvl) * (v > lvl ? 0.5 : 0.08);
         if (lvl > peak) { peak = lvl; peakT = now; } else if (now - peakT > 1200) peak = Math.max(lvl, peak - 0.6);
-        if (lvl > apRec) { apRec = Math.round(lvl); $('apRec').textContent = apRec; }
+        if (lvl > apRec) {
+          const old = apRec; apRec = Math.round(lvl); $('apRec').textContent = apRec;
+          if (old >= 20 && apRec >= old + 5 && now - apCelebrated > 7000) { apCelebrated = now; SHOW.fanfare(); SHOW.confetti(3000); SHOW.say('¡Nuevo récord!', 900); $('apMsg').textContent = '¡¡NUEVO RÉCORD!!'; apHoldMsg = now + 2500; }
+        }
         $('apFill').style.width = lvl + '%'; $('apPeak').style.left = `calc(${peak}% - 5px)`;
         $('apNow').textContent = Math.round(lvl);
         $('apEmoji').style.setProperty('--k', (1 + lvl / 140).toFixed(3));
-        $('apMsg').textContent = lvl > 85 ? '¡¡INCREÍBLE!!' : lvl > 65 ? '¡Eso es, más fuerte!' : lvl > 35 ? '¡Vamos, un poco más!' : '¡Que suenen esos aplausos!';
+        if (now > apHoldMsg) $('apMsg').textContent = lvl > 85 ? '¡¡INCREÍBLE!!' : lvl > 65 ? '¡Eso es, más fuerte!' : lvl > 35 ? '¡Vamos, un poco más!' : '¡Que suenen esos aplausos!';
         apRaf = requestAnimationFrame(loop);
       };
       apRaf = requestAnimationFrame(loop);
@@ -2429,6 +2622,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     eq.total = eq.remain = Math.max(1, +min || 5) * 60000; eq.end = Date.now() + eq.total; eq.paused = false; eq.done = false; eq.open = true;
     $('equipo').classList.remove('done', 'paused'); $('equipo').classList.add('open'); $('eqPause').textContent = 'Pausar';
     clearInterval(eq.t); eq.t = setInterval(eqRender, 250); eqRender(); wake();
+    music.volume = MUSIC_UP; startMusic(); SHOW.swoosh(); SHOW.say(EQ_TITLES[k][0].replace(/[¡!]/g, ''), 500);
   }
   function eqAdd(min) {
     if (!eq.open) return openEquipo(min || 1);
@@ -2454,8 +2648,29 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   function closeBien() { if (!bienOpen) return; bienOpen = false; clearInterval(bienT); $('bien').classList.remove('open'); $('bien').querySelector('video').pause(); }
   $('bien').addEventListener('click', closeBien);
+  /* rolling credits after the last slide (or from the phone) */
+  var credOpen = false;
+  function openCreditos() {
+    closePick(); closeVideo(); closeAplauso(); closeEquipo(); closeBien(); closeAsis(); closeTrivia(); hidePenit();
+    const title = (document.title.split('·')[0] || '').trim();
+    const sec = (h, items) => `<h3>${h}</h3><p>${items.map(x => `<span>${escH(x)}</span>`).join('')}</p>`;
+    $('credRoll').innerHTML = `<img src="logo/mara-logo-blanco.svg" alt="Alcaldía Bolivariana de Mara"><h2>${escH(title)}</h2>`
+      + sec('Una producción de', ['Alcaldía Bolivariana de Mara'])
+      + sec('Elaborado por', ['Dirección General', 'Dirección de Planificación y Desarrollo'])
+      + sec('Coordinaciones participantes', ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'])
+      + sec('Las cinco generaciones', ['Precursora', 'Fundadora', 'Intermedia', 'De Oro', 'Genial'])
+      + sec('Pensamiento pedagógico', ['Antonio Pérez Esclarín'])
+      + sec('Y el protagonista de este show', ['Tú, que participaste'])
+      + `<div class="fin">¡Gracias por participar!</div><p>Con el pueblo siempre</p>`;
+    credOpen = true; $('creditos').classList.remove('open'); void $('creditos').offsetWidth; $('creditos').classList.add('open');
+    music.volume = MUSIC_UP; startMusic(); SHOW.tadan(); wake();
+  }
+  function closeCreditos() { if (!credOpen) return; credOpen = false; $('creditos').classList.remove('open'); music.volume = MUSIC_VOL; }
+  $('creditos').addEventListener('click', closeCreditos);
+  $('credX').addEventListener('click', e => { e.stopPropagation(); closeCreditos(); });
+
   /* penitencia: the presenter presses P (or the phone / the QR screen button) and someone who already marked attendance has to dance */
-  let penBusy = false, penT = 0, penSpin = 0;
+  let penBusy = false, penT = 0, penSpin = 0, penRoll = null, penBeat = null;
   const penUsed = new Set();
   function penTone(f, len, vol, type = 'triangle', at = 0) {
     try {
@@ -2474,22 +2689,31 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     $('penDz').innerHTML = SCN.solo({ shirt: ['#D62839', '#1E9E4F', '#2F80ED', '#C8743A'][Math.floor(Math.random() * 4)], hs: Math.floor(Math.random() * 4) });
     $('penT').textContent = ns.length > 1 ? '¡Les toca bailar!' : `${n}, ¡te toca bailar!`;
     $('penS').textContent = ns.length > 1 ? '¡Pasen al frente! · Un aplauso para animar' : '¡Pasa al frente! · Un aplauso para animar';
-    fanfare(); clearTimeout(penT); penT = setTimeout(hidePenit, 12000);
+    penStopRoll();
+    if (SHOW.on()) {
+      SHOW.crash(); SHOW.airhorn(); SHOW.confetti(); SHOW.shake();
+      const list = ns.length > 1 ? ns.slice(0, -1).join(', ') + ' y ' + ns[ns.length - 1] : n;
+      SHOW.say(ns.length > 1 ? `¡Les toca bailar a ${list}!` : `¡Le toca bailar a ${n}!`, 1300);
+      penBeat = SHOW.beat(14);
+    } else fanfare();
+    clearTimeout(penT); penT = setTimeout(hidePenit, 14000);
   }
   function spinPenit(finals, names, onReveal) {
     closePick(); closeVideo(); closeAplauso(); closeBien();
     finals = [].concat(finals); const final = finals[0], many = finals.length > 1;
     const pool = names.length ? names : finals; $('penL').innerHTML = '';
     $('penit').classList.add('open', 'spin'); $('penK').textContent = '¿A quién le toca bailar?'; $('penDz').textContent = '?';
+    penStopRoll(); penRoll = SHOW.drumroll(6); music.volume = Math.min(music.volume, .1);
     let k = 0, wait = 60; const t0 = Date.now(); clearTimeout(penSpin); clearTimeout(penT);
     const step = () => {
-      $('penT').textContent = pool[k++ % pool.length] || '…'; penTone(880 + (k % 3) * 120, .05, .12, 'square');
+      $('penT').textContent = pool[k++ % pool.length] || '…'; if (!SHOW.on()) penTone(880 + (k % 3) * 120, .05, .12, 'square');
       if (Date.now() - t0 > (many ? 2000 : 2800) && (many || $('penT').textContent === final)) { onReveal(); return revealPenit(finals); }
       wait = Math.min(320, wait * 1.12); penSpin = setTimeout(step, wait);
     };
     step();
   }
-  function hidePenit() { clearTimeout(penT); clearTimeout(penSpin); $('penit').classList.remove('open', 'spin'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; }, 500); }
+  function penStopRoll() { if (penRoll) { penRoll(); penRoll = null; } }
+  function hidePenit() { penStopRoll(); if (penBeat) { penBeat(); penBeat = null; } music.volume = (eq && eq.open) ? MUSIC_UP : MUSIC_VOL; clearTimeout(penT); clearTimeout(penSpin); $('penit').classList.remove('open', 'spin'); setTimeout(() => { if (!$('penit').classList.contains('open')) $('penDz').innerHTML = ''; }, 500); }
   $('penit').addEventListener('click', hidePenit);
   // chosen by hand from the phone: list of { h, n }
   function penitChosen(list) {
@@ -2516,7 +2740,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     } catch (e) { rtoast('No se pudo escoger. Revisa el internet.'); }
     finally { penBusy = false; }
   }
-  function closeEquipo() { if (!eq.open) return; eq.open = false; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); setTimeout(() => { if (!eq.open) $('eqScene').innerHTML = ''; }, 600); }
+  function closeEquipo() { if (!eq.open) return; eq.open = false; music.volume = MUSIC_VOL; clearInterval(eq.t); $('equipo').classList.remove('open', 'done', 'paused'); setTimeout(() => { if (!eq.open) $('eqScene').innerHTML = ''; }, 600); }
   $('eqPlus').addEventListener('click', () => eqAdd(1));
   $('eqPause').addEventListener('click', eqPause);
   $('eqClose').addEventListener('click', closeEquipo);
@@ -2581,6 +2805,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'video': closePick(); closeAplauso(); openVideo(+arg); rtoast(`Video ${arg}`); break;
       case 'closeVideo': closeVideo(); rtoast('Video cerrado'); break;
       case 'penit': penitRandom(arg && arg.list); break;
+      case 'sfx': SHOW.play(arg); rtoast('Efecto: ' + ({ aplausos: 'aplausos', wow: '¡uuuh!', grillos: 'grillos', tadan: '¡ta-dan!', bocina: 'bocina', error: 'error', redoble: 'redoble', intro: 'arranque del show' }[arg] || arg)); break;
+      case 'creditos': if (arg === 'close') closeCreditos(); else openCreditos(); break;
       case 'asis': if (arg === 'close') { closeAsis(); rtoast('QR de asistencia cerrado'); } else { openAsis(); rtoast('QR de asistencia'); } break;
       case 'prensa': if (arg === 'close') { closePrensa(); rtoast('Periódicos cerrados'); } else if (prOpen && arg !== 'both') { prShow(arg); rtoast(`Periódico ${arg}`); } else { openPrensa(arg || 'both'); rtoast('Periódicos'); } break;
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
@@ -2652,7 +2878,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   addEventListener('pointerdown', kick, { once: true }); addEventListener('keydown', kick, { once: true });
   const firstGesture = () => { sfx.ctx(); startMusic(); };
   addEventListener('pointerdown', firstGesture, { once: true }); addEventListener('keydown', firstGesture, { once: true });
-  addEventListener('message', e => { if (e.data && e.data.ruletaSound === 'duck') music.volume = 0.1; if (e.data && e.data.ruletaSound === 'unduck') music.volume = 0.32; });
+  addEventListener('message', e => { if (e.data && e.data.ruletaSound === 'duck') music.volume = 0.1; if (e.data && e.data.ruletaSound === 'unduck') music.volume = MUSIC_VOL; });
   // wait for the bundled fonts so titles do not jump while animating in
   (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]) : Promise.resolve()).then(begin);
 })();
