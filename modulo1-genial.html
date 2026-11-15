@@ -2254,7 +2254,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   const tFrame = $('tFrame');
   function openTrivia() {
     closeVideo();
-    if (!tFrame.getAttribute('src')) tFrame.src = 'trivia.html?pantalla';
+    if (!tFrame.getAttribute('src')) { const dk = (location.pathname.split('/').pop() || '').replace(/\.html$/, ''); tFrame.src = 'trivia.html?pantalla' + (/^modulo1-(precursora|fundadora|intermedia|oro|genial)$/.test(dk) ? '&banco=' + dk.slice(8) : ''); }
     if (!triviaOpen) { SHOW.tadan(); SHOW.say('¡Llegó la hora de la trivia!', 900); }
     triviaOpen = true;
     $('trivia').classList.add('open'); document.body.classList.add('trivia');
