@@ -1457,7 +1457,82 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     { n: 'Genial', r: '18 a 25 años', c: '#19C3E6', min: 0, max: 25 },
   ];
   const genOf = edad => GENS.findIndex(g => edad >= g.min && edad <= g.max);
-  const DEF_CFG = { coordinaciones: ['Gestión de Seguridad, Justicia y Paz', 'Gestión Interna', 'Gestión de Infraestructura y Servicios Básicos (Apoyo)'], direcciones: {}, culminar: 5 };
+  // estructura de la alcaldía (Relación general por coordinación de gestión, nov. 2026). v sube cuando cambia la lista por defecto
+  const DEF_CFG = { v: 2, coordinaciones: ["Nivel Político", "Gestión Interna", "Gestión de Infraestructura y Servicios Básicos (Apoyo)", "Gestión de Seguridad, Justicia y Paz", "Gestión para el Desarrollo Humano Integral", "Economía Productiva"],
+    direcciones: {
+    "Nivel Político": [
+    "Sindicatura Municipal",
+    "Despacho del Alcalde",
+    "Oficina de Atención al Soberano",
+    "Oficina de Atención Social",
+    "Dirección de Evaluación y Control de Gestión",
+    "Dirección de Planificación y Desarrollo",
+    "Coordinaciones Parroquiales de Gobierno",
+    "Dirección General",
+    "Departamento de Informática",
+    "Escuela de Gobierno",
+    "Departamento de Red de Farmacias Comunitarias",
+    "Auditoría Interna",
+    "Dirección de Comunicación Estratégica",
+    "Contraloría",
+    "Concejo Municipal"
+    ],
+    "Gestión Interna": [
+    "Coordinación de Gestión Interna",
+    "Dirección de Presupuesto Participativo",
+    "Dirección del Talento Humano",
+    "Dirección de Administración",
+    "Dirección de Administración Tributaria",
+    "Dirección de Taller Municipal"
+    ],
+    "Gestión de Infraestructura y Servicios Básicos (Apoyo)": [
+    "Coordinación de Infraestructura y Servicios Básicos",
+    "Dirección de Ingeniería y Planificación Urbana",
+    "Servicio Autónomo Municipal para el Abastecimiento de Agua Potable y Saneamiento Ambiental",
+    "Dirección de Catastro y Planificación Urbana",
+    "Servicio Autónomo Municipal de Cementerios y Servicios Funerarios",
+    "IMVIMARA",
+    "Mancomunidad",
+    "IAME",
+    "IMA",
+    "IMTCUMARA"
+    ],
+    "Gestión de Seguridad, Justicia y Paz": [
+    "Coordinación de Seguridad, Justicia y Paz",
+    "Oficina Municipal de los Registros Civiles de Mara",
+    "CMDNA",
+    "Dirección de Protección Civil y Administración de Desastres",
+    "Dirección de Seguridad Interna",
+    "POLIMARA",
+    "Bomberos"
+    ],
+    "Gestión para el Desarrollo Humano Integral": [
+    "Coordinación de Gestión para el Desarrollo Humano Integral",
+    "Dirección de Políticas Alimentarias",
+    "Dirección de Educación",
+    "Servicio Autónomo Teatro Municipal Castro Emilio Almarza",
+    "Dirección de Cultura y Patrimonio",
+    "Dirección del Sistema Municipal de Salud",
+    "Dirección del Poder Popular y Comunas",
+    "Dirección del Poder Popular para los Pueblos Indígenas",
+    "FUNDAFAMILIA",
+    "IMGAMARA",
+    "INMUDEMA",
+    "Instituto de la Mujer"
+    ],
+    "Economía Productiva": [
+    "Coordinación de Economía Productiva",
+    "Dirección de Pesca y Acuicultura",
+    "Dirección de Comercio y Servicios Municipales",
+    "Dirección de Mercados Municipales",
+    "Servicio Autónomo Municipal de Turismo (SAMTUR)",
+    "Servicio Autónomo Complejo Científico Cultural Simón Bolívar",
+    "INDAGROMARA",
+    "FOMCREMARA"
+    ]
+    }, culminar: 5 };
+  // una configuración guardada antes de la v2 conserva su número de asistencias pero toma la lista nueva
+  const normCfg = d => { const c = Object.assign({}, DEF_CFG, d || {}); if (!((d || {}).v >= DEF_CFG.v)) { c.coordinaciones = DEF_CFG.coordinaciones; c.direcciones = DEF_CFG.direcciones; c.v = DEF_CFG.v; } return c; };
   // dirección (unidad) a la que pertenece cada formado: lista por coordinación en Ajustes, o texto libre si no hay lista
   const dirsOf = (cfg, coord) => (((cfg || {}).direcciones || {})[coord] || []);
   const anyDirs = cfg => Object.values((cfg || {}).direcciones || {}).some(l => l && l.length);
@@ -1702,14 +1777,14 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async login(email) { user = { uid, email, isAnonymous: false }; authCb && authCb(user); },
       async logout() { user = null; authCb && authCb(null); },
       uid: () => uid,
-      async getConfig() { return st().config || DEF_CFG; },
+      async getConfig() { return normCfg(st().config); },
       async setConfig(c) { const s = st(); s.config = c; save(s); },
       async getSesion(id) { return st().sesiones[id] || null; },
       async saveSesion(id, data) { const s = st(); s.sesiones[id] = Object.assign({}, s.sesiones[id], data); save(s); },
       async idInfo(h) { return st().ids[h] || null; },
       async getPersona(h) { return st().personas[h] || null; },
       async setDir(h, dir) { const s = st(); if (!s.personas[h]) throw { code: 'not-found' }; s.personas[h].dir = dir; save(s); },
-      async constancia(h) { const s = st(); return { persona: s.personas[h] || null, marcas: Object.values(s.marcas).filter(m => m.persona === h), sesiones: s.sesiones, cfg: s.config || DEF_CFG }; },
+      async constancia(h) { const s = st(); return { persona: s.personas[h] || null, marcas: Object.values(s.marcas).filter(m => m.persona === h), sesiones: s.sesiones, cfg: normCfg(s.config) }; },
       async registrarYMarcar(h, persona, sid) {
         const s = st(); if (s.personas[h]) throw { code: 'permission-denied' };
         if (!s.sesiones[sid] || !s.sesiones[sid].abierta) throw { code: 'permission-denied' };
@@ -1767,7 +1842,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       },
       async logout() { await U.signOut(auth); },
       uid: () => auth && auth.currentUser ? auth.currentUser.uid : '',
-      async getConfig() { const d = await F.getDoc(F.doc(db, 'asist_config', 'main')); return d.exists() ? Object.assign({}, DEF_CFG, d.data()) : DEF_CFG; },
+      async getConfig() { const d = await F.getDoc(F.doc(db, 'asist_config', 'main')); return normCfg(d.exists() ? d.data() : null); },
       async setConfig(c) { await F.setDoc(F.doc(db, 'asist_config', 'main'), c); },
       async getSesion(id) { const d = await F.getDoc(F.doc(db, 'asist_sesiones', id)); return d.exists() ? d.data() : null; },
       async saveSesion(id, data) { await F.setDoc(F.doc(db, 'asist_sesiones', id), data, { merge: true }); },
@@ -1779,7 +1854,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         const p = await F.getDoc(F.doc(db, 'asist_personas', h));
         const marcas = []; (await F.getDocs(F.query(F.collection(db, 'asist_marcas'), F.where('persona', '==', h)))).forEach(d => marcas.push(d.data()));
         const sesiones = {}; await Promise.all([...new Set(marcas.map(m => m.sesion))].map(async id => { const d = await F.getDoc(F.doc(db, 'asist_sesiones', id)); if (d.exists()) sesiones[id] = d.data(); }));
-        let cfg = DEF_CFG; try { const c = await F.getDoc(F.doc(db, 'asist_config', 'main')); if (c.exists()) cfg = Object.assign({}, DEF_CFG, c.data()); } catch (e) {}
+        let cfg = DEF_CFG; try { const c = await F.getDoc(F.doc(db, 'asist_config', 'main')); cfg = normCfg(c.exists() ? c.data() : null); } catch (e) {}
         return { persona: p.exists() ? p.data() : null, marcas, sesiones, cfg };
       },
       async registrarYMarcar(h, persona, sid) {
@@ -2173,7 +2248,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const aC = $('#aC'); if (aC && !aC.dataset.b) aC.dataset.b = 1, aC.addEventListener('input', () => { const d = readDirAreas(); $('#aDirs').innerHTML = dirAreas(aC.value.split('\n').map(s => s.trim()).filter(Boolean), Object.assign({}, S.cfg.direcciones, d)); });
     const af = $('#af'); if (af && !af.dataset.b) af.dataset.b = 1, af.addEventListener('submit', async e => {
       e.preventDefault();
-      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), direcciones: {}, culminar: Math.max(1, +$('#aN').value || 5) };
+      const c = { coordinaciones: $('#aC').value.split('\n').map(s => s.trim()).filter(Boolean), v: DEF_CFG.v, direcciones: {}, culminar: Math.max(1, +$('#aN').value || 5) };
       const d = readDirAreas(); c.coordinaciones.forEach(k => { if (d[k]) c.direcciones[k] = d[k]; });
       try { await DB.setConfig(c); S.cfg = c; toast('Ajustes guardados'); } catch (err) { toast('No se pudo guardar'); }
     });
