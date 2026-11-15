@@ -2292,7 +2292,22 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
 
   /* ---------- attendance QR: the open session from asistencia.html (Firebase, or localStorage in ?demo) ---------- */
   let asisSes = null, asisOpen = false;
-  const asisLink = id => new URL('asistencia.html?' + (new URLSearchParams(location.search).has('demo') ? 'demo&' : '') + 's=' + id, location.href).toString();
+  const asisLink = (id, t) => new URL('asistencia.html?' + (new URLSearchParams(location.search).has('demo') ? 'demo&' : '') + 's=' + id + (t ? '&t=' + t : ''), location.href).toString();
+  // rotating code: sessions with a key «k» get a token that changes every 30 s (asistencia.html checks it)
+  async function asisTok(k) {
+    const w = Math.floor(Date.now() / 30000);
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(k + '|' + w));
+    return w.toString(36) + '.' + [...new Uint8Array(b)].slice(0, 4).map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  let asisURL = '';
+  async function drawAsisQR(force) {
+    if (!asisSes) return;
+    let t = ''; try { if (asisSes.k) t = await asisTok(asisSes.k); } catch (e) {}
+    const u = asisLink(asisSes.id, t); if (u === asisURL && !force) return; asisURL = u;
+    if ($('asisQR')) qrTo($('asisQR'), u, 12);
+    if ($('bienQRc') && !$('bienQR').hidden) qrTo($('bienQRc'), u, 8);
+  }
+  setInterval(() => { if (asisSes && asisSes.k && (asisOpen || document.body.classList.contains('bienOpen') || !$('bienQR').hidden)) drawAsisQR(); }, 2000);
   function qrTo(canvas, text, px) {
     try {
       const L = window.QRCodeLib, q = new L.QRCode(-1, L.QRErrorCorrectLevel.M); q.addData(text); q.make();
@@ -2317,9 +2332,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (asisSes) {
       el.innerHTML = `<canvas id="asisQR" aria-label="Código QR de asistencia"></canvas><div><div class="k">Registro de asistencia · ${escH(fechaLarga(asisSes.fecha))}</div>
         <h2>${escH((asisSes.modulo || '').split(':')[0])}</h2>${(asisSes.modulo || '').includes(':') ? `<p style="color:#fff;font-size:clamp(18px,2.2vw,32px);font-family:var(--head);font-weight:700">${escH(asisSes.modulo.split(':').slice(1).join(':').trim())}</p>` : ''}<p>${escH(asisSes.coordinacion || '')}${asisSes.lugar ? ' · ' + escH(asisSes.lugar) : ''}</p>
-        <p class="go">Escanea el código con la cámara de tu teléfono y escribe tu cédula.</p><div id="asisCount">${welcCount ? `<b>${welcCount}</b> ${welcCount === 1 ? 'presente' : 'presentes'}` : ''}</div></div><button id="asisPen" type="button" title="Escoge al azar a alguien que ya marcó asistencia (tecla P)">¿Quién baila?</button><button id="asisX" type="button">✕ Cerrar</button>`;
-      qrTo($('asisQR'), asisLink(asisSes.id), 12);
-      $('bienQR').hidden = false; qrTo($('bienQRc'), asisLink(asisSes.id), 8);
+        <p class="go">Escanea el código con la cámara de tu teléfono y escribe tu cédula.${asisSes.k ? '<span style="display:block;font-size:.62em;opacity:.75;margin-top:6px">El código cambia cada 30 segundos: escanéalo aquí en la sala.</span>' : ''}</p><div id="asisCount">${welcCount ? `<b>${welcCount}</b> ${welcCount === 1 ? 'presente' : 'presentes'}` : ''}</div></div><button id="asisPen" type="button" title="Escoge al azar a alguien que ya marcó asistencia (tecla P)">¿Quién baila?</button><button id="asisX" type="button">✕ Cerrar</button>`;
+      $('bienQR').hidden = false; drawAsisQR(true);
     } else {
       el.innerHTML = `<div class="none"><div class="k">Registro de asistencia</div><h2>No hay una sesión abierta</h2><p>Abre la sesión del día en la app de asistencia y el código aparecerá aquí solo.</p></div><button id="asisX" type="button">✕ Cerrar</button>`;
       $('bienQR').hidden = true;
