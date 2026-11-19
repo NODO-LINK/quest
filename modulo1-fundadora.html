@@ -189,6 +189,8 @@ body.trivia #jump{bottom:auto;top:max(14px,env(safe-area-inset-top))}
 #trivia{position:fixed;inset:0;z-index:15;background:#0A2346;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
 #trivia.open{opacity:1;visibility:visible;transition:opacity .35s ease}
 #trivia iframe{width:100%;height:100%;border:0;display:block}
+#trivia iframe[hidden]{display:none}
+#jump button.fin{background:linear-gradient(160deg,#9B6BFF,#6B3FD6 60%,#4E2BA8);padding:0 16px}
 #tClose{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:17;font:700 16px var(--body);color:#fff;border:1px solid rgba(255,255,255,.3);
   background:rgba(11,20,38,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:999px;height:44px;padding:0 18px;cursor:pointer;display:none}
 body.trivia #tClose{display:block}
@@ -548,6 +550,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   <button class="as" type="button" id="toAsis" aria-label="QR de asistencia"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg> Asistencia</button>
   <button class="rul" type="button" id="toRuleta">Ruleta</button>
   <button class="triv" type="button" id="toTrivia">Trivia</button>
+  <button class="fin" type="button" id="toJuego">Juego final</button>
   <button class="sl" type="button" id="toPick" aria-label="Elegir diapositiva">☰ Diapositivas</button>
   <button class="ap" type="button" id="toAplauso" aria-label="Aplausómetro"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4.5-5"/><circle cx="12" cy="17" r="1.2"/><path d="M6.3 11.2 7.5 12"/><path d="M12 7.5V9"/><path d="M17.7 11.2 16.5 12"/></svg></button>
 </nav>
@@ -564,7 +567,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
 <div id="pick" role="dialog" aria-modal="true" aria-labelledby="pickTitle"><div id="pickCard">
   <h2 id="pickTitle">Ir a la diapositiva…</h2><p>Toca una para saltar directo. También: tecla D para abrir esta lista, Esc para cerrarla.</p>
   <div id="pickGrid"></div></div></div>
-<div id="trivia" aria-label="Trivia"><iframe id="tFrame" title="Trivia" allow="fullscreen; clipboard-write"></iframe></div>
+<div id="trivia" aria-label="Trivia"><iframe id="tFrame" title="Trivia" allow="fullscreen; clipboard-write"></iframe><iframe id="jFrame" title="Juego final" allow="fullscreen; autoplay" hidden></iframe></div>
 <button id="tClose" type="button">✕ Volver a la presentación</button>
 <div id="asis" role="dialog" aria-modal="true" aria-label="QR de asistencia"></div>
 <div id="prensa" role="dialog" aria-modal="true" aria-label="Periódicos">
@@ -2247,8 +2250,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   $('toRuleta').addEventListener('click', e => { e.stopPropagation(); closeVideo(); closeTrivia(); go(ruletaIdx); });
   /* ---------- trivia: the presenter screen opens over the slides and keeps running in the background ---------- */
   const tFrame = $('tFrame');
+  let juegoOpen = false;
   function openTrivia() {
     closeVideo();
+    if (juegoOpen) { juegoOpen = false; triviaOpen = false; $('toJuego').removeAttribute('aria-current'); }
+    tFrame.hidden = false; $('jFrame').hidden = true;
     if (!tFrame.getAttribute('src')) { const dk = (location.pathname.split('/').pop() || '').replace(/\.html$/, ''); tFrame.src = 'trivia.html?pantalla' + (/^modulo1-(precursora|fundadora|intermedia|oro|genial)$/.test(dk) ? '&banco=' + dk.slice(8) : ''); }
     if (!triviaOpen) { SHOW.tadan(); SHOW.say('¡Llegó la hora de la trivia!', 900); }
     triviaOpen = true;
@@ -2259,7 +2265,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   function closeTrivia() {
     if (!triviaOpen) return;
-    triviaOpen = false;
+    triviaOpen = false; juegoOpen = false; $('toJuego').removeAttribute('aria-current');
     $('trivia').classList.remove('open'); document.body.classList.remove('trivia');
     $('toTrivia').removeAttribute('aria-current');
     tFrame.blur();
@@ -2268,6 +2274,20 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   }
   $('toTrivia').addEventListener('click', e => { e.stopPropagation(); triviaOpen ? closeTrivia() : openTrivia(); });
   $('tClose').addEventListener('click', closeTrivia);
+  /* ---------- juego final de la generación: final.html en la misma capa que la trivia ---------- */
+  function openJuego() {
+    closeVideo();
+    const jf = $('jFrame'), dk = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+    if (!jf.getAttribute('src')) jf.src = 'final.html?pantalla&g=' + dk.slice(8) + (new URLSearchParams(location.search).has('demo') ? '&demo' : '');
+    if (!juegoOpen) { SHOW.tadan(); SHOW.say('¡Llegó el juego final!', 900); }
+    juegoOpen = true; triviaOpen = true;
+    tFrame.hidden = true; jf.hidden = false;
+    $('trivia').classList.add('open'); document.body.classList.add('trivia');
+    $('toTrivia').removeAttribute('aria-current'); $('toJuego').setAttribute('aria-current', 'true');
+    slides[cur].querySelectorAll('video').forEach(v => v.pause());
+    setTimeout(() => { if (juegoOpen) jf.focus(); }, 350);
+  }
+  $('toJuego').addEventListener('click', e => { e.stopPropagation(); juegoOpen ? closeTrivia() : openJuego(); });
 
   /* ---------- slide picker ---------- */
   const pick = $('pick'), grid = $('pickGrid');
@@ -2390,7 +2410,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (k === 'd' || k === 'D') { pickOpen ? closePick() : openPick(); return true; }
     if (k >= '1' && k <= '6' && k.length === 1) { openVideo(+k); return true; }
     if (k === 'r' || k === 'R') { closeVideo(); closeTrivia(); go(ruletaIdx); return true; }
-    if (k === 't' || k === 'T') { triviaOpen ? closeTrivia() : openTrivia(); return true; }
+    if (k === 't' || k === 'T') { triviaOpen && !juegoOpen ? closeTrivia() : openTrivia(); return true; }
+    if (k === 'j' || k === 'J') { juegoOpen ? closeTrivia() : openJuego(); return true; }
     return false;
   }
 
@@ -3012,6 +3033,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'asis': if (arg === 'close') { closeAsis(); rtoast('QR de asistencia cerrado'); } else { openAsis(); rtoast('QR de asistencia'); } break;
       case 'prensa': if (arg === 'close') { closePrensa(); rtoast('Periódicos cerrados'); } else if (prOpen && arg !== 'both') { prShow(arg); rtoast(`Periódico ${arg}`); } else { openPrensa(arg || 'both'); rtoast('Periódicos'); } break;
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
+      case 'juego': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openJuego(); rtoast(arg === 'close' ? 'Volviendo del juego' : 'Juego final'); break;
       case 'aplauso': closePick(); arg === 'close' ? closeAplauso() : openAplauso(); rtoast('Aplausómetro'); break;
       case 'sound': setSound(arg !== 'off'); rtoast(arg === 'off' ? 'Sonido apagado' : 'Sonido activado'); break;
     }

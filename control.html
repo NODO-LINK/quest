@@ -251,6 +251,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn" type="button" data-cmd="trivia" data-arg="close">Volver de la trivia</button>
         </div>
         <div class="row" style="margin-top:8px">
+          <button class="btn" type="button" data-cmd="juego" data-arg="open" style="background:linear-gradient(160deg,#9B6BFF,#6B3FD6);color:#fff">Juego final (Módulo I)</button>
+          <button class="btn" type="button" data-cmd="juego" data-arg="close">Volver del juego</button>
+        </div>
+        <div class="row" style="margin-top:8px">
           <button class="btn" type="button" data-cmd="aplauso" data-arg="open"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4.5-5"/><circle cx="12" cy="17" r="1.2"/><path d="M6.3 11.2 7.5 12"/><path d="M12 7.5V9"/><path d="M17.7 11.2 16.5 12"/></svg> Aplausómetro</button>
           <button class="btn" type="button" data-cmd="aplauso" data-arg="close">Cerrar aplausos</button>
         </div>
@@ -279,7 +283,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', juego: 'Juego final', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos', 'modulo1-precursora', 'modulo1-fundadora', 'modulo1-intermedia', 'modulo1-oro', 'modulo1-genial'];
   const THUMBV = '1794709543';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
