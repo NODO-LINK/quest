@@ -555,7 +555,7 @@ body.clean.idle #jump,body.clean.idle #bar{opacity:0;pointer-events:none}
   <button class="as" type="button" id="toAsis" aria-label="QR de asistencia"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg> Asistencia</button>
   <button class="rul" type="button" id="toRuleta">Ruleta</button>
   <button class="triv" type="button" id="toTrivia">Trivia</button>
-  <button class="fin" type="button" id="toJuego">Juego final</button>
+  <button class="fin" type="button" id="toJuego">Diagnóstico</button>
   <button class="sl" type="button" id="toPick" aria-label="Elegir diapositiva">☰ Diapositivas</button>
   <button class="ap" type="button" id="toAplauso" aria-label="Aplausómetro"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4.5-5"/><circle cx="12" cy="17" r="1.2"/><path d="M6.3 11.2 7.5 12"/><path d="M12 7.5V9"/><path d="M17.7 11.2 16.5 12"/></svg></button>
 </nav>
@@ -2283,8 +2283,8 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   function openJuego() {
     closeVideo();
     const jf = $('jFrame'), dk = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
-    if (!jf.getAttribute('src')) jf.src = 'final.html?pantalla&g=' + dk.slice(8) + (new URLSearchParams(location.search).has('demo') ? '&demo' : '');
-    if (!juegoOpen) { SHOW.tadan(); SHOW.say('¡Llegó el juego final!', 900); }
+    if (!jf.getAttribute('src')) jf.src = 'tramites.html?pantalla' + (new URLSearchParams(location.search).has('demo') ? '&demo' : '');   // Genial: diagnóstico de trámites
+    if (!juegoOpen) { SHOW.tadan(); SHOW.say('¡Vamos con el diagnóstico de trámites!', 900); }
     juegoOpen = true; triviaOpen = true;
     tFrame.hidden = true; jf.hidden = false;
     $('trivia').classList.add('open'); document.body.classList.add('trivia');

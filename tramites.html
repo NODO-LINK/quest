@@ -1,0 +1,1644 @@
+<!doctype html>
+<!--
+  DIAGNÓSTICO DE TRÁMITES — Generación Genial · Módulo I
+  Cada participante responde, desde su celular, 12 preguntas sobre los trámites de la institución donde trabaja.
+  La pantalla ordena las instituciones por su índice de deficiencia (0 = sin problemas, 100 = crítico):
+  la de mayor puntaje es la institución prioritaria para la app del proyecto «Mara Digital en Acción».
+  · Pantalla (videobeam): tramites.html?pantalla      · Participantes: escanean el QR (tramites.html)
+  · Teclas: Espacio = siguiente · E = descargar Excel · R = reiniciar · F = pantalla completa
+  · Las respuestas se acumulan entre talleres hasta que se reinicia (colección «trivia», sala «diag-genial»).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A2346">
+<title>Diagnóstico de trámites · Generación Genial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+
+:root{--c:#F2C12E;--glow:#FFE07A;--ink:#0B1426;--navy:#0A2346;--bg:#071A35;--card:rgba(255,255,255,.08);--line:rgba(255,255,255,.16);--mut:#AFC0DA;--ok:#2BB673;--bad:#E5484D;--head:"Montserrat",system-ui,sans-serif;--body:"Source Sans 3",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+html,body{margin:0;height:100%;color:#fff;font:17px/1.35 var(--body)}
+body{overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 18% 22%,color-mix(in srgb,var(--c) 38%,transparent),transparent 70%),radial-gradient(38% 40% at 85% 80%,rgba(47,128,237,.35),transparent 70%),radial-gradient(30% 30% at 70% 15%,color-mix(in srgb,var(--glow) 18%,transparent),transparent 70%),var(--bg);animation:drift 18s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(3%,-2%) scale(1.05)}}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+h1,h2,h3{font-family:var(--head);margin:0;line-height:1.1}
+.hidden{display:none!important}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--c);color:var(--ink);font:800 13px var(--head);letter-spacing:.08em;text-transform:uppercase}
+.glass{background:var(--card);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:16px;background:var(--c);color:var(--ink);font:800 17px var(--head);box-shadow:0 8px 22px rgba(0,0,0,.35);transition:transform .12s}
+.btn:active{transform:scale(.96)}.btn.ghost{background:rgba(255,255,255,.12);color:#fff;box-shadow:none}.btn[disabled]{opacity:.4}
+.banner{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:99;background:#7A1B22;padding:10px 16px;border-radius:12px;font-weight:700;max-width:92vw;text-align:center}
+
+/* ---------------- phone ---------------- */
+.ph{max-width:520px;margin:0 auto;min-height:100%;padding:max(16px,env(safe-area-inset-top)) 16px 28px;display:flex;flex-direction:column;gap:14px}
+.ph header{display:flex;align-items:center;gap:12px}.ph header img{height:38px}.ph header b{display:block;font:800 17px var(--head)}.ph header small{color:var(--mut)}
+.ph .score{margin-left:auto;text-align:right;font:800 22px var(--head);color:var(--glow)}.ph .score small{display:block;font:600 11px var(--body);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.ph .big{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:20px}
+.ph .big h2{font-size:28px}.ph .big p{color:var(--mut);margin:0}
+.ph input{width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);background:rgba(0,0,0,.25);color:#fff;font:700 20px var(--body);text-align:center}
+.ph input:focus{outline:none;border-color:var(--c)}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.rhead b{font:800 13px var(--head);letter-spacing:.1em;text-transform:uppercase;color:var(--glow)}
+.timer{height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}.timer i{display:block;height:100%;background:var(--c);transform-origin:left;transition:transform .25s linear}
+.rtitle h2{font-size:23px}.rtitle p{margin:4px 0 0;color:var(--mut)}
+.olist{display:flex;flex-direction:column;gap:10px}
+.oitem{display:flex;align-items:center;gap:12px;text-align:left;padding:15px 16px;border-radius:16px;background:var(--card);border:2px solid var(--line);font:700 17px var(--body);min-height:58px}
+.oitem .n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:2px dashed var(--line);font:800 17px var(--head);color:var(--mut)}
+.oitem.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 22%,transparent)}.oitem.on .n{background:var(--c);border:0;color:var(--ink)}
+.acts{display:flex;gap:10px}.acts .btn{flex:1}
+.ccard{min-height:150px;display:grid;place-items:center;text-align:center;padding:24px;border-radius:24px;background:#fff;color:var(--ink);font:800 22px var(--head);line-height:1.2;box-shadow:0 14px 34px rgba(0,0,0,.4);animation:pop .3s ease}
+.ccard.ok{background:#D8F5E3}.ccard.bad{background:#FBDADB;animation:shake .35s}
+@keyframes pop{from{transform:scale(.85) rotate(-3deg);opacity:0}}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.bins{display:grid;gap:10px}.bins .btn{padding:20px 10px;font-size:18px;min-height:66px}
+.prog{text-align:center;color:var(--mut);font-weight:700}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pairs .col{display:flex;flex-direction:column;gap:10px}
+.pitem{padding:12px 10px;border-radius:14px;background:var(--card);border:2px solid var(--line);font:700 15px var(--body);min-height:64px;text-align:center;display:grid;place-items:center;line-height:1.2}
+.pitem.sel{border-color:#fff;box-shadow:0 0 0 3px var(--c)}
+.hint{padding:14px;border-radius:16px;background:var(--card);text-align:center;font-weight:700;color:var(--mut)}
+.slots{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.slot{width:38px;height:48px;border-radius:10px;border-bottom:4px solid var(--c);background:rgba(255,255,255,.08);display:grid;place-items:center;font:800 24px var(--head)}
+.slots.ok .slot{background:var(--ok);border-color:var(--ok)}.slots.bad{animation:shake .35s}
+.tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.tile{width:46px;height:52px;border-radius:12px;background:#fff;color:var(--ink);font:800 24px var(--head);box-shadow:0 5px 0 rgba(0,0,0,.25)}.tile.used{visibility:hidden}
+.done{font:900 54px var(--head);color:var(--glow)}
+
+/* ---------------- host (videobeam) ---------------- */
+.hs{position:fixed;inset:0;display:flex;flex-direction:column;padding:2.2vw 3vw}
+.hs .top{display:flex;align-items:center;gap:1.4vw}.hs .top img{height:4.2vw}.hs .top .t b{display:block;font:800 1.6vw var(--head)}.hs .top .t small{font-size:1vw;color:var(--mut)}
+.hs .top .right{margin-left:auto;display:flex;gap:1vw;align-items:center}
+.hs .count{font:800 1.3vw var(--head);background:var(--card);border:1px solid var(--line);padding:.6vw 1.2vw;border-radius:999px}
+.hs main{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.lobby{display:grid;grid-template-columns:auto 1fr;gap:4vw;align-items:center;width:100%}
+.qrbox{background:#fff;padding:1.3vw;border-radius:2vw;box-shadow:0 2vw 5vw rgba(0,0,0,.5)}.qrbox canvas{display:block;width:24vw;height:24vw}
+.lobby h1{font-size:5.4vw;font-weight:900;letter-spacing:-.01em}
+.lobby h1 span{color:var(--glow)}
+.lobby .sub{font-size:1.7vw;color:var(--mut);margin:1vw 0 2vw}
+.chips{display:flex;flex-wrap:wrap;gap:.6vw;max-height:16vw;overflow:hidden}
+.chip{padding:.45vw 1vw;border-radius:999px;background:rgba(255,255,255,.12);font:700 1.15vw var(--body);animation:pop .4s ease}
+.url{font:700 1.2vw var(--body);color:var(--mut);margin-top:1vw}
+.round{width:100%;display:grid;grid-template-columns:1fr auto;gap:4vw;align-items:center}
+.round .k{font:800 1.4vw var(--head);letter-spacing:.2em;color:var(--glow);text-transform:uppercase}
+.round h2{font-size:5vw;font-weight:900;margin:.6vw 0}.round p{font-size:2vw;color:var(--mut);margin:0}
+.ring{position:relative;width:22vw;height:22vw}.ring svg{width:100%;height:100%;transform:rotate(-90deg)}.ring b{position:absolute;inset:0;display:grid;place-items:center;font:900 7vw var(--head)}
+.ring.low b{color:#FF8A8F;animation:beat .5s infinite alternate}@keyframes beat{to{transform:scale(1.08)}}
+.bar{height:2.2vw;border-radius:1.1vw;background:rgba(255,255,255,.12);overflow:hidden;margin-top:3vw}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),var(--glow));transition:width .4s}
+.barlbl{font:700 1.4vw var(--body);color:var(--mut);margin-top:.8vw}
+.mech{display:flex;gap:1vw;margin-top:2.4vw}.mech span{padding:.8vw 1.4vw;border-radius:1vw;background:#fff;color:var(--ink);font:800 1.4vw var(--head);animation:floaty 2.4s ease-in-out infinite alternate}
+.mech span:nth-child(2){animation-delay:.3s}.mech span:nth-child(3){animation-delay:.6s}.mech span:nth-child(4){animation-delay:.9s}
+@keyframes floaty{to{transform:translateY(-.8vw) rotate(-2deg)}}
+.res{width:100%;display:grid;grid-template-columns:1.1fr 1fr;gap:3vw;align-items:start}
+.res h3{font-size:1.5vw;letter-spacing:.14em;text-transform:uppercase;color:var(--glow);margin-bottom:1.2vw}
+.lb{display:flex;flex-direction:column;gap:.7vw}
+.lbr{display:grid;grid-template-columns:3vw 1fr auto auto;gap:1.2vw;align-items:center;padding:.8vw 1.4vw;border-radius:1.2vw;background:var(--card);border:1px solid var(--line);font:700 1.6vw var(--body);animation:slidein .5s ease both}
+.lbr .pos{font:900 1.8vw var(--head);color:var(--mut)}.lbr:nth-child(1) .pos{color:#F2C12E}.lbr:nth-child(2) .pos{color:#D7DEE8}.lbr:nth-child(3) .pos{color:#E09A62}
+.lbr .pts{font:900 1.8vw var(--head)}.lbr .plus{font:800 1.2vw var(--head);color:var(--ok)}
+@keyframes slidein{from{transform:translateX(-3vw);opacity:0}}
+.sol{display:flex;flex-direction:column;gap:.7vw}.sol div{padding:.8vw 1.2vw;border-radius:1vw;background:rgba(255,255,255,.08);font:700 1.45vw var(--body)}
+.sol .bin{font:800 1.2vw var(--head);letter-spacing:.1em;text-transform:uppercase;color:var(--glow);background:none;padding:.6vw 0 0}
+.sol .two{display:grid;grid-template-columns:1fr auto 1fr;gap:1vw;align-items:center}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:2vw;width:100%}
+.pod{width:20vw;text-align:center;animation:rise 1s cubic-bezier(.2,.9,.3,1.2) both}
+.pod .nm{font:800 2.1vw var(--head);margin-bottom:.6vw;overflow-wrap:anywhere}.pod .pt{font:700 1.5vw var(--body);color:var(--mut);margin-bottom:.8vw}
+.pod .blk{border-radius:1.4vw 1.4vw 0 0;display:grid;place-items:start center;padding-top:1.4vw;font:900 6vw var(--head);color:var(--ink)}
+.pod.p1 .blk{height:22vw;background:linear-gradient(#FFE07A,#F2C12E)}.pod.p2 .blk{height:15vw;background:linear-gradient(#F1F4F8,#C5CFDC)}.pod.p3 .blk{height:11vw;background:linear-gradient(#F2B07E,#C8743A)}
+.pod.p1{animation-delay:1.6s}.pod.p2{animation-delay:.9s}.pod.p3{animation-delay:.3s}
+@keyframes rise{from{transform:translateY(40vw);opacity:0}}
+.finalh{text-align:center;margin-bottom:2vw}.finalh h1{font-size:4.6vw;font-weight:900}.finalh p{font-size:1.7vw;color:var(--mut);margin:.4vw 0 0}
+.hint-keys{position:fixed;right:1.4vw;bottom:1vw;font:600 .95vw var(--body);color:rgba(255,255,255,.45);transition:opacity .4s}
+.hctl{position:fixed;left:50%;bottom:1.4vw;transform:translateX(-50%);display:flex;gap:.8vw;transition:opacity .4s}.hctl .btn{font-size:1.2vw;padding:.8vw 1.5vw;border-radius:1vw;white-space:nowrap}
+html.emb .hs{padding-top:5.4vw}
+body.idle .hctl,body.idle .hint-keys{opacity:0;pointer-events:none}
+.modal{position:fixed;inset:0;background:rgba(3,10,25,.75);display:grid;place-items:center;z-index:50}.modal .glass{padding:2.4vw 3vw;text-align:center;background:#0F2C55}.modal h2{font-size:2.2vw;margin-bottom:1.6vw}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:40}
+
+.ph select{width:100%;padding:15px;border-radius:14px;border:2px solid var(--line);background:#0E2648;color:#fff;font:700 17px var(--body)}
+.ph label{font:800 13px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--glow);margin-top:6px}
+.qn{font:800 13px var(--head);letter-spacing:.1em;color:var(--glow);text-transform:uppercase}
+.qt{font:800 23px var(--head);line-height:1.2}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{text-align:left;padding:16px 18px;border-radius:16px;background:var(--card);border:2px solid var(--line);font:700 17px var(--body);min-height:58px;display:flex;gap:12px;align-items:center}
+.opt i{flex:none;width:14px;height:14px;border-radius:50%;background:var(--c);opacity:.35}.opt:nth-child(2) i{opacity:.55}.opt:nth-child(3) i{opacity:.8}.opt:nth-child(4) i{opacity:1;background:#FF6B78}
+.opt.sel{border-color:var(--c);background:color-mix(in srgb,var(--c) 22%,transparent)}
+.ph textarea{width:100%;min-height:96px;padding:14px;border-radius:14px;border:2px solid var(--line);background:rgba(0,0,0,.25);color:#fff;font:600 17px var(--body);resize:vertical}
+.ph textarea:focus,.ph select:focus{outline:none;border-color:var(--c)}
+.hbars{display:flex;flex-direction:column;gap:.75vw;width:100%}
+.hb{display:grid;grid-template-columns:3vw 26vw 1fr 6vw;gap:1vw;align-items:center;font:700 1.45vw var(--body);animation:slidein .5s ease both}
+.hb .pos{font:900 1.7vw var(--head);color:var(--mut)}.hb:first-child .pos{color:#FF6B78}
+.hb .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hb .nm small{display:block;font:600 1vw var(--body);color:var(--mut)}
+.hb .tr{height:2.1vw;border-radius:1vw;background:rgba(255,255,255,.1);overflow:hidden}.hb .tr i{display:block;height:100%;border-radius:1vw;transform-origin:left;animation:grow 1.2s cubic-bezier(.2,.8,.2,1) both}
+.hb .v{font:900 1.9vw var(--head);text-align:right}
+@keyframes grow{from{transform:scaleX(0)}}
+.win{display:grid;grid-template-columns:1.15fr 1fr;gap:3vw;width:100%;align-items:start}
+.win .k{font:800 1.4vw var(--head);letter-spacing:.2em;color:#FF8A8F;text-transform:uppercase}
+.win h1{font-size:4vw;font-weight:900;margin:.8vw 0 .4vw;line-height:1.05}
+.win .co{font-size:1.5vw;color:var(--mut)}
+.win .idx{display:flex;align-items:baseline;gap:1vw;margin-top:2vw}.win .idx b{font:900 8vw var(--head);color:#FF6B78;line-height:1}.win .idx span{font:700 1.5vw var(--body);color:var(--mut)}
+.win .goal{margin-top:2vw;padding:1.4vw 1.8vw;border-radius:1.4vw;background:color-mix(in srgb,var(--c) 20%,transparent);border:1px solid var(--c);font:700 1.5vw var(--body)}
+.win h3{font-size:1.4vw;letter-spacing:.14em;text-transform:uppercase;color:var(--glow);margin:0 0 1vw}
+.prob{display:flex;flex-direction:column;gap:.7vw;margin-bottom:2.2vw}.prob div{display:grid;grid-template-columns:1fr auto;gap:1vw;padding:.9vw 1.3vw;border-radius:1vw;background:rgba(255,255,255,.08);font:700 1.45vw var(--body)}.prob div b{color:#FF8A8F}
+.tram{display:flex;flex-wrap:wrap;gap:.6vw}.tram span{padding:.6vw 1.1vw;border-radius:999px;background:#fff;color:var(--ink);font:700 1.2vw var(--body)}
+.lobchips .chip b{color:var(--glow);margin-left:.4vw}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<canvas id="cf"></canvas>
+<script>/* QR Code encoder by Kazuhiko Arase (MIT license), vendored from qrcode-terminal 0.12.0 */
+(function(){var M={};function R(n){n=n.replace(/^\.\//,'').replace(/\.js$/,'');var m=M[n];if(!m.l){m.l=1;m.f(m.m,m.m.exports,R);}return m.m.exports;}
+M["QR8bitByte"]={m:{exports:{}},f:function(module,exports,require){
+var QRMode = require('./QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+}};
+M["QRBitBuffer"]={m:{exports:{}},f:function(module,exports,require){
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+}};
+M["QRErrorCorrectLevel"]={m:{exports:{}},f:function(module,exports,require){
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+}};
+M["QRMaskPattern"]={m:{exports:{}},f:function(module,exports,require){
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+}};
+M["QRMath"]={m:{exports:{}},f:function(module,exports,require){
+var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+}};
+M["QRMode"]={m:{exports:{}},f:function(module,exports,require){
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+}};
+M["QRPolynomial"]={m:{exports:{}},f:function(module,exports,require){
+var QRMath = require('./QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+}};
+M["QRRSBlock"]={m:{exports:{}},f:function(module,exports,require){
+var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+}};
+M["QRUtil"]={m:{exports:{}},f:function(module,exports,require){
+var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+}};
+M["index"]={m:{exports:{}},f:function(module,exports,require){
+//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+}};
+window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')};})();
+</script>
+<script type="module">
+const FB = { apiKey: "AIzaSyDy5Z4IYTVh6YrO5fXidfkVUjWmLtXjW1Y", authDomain: "nodocount.firebaseapp.com", projectId: "nodocount", storageBucket: "nodocount.firebasestorage.app", messagingSenderId: "344018240488", appId: "1:344018240488:web:4f53aad4801445f21b5a5d" };
+const P = new URLSearchParams(location.search);
+const IS_HOST = P.has("pantalla"), DEMO = P.has("demo"), SALA = "diag-genial";
+document.documentElement.style.setProperty("--c", "#19C3E6"); document.documentElement.style.setProperty("--glow", "#7BE6FF");
+const app = document.getElementById("app");
+try { if (window.top !== window) document.documentElement.classList.add("emb"); } catch (e) { document.documentElement.classList.add("emb"); }
+const PLAYER_URL = location.origin + location.pathname + (DEMO ? "?demo" : "");
+
+/* estructura de la alcaldía (Relación general por coordinación de gestión) */
+const DIRS = {"Nivel Político": ["Sindicatura Municipal", "Despacho del Alcalde", "Oficina de Atención al Soberano", "Oficina de Atención Social", "Dirección de Evaluación y Control de Gestión", "Dirección de Planificación y Desarrollo", "Coordinaciones Parroquiales de Gobierno", "Dirección General", "Departamento de Informática", "Escuela de Gobierno", "Departamento de Red de Farmacias Comunitarias", "Auditoría Interna", "Dirección de Comunicación Estratégica", "Contraloría", "Concejo Municipal"], "Gestión Interna": ["Coordinación de Gestión Interna", "Dirección de Presupuesto Participativo", "Dirección del Talento Humano", "Dirección de Administración", "Dirección de Administración Tributaria", "Dirección de Taller Municipal"], "Gestión de Infraestructura y Servicios Básicos (Apoyo)": ["Coordinación de Infraestructura y Servicios Básicos", "Dirección de Ingeniería y Planificación Urbana", "Servicio Autónomo Municipal para el Abastecimiento de Agua Potable y Saneamiento Ambiental", "Dirección de Catastro y Planificación Urbana", "Servicio Autónomo Municipal de Cementerios y Servicios Funerarios", "IMVIMARA", "Mancomunidad", "IAME", "IMA", "IMTCUMARA"], "Gestión de Seguridad, Justicia y Paz": ["Coordinación de Seguridad, Justicia y Paz", "Oficina Municipal de los Registros Civiles de Mara", "CMDNA", "Dirección de Protección Civil y Administración de Desastres", "Dirección de Seguridad Interna", "POLIMARA", "Bomberos"], "Gestión para el Desarrollo Humano Integral": ["Coordinación de Gestión para el Desarrollo Humano Integral", "Dirección de Políticas Alimentarias", "Dirección de Educación", "Servicio Autónomo Teatro Municipal Castro Emilio Almarza", "Dirección de Cultura y Patrimonio", "Dirección del Sistema Municipal de Salud", "Dirección del Poder Popular y Comunas", "Dirección del Poder Popular para los Pueblos Indígenas", "FUNDAFAMILIA", "IMGAMARA", "INMUDEMA", "Instituto de la Mujer"], "Economía Productiva": ["Coordinación de Economía Productiva", "Dirección de Pesca y Acuicultura", "Dirección de Comercio y Servicios Municipales", "Dirección de Mercados Municipales", "Servicio Autónomo Municipal de Turismo (SAMTUR)", "Servicio Autónomo Complejo Científico Cultural Simón Bolívar", "INDAGROMARA", "FOMCREMARA"]};
+/* 12 preguntas: cada opción vale 0, 1, 2 o 3 puntos de deficiencia */
+const Q = [
+  { c: "Tiempo de espera", t: "¿Cuánto tarda un ciudadano en completar el trámite principal de tu institución?", o: ["Menos de 1 día", "De 1 a 3 días", "De 4 a 15 días", "Más de 15 días"] },
+  { c: "Visitas a la oficina", t: "¿Cuántas veces tiene que ir el ciudadano a la oficina para terminar el trámite?", o: ["1 vez", "2 veces", "3 veces", "4 veces o más"] },
+  { c: "Firmas y aprobaciones", t: "¿Cuántas firmas o aprobaciones necesita el trámite?", o: ["1", "2", "3 o 4", "5 o más"] },
+  { c: "Documentos repetidos", t: "¿Se le piden al ciudadano documentos que la alcaldía ya tiene (cédula, RIF, solvencias)?", o: ["Nunca", "A veces", "Casi siempre", "Siempre"] },
+  { c: "Registro sin sistema", t: "¿Cómo se registran las solicitudes que llegan?", o: ["En un sistema digital", "En Excel o en la computadora", "En un cuaderno o libro", "No se registran"] },
+  { c: "Expedientes perdidos", t: "¿Con qué frecuencia se pierde o se traspapela un expediente?", o: ["Nunca", "A veces", "Seguido", "Muy seguido"] },
+  { c: "Sin seguimiento", t: "¿Cómo sabe el ciudadano en qué estado va su trámite?", o: ["Por internet o por mensaje", "Llamando por teléfono", "Solo yendo a la oficina", "No hay forma de saberlo"] },
+  { c: "Colas en la atención", t: "¿Hay colas o aglomeración en la atención al público?", o: ["Nunca", "Algunos días", "Casi todos los días", "Todos los días"] },
+  { c: "Mucha demanda de solicitudes", t: "¿Cuántas solicitudes recibe tu institución por semana?", o: ["Menos de 10", "De 10 a 50", "De 51 a 200", "Más de 200"] },
+  { c: "Quejas y reclamos", t: "¿Con qué frecuencia hay quejas o reclamos por los trámites?", o: ["Nunca", "A veces", "Seguido", "Muy seguido"] },
+  { c: "Falta de equipos", t: "¿El personal tiene computadoras e internet para atender?", o: ["Sí, suficientes", "Algunos", "Muy pocos", "No hay"] },
+  { c: "Requisitos poco claros", t: "¿El ciudadano encuentra los requisitos claros (cartelera, redes, página web)?", o: ["Sí, completos y al día", "Solo una parte", "Desactualizados", "No hay información"] },
+];
+const MAX = Q.length * 3;
+
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+function banner(t) { let b = document.querySelector(".banner"); if (!b) { b = document.createElement("div"); b.className = "banner"; document.body.appendChild(b); } b.textContent = t; }
+function drawQR(cv, text, scale) {
+  const L = window.QRCodeLib, q = new L.QRCode(-1, L.QRErrorCorrectLevel.M); q.addData(text); q.make();
+  const n = q.getModuleCount(), m = 2, s = scale; cv.width = cv.height = (n + m * 2) * s;
+  const x = cv.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, cv.width, cv.height); x.fillStyle = "#0A2346";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect((c + m) * s, (r + m) * s, s, s);
+}
+const SFX = {}; function sfx(k, vol = .9) { try { const a = SFX[k] || (SFX[k] = new Audio(k.startsWith("http") ? k : "presentacion/sfx/" + k + ".mp3")); a.currentTime = 0; a.volume = vol; a.play().catch(() => {}); } catch (e) {} }
+
+/* ---------- datos: Firebase (trivia/diag-genial/jugadores/{uid}) o demo local ---------- */
+async function firebaseStore() {
+  const V = "10.12.2";
+  const [A, U, F] = await Promise.all([import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`), import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`), import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)]);
+  const fb = A.initializeApp(FB, IS_HOST ? "diag-pantalla" : "diag-celular"), auth = U.getAuth(fb), db = F.initializeFirestore(fb, { experimentalAutoDetectLongPolling: true });
+  const sala = F.doc(db, "trivia", SALA), jug = F.collection(sala, "jugadores");
+  const onErr = e => { console.error(e); banner("Sin conexión con la base de datos (" + (e.code || e.message) + ")."); };
+  await new Promise(r => { const off = U.onAuthStateChanged(auth, () => { off(); r(); }); });
+  return {
+    async anon() { if (!auth.currentUser) await U.signInAnonymously(auth); return auth.currentUser.uid; },
+    async newIdentity() { await U.signOut(auth); await U.signInAnonymously(auth); return auth.currentUser.uid; },
+    watchState: cb => F.onSnapshot(sala, s => cb(s.exists() ? s.data() : null), onErr),
+    setState: p => F.setDoc(sala, p, { merge: true }),
+    getMine: async uid => { const d = await F.getDoc(F.doc(jug, uid)); return d.exists() ? d.data() : null; },
+    async send(uid, nombre, data) { const ref = F.doc(jug, uid); await F.setDoc(ref, { nombre, gen: 4, puntos: 0, aciertos: 0, creado: F.serverTimestamp() }); await F.updateDoc(ref, data); },
+    watchAll: cb => F.onSnapshot(jug, s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), onErr),
+    async reset() { const s = await F.getDocs(jug); for (let i = 0; i < s.docs.length; i += 400) { const b = F.writeBatch(db); s.docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); } await F.setDoc(sala, { fase: "abierta", partida: String(Date.now()) }); },
+  };
+}
+function demoStore() {
+  const KEY = "diag-demo", ch = new BroadcastChannel(KEY), subs = new Set();
+  const get = () => { try { return JSON.parse(localStorage.getItem(KEY)) || { state: null, players: {} }; } catch (e) { return { state: null, players: {} }; } };
+  const put = d => { localStorage.setItem(KEY, JSON.stringify(d)); ch.postMessage(1); subs.forEach(f => f()); };
+  ch.onmessage = () => subs.forEach(f => f()); addEventListener("storage", e => { if (e.key === KEY) subs.forEach(f => f()); });
+  const sub = f => { subs.add(f); f(); return () => subs.delete(f); };
+  const newUid = () => { const u = "u" + Math.random().toString(36).slice(2, 9); sessionStorage.setItem(KEY + "-uid", u); return u; };
+  let me = sessionStorage.getItem(KEY + "-uid") || newUid();
+  return {
+    async anon() { return me; }, async newIdentity() { me = newUid(); return me; },
+    watchState: cb => sub(() => cb(get().state)),
+    async setState(p) { const d = get(); d.state = { ...(d.state || {}), ...p }; put(d); },
+    async getMine(uid) { return get().players[uid] || null; },
+    async send(uid, nombre, data) { const d = get(); d.players[uid] = { nombre, gen: 4, puntos: 0, aciertos: 0, creado: Date.now(), ...data }; put(d); },
+    watchAll: cb => sub(() => cb(Object.entries(get().players).map(([id, v]) => ({ id, ...v })))),
+    async reset() { put({ state: { fase: "abierta", partida: String(Date.now()) }, players: {} }); },
+  };
+}
+let DB;
+try { DB = DEMO ? demoStore() : await firebaseStore(); } catch (e) { console.error(e); banner("No se pudo conectar. Revisa el internet y recarga la página."); throw e; }
+
+/* ---------- cálculo: índice por institución ---------- */
+function ranking(rs) {
+  const by = {};
+  rs.filter(r => Array.isArray(r.r) && r.inst).forEach(r => {
+    const k = norm(r.inst); const g = by[k] || (by[k] = { inst: r.inst, coord: r.coord || "", n: 0, sum: 0, q: Q.map(() => 0), tram: [] });
+    g.n++; g.sum += r.idx; r.r.forEach((v, i) => g.q[i] += v); if (r.tramite) g.tram.push(r.tramite);
+  });
+  return Object.values(by).map(g => ({ ...g, idx: Math.round(g.sum / g.n), qavg: g.q.map(v => v / g.n) })).sort((a, b) => b.idx - a.idx || b.n - a.n);
+}
+const pickWinner = rk => rk.find(g => g.n >= 2) || rk[0];
+const colorFor = v => v >= 67 ? "#E5484D" : v >= 45 ? "#F2994A" : v >= 25 ? "#F2C12E" : "#2BB673";
+
+/* =====================================================================
+   PANTALLA
+   ===================================================================== */
+async function host() {
+  await DB.anon();
+  let st = null, rs = [];
+  const top = n => `<div class="top"><img src="logo/mara-logo-blanco.svg" alt="Alcaldía Bolivariana de Mara"><div class="t"><b>Diagnóstico de trámites</b><small>Mara Digital en Acción · Generación Genial · Módulo I</small></div>
+    <div class="right"><span class="count">${n} ${n === 1 ? "respuesta" : "respuestas"}</span></div></div>`;
+  const ctl = () => `<div class="hctl"><button class="btn" id="bNext">${!st || st.fase === "abierta" ? "Ver resultados" : st.fase === "resultados" ? "Institución prioritaria" : "Seguir recibiendo respuestas"} (Espacio)</button><button class="btn ghost" id="bXl">Descargar Excel (E)</button><button class="btn ghost" id="bFs">Pantalla completa (F)</button><button class="btn ghost" id="bReset">Reiniciar (R)</button></div>`;
+  function render() {
+    const f = st ? st.fase : "abierta", ok = rs.filter(r => Array.isArray(r.r)), rk = ranking(ok);
+    if (f === "abierta") {
+      app.innerHTML = `<div class="hs">${top(ok.length)}<main><div class="lobby"><div class="qrbox"><canvas id="qr"></canvas></div>
+        <div><span class="pill">12 preguntas · 3 minutos</span><h1>¿Qué institución necesita <span>una app</span>?</h1>
+        <p class="sub">Escanea el código y responde sobre los trámites de la institución donde trabajas. La que tenga el mayor índice de deficiencia será la beneficiaria de la aplicación del proyecto «Mara Digital en Acción».</p>
+        <div class="chips lobchips">${rk.map(g => `<span class="chip">${esc(g.inst)}<b>${g.n}</b></span>`).join("")}</div>
+        <p class="url">${esc(PLAYER_URL.replace(/^https?:\/\//, ""))}</p></div></div></main>${ctl()}</div>`;
+      drawQR(document.getElementById("qr"), PLAYER_URL, 10);
+    } else if (f === "resultados") {
+      const t10 = rk.slice(0, 10);
+      app.innerHTML = `<div class="hs">${top(ok.length)}<main style="flex-direction:column;align-items:stretch;justify-content:center"><div class="round" style="display:block;margin-bottom:1.6vw"><div class="k">Índice de deficiencia por institución</div><p style="font-size:1.4vw">0 = trámites sin problemas · 100 = situación crítica · ${rk.length} ${rk.length === 1 ? "institución" : "instituciones"}</p></div>
+        <div class="hbars">${t10.map((g, i) => `<div class="hb" style="animation-delay:${i * 110}ms"><span class="pos">${i + 1}</span><span class="nm">${esc(g.inst)}<small>${g.n} ${g.n === 1 ? "respuesta" : "respuestas"}</small></span><span class="tr"><i style="width:${g.idx}%;background:${colorFor(g.idx)};animation-delay:${300 + i * 110}ms"></i></span><span class="v">${g.idx}</span></div>`).join("") || '<p class="sub">Todavía no hay respuestas.</p>'}</div></main>${ctl()}</div>`;
+    } else if (f === "ganador") {
+      const w = pickWinner(rk);
+      if (!w) { app.innerHTML = `<div class="hs">${top(0)}<main><p class="sub">Todavía no hay respuestas.</p></main>${ctl()}</div>`; bind(); return; }
+      const probs = w.qavg.map((v, i) => [Q[i].c, v]).sort((a, b) => b[1] - a[1]).slice(0, 4);
+      const tc = {}; w.tram.forEach(t => { const k = norm(t); if (!k) return; tc[k] = tc[k] || [t, 0]; tc[k][1]++; });
+      const tr = Object.values(tc).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      app.innerHTML = `<div class="hs">${top(ok.length)}<main><div class="win"><div><div class="k">Institución prioritaria</div><h1>${esc(w.inst)}</h1><div class="co">${esc(w.coord)}</div>
+        <div class="idx"><b>${w.idx}</b><span>de 100 · índice de deficiencia<br>${w.n} ${w.n === 1 ? "respuesta" : "respuestas"}${w !== rk[0] ? " · se toman en cuenta las instituciones con 2 respuestas o más" : ""}</span></div>
+        <div class="goal">La app del proyecto «Mara Digital en Acción» se diseñará para resolver los trámites de esta institución.</div></div>
+        <div><h3>Los problemas más graves</h3><div class="prob">${probs.map(([c, v]) => `<div><span>${esc(c)}</span><b>${Math.round(v / 3 * 100)}%</b></div>`).join("")}</div>
+        <h3>Trámites que más problemas dan</h3><div class="tram">${tr.map(([t, n]) => `<span>${esc(t)}${n > 1 ? ` · ${n}` : ""}</span>`).join("") || '<span>—</span>'}</div></div></div></main>${ctl()}</div>`;
+    }
+    bind();
+  }
+  function exportXl() {
+    const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+    const rows = rs.filter(r => Array.isArray(r.r)).sort((a, b) => norm(a.inst).localeCompare(norm(b.inst)));
+    const csv = "﻿" + [["Coordinación", "Institución / dirección", "Participante", "Índice (0-100)", ...Q.map((x, i) => `P${i + 1} ${x.c}`), "Trámite con más problemas"].map(q).join(";"),
+      ...rows.map(r => [r.coord, r.inst, r.nombre, r.idx, ...r.r.map((v, i) => Q[i].o[v]), r.tramite].map(q).join(";")),
+      "", ["Ranking", "Institución", "Coordinación", "Índice", "Respuestas"].map(q).join(";"),
+      ...ranking(rows).map((g, i) => [i + 1, g.inst, g.coord, g.idx, g.n].map(q).join(";"))].join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = `Diagnostico de tramites ${new Date().toLocaleDateString("en-CA")}.csv`; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function askReset() {
+    const m = document.createElement("div"); m.className = "modal";
+    m.innerHTML = `<div class="glass"><h2>¿Borrar todas las respuestas?</h2><p style="color:var(--mut);font-size:1.3vw">Las respuestas se acumulan entre talleres. Descarga el Excel antes si quieres guardarlas.</p><div style="display:flex;gap:1vw;justify-content:center;margin-top:1.4vw"><button class="btn" id="mY">Sí, borrar</button><button class="btn ghost" id="mN">Cancelar</button></div></div>`;
+    document.body.appendChild(m); m.querySelector("#mN").onclick = () => m.remove(); m.querySelector("#mY").onclick = async () => { m.remove(); await DB.reset(); };
+  }
+  const next = () => DB.setState({ fase: !st || st.fase === "abierta" ? "resultados" : st.fase === "resultados" ? "ganador" : "abierta" });
+  const fs = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {}); };
+  function bind() { const b = id => document.getElementById(id); b("bNext").onclick = next; b("bXl").onclick = exportXl; b("bFs").onclick = fs; b("bReset").onclick = askReset; }
+  addEventListener("keydown", e => {
+    if (document.querySelector(".modal")) return;
+    if (e.code === "Space" || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); next(); }
+    else if (e.key === "e" || e.key === "E") exportXl(); else if (e.key === "r" || e.key === "R") askReset(); else if (e.key === "f" || e.key === "F") fs();
+  });
+  let idleT; const wake = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add("idle"), 2600); }; addEventListener("mousemove", wake); wake();
+  DB.watchAll(a => { const before = rs.filter(r => Array.isArray(r.r)).length; rs = a; const after = rs.filter(r => Array.isArray(r.r)).length; if (after > before && st && st.fase === "abierta" && before) sfx("whoosh1", .5); render(); });
+  DB.watchState(s => {
+    if (!s) { DB.setState({ fase: "abierta", partida: String(Date.now()) }); return; }
+    const ch = !st || st.fase !== s.fase; st = s;
+    if (ch && s.fase === "resultados") sfx("tadan");
+    if (ch && s.fase === "ganador") { sfx("tadan_largo"); setTimeout(confetti, 600); }
+    render();
+  });
+}
+function confetti() {
+  const cv = document.getElementById("cf"), x = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#19C3E6", "#F2C12E", "#2F80ED", "#D62839", "#2BB673", "#fff"], ps = Array.from({ length: 200 }, () => ({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4, r: Math.random() * 6.3, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+  let t = 0; (function f() { x.clearRect(0, 0, cv.width, cv.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.r += .1; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); x.restore(); }); if (++t < 380) requestAnimationFrame(f); else x.clearRect(0, 0, cv.width, cv.height); })();
+}
+
+/* =====================================================================
+   CELULAR
+   ===================================================================== */
+async function phone() {
+  let uid = await DB.anon();
+  const head = `<header><img src="logo/mara-bandera.svg" alt=""><div><b>Diagnóstico de trámites</b><small>Generación Genial · Mara Digital en Acción</small></div></header>`;
+  const screen = inner => { app.innerHTML = `<div class="ph">${head}${inner}</div>`; scrollTo(0, 0); };
+  const A = { nombre: "", coord: "", inst: "", r: [], tramite: "" };
+
+  function done(again) {
+    screen(`<div class="big"><div class="done">¡Gracias!</div><p>${again ? "Este teléfono ya respondió." : "Tu respuesta ya suma al diagnóstico."} Mira la pantalla para ver los resultados.</p>
+      <button class="btn ghost" id="other">Responder por otra persona en este teléfono</button></div>`);
+    document.getElementById("other").onclick = async () => { uid = await DB.newIdentity(); Object.assign(A, { nombre: "", coord: "", inst: "", r: [], tramite: "" }); intro(); };
+  }
+  function intro() {
+    screen(`<div class="big" style="justify-content:flex-start;padding-top:8px"><span class="pill">12 preguntas · 3 minutos</span><h2>¿Cómo están los trámites donde trabajas?</h2>
+      <p>Responde con sinceridad sobre la institución o dirección donde trabajas. Con estas respuestas se escoge la institución que recibirá la aplicación del proyecto «Mara Digital en Acción».</p>
+      <form id="f0" style="width:100%;display:flex;flex-direction:column;gap:10px;text-align:left">
+        <label for="nm">Tu nombre (opcional)</label><input id="nm" maxlength="24" autocomplete="off" placeholder="Puedes dejarlo en blanco" value="${esc(A.nombre)}">
+        <button class="btn" type="submit" style="margin-top:8px">Empezar</button></form></div>`);
+    document.getElementById("f0").onsubmit = e => { e.preventDefault(); A.nombre = document.getElementById("nm").value.replace(/\s+/g, " ").trim().slice(0, 24); where(); };
+  }
+  function where() {
+    const coords = Object.keys(DIRS);
+    screen(`<div class="rtitle"><h2>¿Dónde trabajas?</h2><p>Escoge tu coordinación y tu dirección o ente.</p></div>
+      <label for="co">Coordinación</label><select id="co"><option value="">Escoge…</option>${coords.map(c => `<option ${c === A.coord ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+      <label for="di">Dirección o ente</label><select id="di" disabled><option value="">Primero la coordinación</option></select>
+      <input id="ot" maxlength="80" placeholder="Escribe el nombre de tu dirección o ente" class="hidden">
+      <div class="acts"><button class="btn ghost" id="bk">Atrás</button><button class="btn" id="go">Seguir</button></div><p class="prog" id="msg"></p>`);
+    const co = document.getElementById("co"), di = document.getElementById("di"), ot = document.getElementById("ot");
+    const fill = () => { const L = DIRS[co.value] || []; di.disabled = !co.value; di.innerHTML = `<option value="">Escoge…</option>` + L.map(d => `<option ${d === A.inst ? "selected" : ""}>${esc(d)}</option>`).join("") + `<option value="__otra">Otra (escribirla)</option>`; ot.classList.toggle("hidden", di.value !== "__otra"); };
+    co.onchange = fill; di.onchange = () => { ot.classList.toggle("hidden", di.value !== "__otra"); if (di.value === "__otra") ot.focus(); }; if (A.coord) fill();
+    document.getElementById("bk").onclick = intro;
+    document.getElementById("go").onclick = () => {
+      const inst = di.value === "__otra" ? ot.value.replace(/\s+/g, " ").trim() : di.value;
+      if (!co.value || inst.length < 3) { document.getElementById("msg").textContent = "Escoge tu coordinación y tu dirección."; return; }
+      A.coord = co.value; A.inst = inst; ask(0);
+    };
+  }
+  function ask(i) {
+    const q = Q[i];
+    screen(`<div class="rhead"><b>Pregunta ${i + 1} de ${Q.length}</b><b style="color:var(--mut)">${esc(A.inst)}</b></div><div class="timer"><i style="transform:scaleX(${i / Q.length});transition:none"></i></div>
+      <div class="qt">${esc(q.t)}</div><div class="opts">${q.o.map((o, k) => `<button class="opt${A.r[i] === k ? " sel" : ""}" data-k="${k}"><i></i>${esc(o)}</button>`).join("")}</div>
+      <div class="acts"><button class="btn ghost" id="bk">Atrás</button></div>`);
+    document.querySelectorAll(".opt").forEach(b => b.onclick = () => { A.r[i] = +b.dataset.k; b.classList.add("sel"); setTimeout(() => i + 1 < Q.length ? ask(i + 1) : last(), 220); });
+    document.getElementById("bk").onclick = () => i ? ask(i - 1) : where();
+  }
+  function last() {
+    screen(`<div class="rtitle"><h2>Último paso</h2><p>¿Cuál es el trámite que más problemas da en tu institución?</p></div>
+      <textarea id="tr" maxlength="80" placeholder="Ej.: solvencia municipal, permiso de construcción, constancia de residencia…">${esc(A.tramite)}</textarea>
+      <div class="acts"><button class="btn ghost" id="bk">Atrás</button><button class="btn" id="go">Enviar</button></div><p class="prog" id="msg"></p>`);
+    document.getElementById("bk").onclick = () => ask(Q.length - 1);
+    document.getElementById("go").onclick = async e => {
+      const t = document.getElementById("tr").value.replace(/\s+/g, " ").trim().slice(0, 80);
+      if (t.length < 3) { document.getElementById("msg").textContent = "Escribe el nombre del trámite."; return; }
+      A.tramite = t; e.target.disabled = true;
+      const idx = Math.round(A.r.reduce((x, v) => x + v, 0) / MAX * 100);
+      try { await DB.send(uid, A.nombre || "Participante", { coord: A.coord, inst: A.inst, r: A.r.slice(0, Q.length), idx, tramite: A.tramite }); done(false); }
+      catch (err) { console.error(err); document.getElementById("msg").textContent = "No se pudo enviar. Revisa el internet e intenta de nuevo."; e.target.disabled = false; }
+    };
+  }
+  let mine = null; try { mine = await DB.getMine(uid); } catch (e) {}
+  mine && Array.isArray(mine.r) ? done(true) : intro();
+}
+
+IS_HOST ? host() : phone();
+</script>
+</body>
+</html>
