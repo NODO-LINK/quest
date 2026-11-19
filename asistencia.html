@@ -1463,6 +1463,28 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     { n: 'Genial', r: '18 a 25 años', c: '#19C3E6', min: 0, max: 25 },
   ];
   const genOf = edad => GENS.findIndex(g => edad >= g.min && edad <= g.max);
+  const SEXOS = ['Mujer', 'Hombre'];
+  const sexCount = ps => ({ total: ps.length, muj: ps.filter(p => p.sexo === 'Mujer').length, hom: ps.filter(p => p.sexo === 'Hombre').length, sin: ps.filter(p => !SEXOS.includes(p.sexo)).length });
+  const sexRadios = (name, val) => `<div class="row" role="radiogroup" style="gap:10px">${SEXOS.map(x => `<label class="btn" style="flex:1;margin:0;cursor:pointer;${val === x ? 'background:rgba(43,182,115,.35);border-color:#2BB673' : ''}"><input type="radio" name="${name}" value="${x}" ${val === x ? 'checked' : ''} style="width:auto;margin:0 8px 0 0;accent-color:#2BB673">${x}</label>`).join('')}</div>`;
+  const sexBind = name => document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.addEventListener('change', () => document.querySelectorAll(`input[name="${name}"]`).forEach(x => { const l = x.closest('label'); l.style.background = x.checked ? 'rgba(43,182,115,.35)' : ''; l.style.borderColor = x.checked ? '#2BB673' : ''; })));
+  const sexRead = name => { const r = document.querySelector(`input[name="${name}"]:checked`); return r ? r.value : ''; };
+  /* Parte Diario: módulos de cada generación (Sistematización del Plan de Formación, nov. 2026) */
+  const MODS_GEN = [
+    ['Ideario Bolivariano y Raíces Históricas', 'Memoria Histórica y Resistencia Antimperialista', 'Liderazgo Comunal y Articulación Territorial', 'Origen Filosófico de la Revolución', 'Memoria Colectiva'],
+    ['Consejo de Sabios y Orientación Política', 'Pensamiento Bolivariano y Socialismo del Siglo XXI', 'Democracia Participativa y Sistematización Organizativa', 'Memoria Institucional y Normativa Municipal', 'Liderazgo Local'],
+    ['Dialéctica de la Gestión, Utopía y Eficiencia Administrativa', 'Construcción del Estado Comunal', 'Ética Pública, Normativas Legales y Redacción', 'Descolonización y Soberanía Cultural', 'Relevo Generacional'],
+    ['Plan Filosófico-Político 5G', 'Empoderamiento y Protagonismo Juvenil', 'La Comunicación como Hecho Social y Redes Sociales', 'Innovación y Soberanía Tecnológica', 'Pensamiento Crítico'],
+    ['Transformación y Cultura Digital Aplicada', 'Educación, Ciencia y Tecnología para la Suprema Felicidad Social', 'Redes Sociales y Defensa ante la Guerra Cognitiva', 'Liderazgo Estudiantil', 'Identidad y Valores Patrios'],
+  ];
+  const DINAMICAS = ['Ruleta / Trivia', 'Juicio a Taylor y Fayol', 'Simulación crítica', 'Baúl del Acervo Colectivo', 'Códigos QR', 'Juego final', 'Diagnóstico de trámites', 'Otra'];
+  const AFORO = 70, ENCUENTROS = 41;
+  const GLBL = i => `${i + 1}G ${GENS[i].n}`;
+  // fotos: se reducen a 1280 px en JPEG para que el parte quepa en la base de datos
+  function shrinkPhoto(file, max = 1280, q = .62) {
+    return new Promise((res, rej) => { const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', q)); };
+      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); }; img.src = url; });
+  }
   // estructura de la alcaldía (Relación general por coordinación de gestión, nov. 2026). v sube cuando cambia la lista por defecto
   const DEF_CFG = { v: 2, coordinaciones: ["Nivel Político", "Gestión Interna", "Gestión de Infraestructura y Servicios Básicos (Apoyo)", "Gestión de Seguridad, Justicia y Paz", "Gestión para el Desarrollo Humano Integral", "Economía Productiva"],
     direcciones: {
@@ -1805,6 +1827,12 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async idInfo(h) { return st().ids[h] || null; },
       async getPersona(h) { return st().personas[h] || null; },
       async setDir(h, dir) { const s = st(); if (!s.personas[h]) throw { code: 'not-found' }; s.personas[h].dir = dir; save(s); },
+      async setFields(h, d) { const s = st(); if (!s.personas[h]) throw { code: 'not-found' }; Object.assign(s.personas[h], d); save(s); },
+      async listSesiones() { return st().sesiones; },
+      async countSesion(id) { const s = st(), hs = Object.values(s.marcas).filter(m => m.sesion === id).map(m => m.persona); return sexCount(hs.map(h => s.personas[h] || {})); },
+      async savePart(d) { const s = st(); s.partes = s.partes || {}; const id = 'parte-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); s.partes[id] = Object.assign({}, d, { tipo: 'parte', creado: Date.now(), uid }); save(s); return id; },
+      watchPartes: cb => watch(s => s.partes || {}, cb),
+      async deletePart(id) { const s = st(); if (s.partes) delete s.partes[id]; save(s); },
       async constancia(h) { const s = st(); return { persona: s.personas[h] || null, marcas: Object.values(s.marcas).filter(m => m.persona === h), sesiones: s.sesiones, cfg: normCfg(s.config) }; },
       async registrarYMarcar(h, persona, sid) {
         const s = st(); if (s.personas[h]) throw { code: 'permission-denied' };
@@ -1870,6 +1898,17 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       async idInfo(h) { const d = await F.getDoc(F.doc(db, 'asist_ids', h)); return d.exists() ? d.data() : null; },
       async getPersona(h) { const d = await F.getDoc(F.doc(db, 'asist_personas', h)); return d.exists() ? d.data() : null; },
       async setDir(h, dir) { await F.updateDoc(F.doc(db, 'asist_personas', h), { dir }); },
+      async setFields(h, d) { await F.updateDoc(F.doc(db, 'asist_personas', h), d); },
+      async listSesiones() { await init(); const o = {}; (await F.getDocs(F.collection(db, 'asist_sesiones'))).forEach(d => o[d.id] = d.data()); return o; },
+      async countSesion(id) {
+        await init(); const hs = []; (await F.getDocs(F.query(F.collection(db, 'asist_marcas'), F.where('sesion', '==', id)))).forEach(d => hs.push(d.data().persona));
+        const ps = await Promise.all(hs.map(async h => { try { const d = await F.getDoc(F.doc(db, 'asist_personas', h)); return d.exists() ? d.data() : {}; } catch (e) { return {}; } }));
+        return sexCount(ps);
+      },
+      // los partes se guardan en la colección «trivia» (documentos parte-…), que ya permite escribir a cualquier usuario conectado: no hace falta cambiar las reglas
+      async savePart(d) { await init(); const id = 'parte-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); await F.setDoc(F.doc(db, 'trivia', id), Object.assign({}, d, { tipo: 'parte', creado: F.serverTimestamp(), uid: auth.currentUser ? auth.currentUser.uid : '' })); return id; },
+      watchPartes: cb => F.onSnapshot(F.query(F.collection(db, 'trivia'), F.where('tipo', '==', 'parte')), q => cb(snapMap(q)), e => toast('Sin permiso para leer los partes')),
+      async deletePart(id) { await F.deleteDoc(F.doc(db, 'trivia', id)); },
       async constancia(h) {
         await init();
         const p = await F.getDoc(F.doc(db, 'asist_personas', h));
@@ -1928,23 +1967,26 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         try {
           const h = await hashCed(ced), info = await DB.idInfo(h);
           let per = null; if (info) { try { per = await DB.getPersona(h); } catch (e) {} }
-          info ? stepMark(h, info, per && !per.dir ? per : null) : stepReg(h, ced);
+          info ? stepMark(h, info, per && (!per.dir || !SEXOS.includes(per.sexo)) ? per : null) : stepReg(h, ced);
         } catch (err) { $('#m1').textContent = 'No se pudo consultar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
       });
     };
     const stepMark = (h, info, falta) => {
       // registrados antes de pedir la dirección: la completan una sola vez
-      const extra = falta ? `<div class="glass pad" style="margin:14px 0 4px;padding:14px"><b>Falta un dato</b><p class="muted" style="margin:4px 0 0;font-size:14px">¿A qué dirección perteneces? Solo te lo preguntamos esta vez.</p>
-        <label for="mdir">Dirección</label>${dirInput(cfg, falta.coord || '', 'mdir')}</div>` : '';
+      const fDir = falta && !falta.dir, fSex = falta && !SEXOS.includes(falta.sexo);
+      const extra = falta ? `<div class="glass pad" style="margin:14px 0 4px;padding:14px"><b>${fDir && fSex ? 'Faltan dos datos' : 'Falta un dato'}</b><p class="muted" style="margin:4px 0 0;font-size:14px">Solo te lo preguntamos esta vez.</p>
+        ${fSex ? `<label>Sexo</label>${sexRadios('msx', '')}` : ''}${fDir ? `<label for="mdir">Dirección</label>${dirInput(cfg, falta.coord || '', 'mdir')}` : ''}</div>` : '';
       card.innerHTML = head + `<h1 style="margin-top:18px">¡Hola, ${esc(info.n || '')}!</h1><p class="muted">Ya estás registrado. Toca el botón para marcar tu asistencia de hoy.</p>${extra}
         <button class="btn primary" id="go">✓ Marcar mi asistencia</button><button class="btn" id="back" style="width:100%;margin-top:10px">No soy yo</button><div class="msg" id="m2"></div>`;
       $('#back').onclick = stepCed;
-      if (falta) dirBind('mdir');
+      if (fDir) dirBind('mdir'); if (fSex) sexBind('msx');
       $('#go').onclick = async () => {
-        const dir = falta ? dirRead('mdir') : '';
-        if (falta && dir.length < 3) { $('#m2').textContent = 'Escribe o elige tu dirección.'; return; }
+        const dir = fDir ? dirRead('mdir') : '', sexo = fSex ? sexRead('msx') : '';
+        if (fSex && !sexo) { $('#m2').textContent = 'Indica si eres mujer u hombre.'; return; }
+        if (fDir && dir.length < 3) { $('#m2').textContent = 'Escribe o elige tu dirección.'; return; }
         $('#go').disabled = true;
-        const saveDir = () => dir ? DB.setDir(h, dir).catch(() => {}) : null;
+        const upd = Object.assign({}, dir ? { dir } : {}, sexo ? { sexo } : {});
+        const saveDir = () => Object.keys(upd).length ? DB.setFields(h, upd).catch(() => {}) : null;
         try { await DB.marcar(h, SID); await saveDir(); done(info.n, false, h); }
         catch (e) { if (String(e && e.code).includes('permission')) { await saveDir(); done(info.n, true, h); } else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
       };
@@ -1953,6 +1995,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       const opts = cfg.coordinaciones.map(c => `<option>${esc(c)}</option>`).join('');
       card.innerHTML = head + `<h2 style="margin-top:18px">Primera vez: regístrate</h2><p class="muted" style="margin-top:-6px">Solo se hace una vez. Las próximas sesiones solo pondrás tu cédula.</p>
         <form id="f2"><label for="nom">Nombre y apellido</label><input id="nom" autocomplete="name" maxlength="60" required>
+        <label>Sexo</label>${sexRadios('sx', '')}
         <label for="edad">Edad</label><input id="edad" inputmode="numeric" maxlength="3" required>
         <div class="genchip" id="gen"></div>
         <label for="coord">Coordinación</label><select id="coord" required><option value="" disabled selected>Elige tu coordinación</option>${opts}</select>
@@ -1960,19 +2003,20 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         <button class="btn primary" type="submit">Registrarme y marcar asistencia</button><div class="msg" id="m3"></div></form>`;
       const showGen = () => { const ed = +$('#edad').value.replace(/\D/g, ''); const gi = ed >= 15 && ed <= 110 ? genOf(ed) : -1;
         $('#gen').innerHTML = gi >= 0 ? `<span class="chip" style="background:${GENS[gi].c};color:${gi >= 3 ? '#0B1426' : '#fff'}">Generación ${GENS[gi].n} · ${GENS[gi].r}</span>` : ''; };
-      $('#edad').addEventListener('input', showGen);
+      $('#edad').addEventListener('input', showGen); sexBind('sx');
       $('#coord').addEventListener('change', () => { const keep = dirRead('dir'); $('#dirBox').innerHTML = dirInput(cfg, $('#coord').value, 'dir', dirsOf(cfg, $('#coord').value).includes(keep) || !anyDirs(cfg) ? keep : ''); dirBind('dir'); });
       $('#nom').focus();
       $('#f2').addEventListener('submit', async e => {
         e.preventDefault();
         const nombre = $('#nom').value.replace(/\s+/g, ' ').trim(), edad = +$('#edad').value.replace(/\D/g, ''), coord = $('#coord').value;
         if (nombre.split(' ').length < 2) { $('#m3').textContent = 'Escribe tu nombre y tu apellido.'; return; }
+        const sexo = sexRead('sx'); if (!sexo) { $('#m3').textContent = 'Indica si eres mujer u hombre.'; return; }
         if (!(edad >= 15 && edad <= 110)) { $('#m3').textContent = 'Escribe una edad válida.'; return; }
         if (!coord) { $('#m3').textContent = 'Elige tu coordinación.'; return; }
         const dir = dirRead('dir');
         if (dir.length < 3) { $('#m3').textContent = 'Escribe o elige la dirección a la que perteneces.'; return; }
         e.submitter && (e.submitter.disabled = true);
-        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); await DB.setDir(h, dir).catch(() => {}); done(firstName(nombre), false, h); }
+        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); await DB.setFields(h, { dir, sexo }).catch(() => {}); done(firstName(nombre), false, h); }
         catch (err) { $('#m3').textContent = String(err && err.code).includes('permission') ? 'Esta cédula ya está registrada o la sesión se cerró. Vuelve a intentarlo.' : 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
       });
     };
@@ -2096,7 +2140,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     root.innerHTML = `<div class="wrap wide">
       <header class="top">${brand('Asistencia · Administración')}</header>
       <nav class="tabs glass" role="tablist">
-        ${[['sesiones', 'Sesiones'], ['formados', 'Formados'], ['panel', 'Panel'], ['reportes', 'Reportes'], ['repetidos', 'Repetidos'], ['ajustes', 'Ajustes']].map(([k, t]) => `<button role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${t}</button>`).join('')}
+        ${[['sesiones', 'Sesiones'], ['formados', 'Formados'], ['panel', 'Panel'], ['reportes', 'Reportes'], ['partes', 'Partes'], ['repetidos', 'Repetidos'], ['ajustes', 'Ajustes']].map(([k, t]) => `<button role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${t}</button>`).join('')}
       </nav>
       <main id="view"></main></div>`;
     document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; S.det = null; document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', String(x === b))); render(); });
@@ -2104,6 +2148,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     unsubs.push(DB.watchSesiones(v => { S.ses = v || {}; later(); updateProj(); }));
     unsubs.push(DB.watchPersonas(v => { S.per = v || {}; later(); updateProj(); }));
     unsubs.push(DB.watchMarcas(v => { S.mar = v || {}; later(); updateProj(); }));
+    unsubs.push(DB.watchPartes(v => { S.partes = v || {}; if (S.tab === 'partes') later(); }));
     render();
   }
   // derived numbers
@@ -2126,6 +2171,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     if (S.tab === 'formados') v.innerHTML = viewFormados();
     if (S.tab === 'panel') v.innerHTML = viewPanel();
     if (S.tab === 'reportes') v.innerHTML = viewReportes();
+    if (S.tab === 'partes') v.innerHTML = viewPartes();
     if (S.tab === 'repetidos') v.innerHTML = viewRepetidos();
     if (S.tab === 'ajustes') v.innerHTML = viewAjustes();
     bind();
@@ -2179,6 +2225,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         <div class="row" style="align-items:flex-end;gap:10px;flex-wrap:wrap">
           <div style="flex:2;min-width:220px"><label for="epN">Nombre y apellido</label><input id="epN" maxlength="60" value="${esc(p.nombre)}"></div>
           <div style="flex:0 0 90px"><label for="epE">Edad</label><input id="epE" inputmode="numeric" maxlength="3" value="${esc(p.edad)}"></div>
+          <div style="flex:0 0 130px"><label for="epS">Sexo</label><select id="epS"><option value="">—</option>${SEXOS.map(x => `<option ${p.sexo === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
           <div style="flex:2;min-width:240px"><label for="epD">Dirección</label><input id="epD" list="dirsDL" maxlength="100" value="${esc(p.dir || '')}" placeholder="Sin dirección"><datalist id="dirsDL">${[...new Set([...Object.values(S.cfg.direcciones || {}).flat(), ...Object.values(S.per).map(x => x.dir)].filter(Boolean))].sort().map(d => `<option value="${esc(d)}">`).join('')}</datalist></div>
           <div style="flex:2;min-width:240px"><label for="epC">Coordinación</label><select id="epC">${coords.map(c => `<option ${c === p.coord ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></div>
           <button class="btn sm primary" type="submit" style="width:auto;margin:0">Guardar cambios</button></div>
@@ -2259,6 +2306,94 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       const known = new Set(Object.keys(PLANTILLA[coord] || {}).map(norm)), o = ppl.filter(r => !known.has(norm(r.dir))); if (o.length) groups.push({ name: 'Otra o sin dirección', tot: 0, f: o.length, ok: o.filter(r => r.n >= C).length }); }
     const gens = GENS.map((g, i) => ({ name: g.n, tot: totals ? totals[i] : 0, f: ppl.filter(r => r.gen === i).length, ok: ppl.filter(r => r.gen === i && r.n >= C).length }));
     return { ppl, C, tot: totals ? totals[5] : 0, f: ppl.length, ok: ppl.filter(r => r.n >= C).length, groups, gens };
+  }
+  /* ---------- Parte Diario Electrónico: lo que cargan los facilitadores ---------- */
+  const parteURL = () => new URL('asistencia.html?' + (DB.demo ? 'demo&' : '') + 'parte', location.href).toString();
+  const partesOrden = () => Object.entries(S.partes || {}).sort((a, b) => (b[1].fecha || '').localeCompare(a[1].fecha || '') || (b[1].enc || 0) - (a[1].enc || 0) || tsMs(b[1].creado) - tsMs(a[1].creado));
+  function viewPartes() {
+    const L = partesOrden(), sum = k => L.reduce((x, [, p]) => x + (+p[k] || 0), 0), encs = new Set(L.map(([, p]) => p.enc)).size;
+    const part = L.length ? (sum('part') / L.length).toFixed(1).replace('.', ',') : '—';
+    const det = S.parteSel && S.partes && S.partes[S.parteSel] ? parteDetalle(S.parteSel, S.partes[S.parteSel]) : '';
+    return `<div style="margin-top:14px;display:flex;flex-direction:column;gap:14px">
+      <div class="kpis"><div class="glass kpi"><small>Partes cargados</small><b>${L.length}</b><span>por los facilitadores</span></div>
+        <div class="glass kpi"><small>Encuentros cubiertos</small><b>${encs} de ${ENCUENTROS}</b><span>del 16 de noviembre al 15 de diciembre</span></div>
+        <div class="glass kpi"><small>Asistentes reportados</small><b>${sum('total')}</b><span>${sum('muj')} mujeres · ${sum('hom')} hombres</span></div>
+        <div class="glass kpi"><small>Participación promedio</small><b>${part}</b><span>en escala del 1 al 5</span></div></div>
+      <section class="glass pad"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Partes diarios</h2>
+        <div class="row"><button class="btn sm blue" id="ptQR">QR para los facilitadores</button><button class="btn sm" id="ptXl">Descargar Excel</button></div></div>
+        <p class="muted" style="font-size:14px;margin:6px 0 12px">Al final de cada encuentro el facilitador escanea el QR y carga el parte desde su teléfono. Toca un parte para verlo completo con sus fotos.</p>
+        ${L.length ? `<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>N°</th><th>Generación</th><th>Coordinación</th><th>Facilitador</th><th class="num">Asistentes</th><th>Aforo</th><th class="num">Particip.</th></tr></thead><tbody>
+          ${L.map(([id, p]) => `<tr data-pt="${id}" style="cursor:pointer"><td>${esc(p.fecha ? fmtFecha(p.fecha) : '')}</td><td>${esc(p.enc || '')}</td><td>${GENS[p.gen] ? esc(GLBL(p.gen)) : ''}</td><td>${esc(p.coord || '')}</td><td>${esc((p.fac || {}).nombre || '')}</td>
+            <td class="num">${p.total || 0}<br><span class="muted" style="font-size:12px">M ${p.muj || 0} · H ${p.hom || 0}</span></td><td>${p.aforo === 'No' ? '<span class="badge" style="background:#D62839">Excedido</span>' : 'Sí'}</td><td class="num">${p.part || ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Todavía no hay partes cargados.</p>'}
+      </section><div id="ptDet">${det}</div></div>`;
+  }
+  function parteDetalle(id, p) {
+    const row = (k, v) => v ? `<div class="item"><div class="t"><b>${esc(k)}</b><span style="white-space:pre-wrap">${esc(v)}</span></div></div>` : '';
+    return `<section class="glass pad"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Encuentro N° ${esc(p.enc || '')} · ${GENS[p.gen] ? esc(GLBL(p.gen)) : ''}</h2>
+      <div class="row"><button class="btn sm blue" id="ptPdf" data-id="${id}">Descargar PDF</button><button class="btn sm red" id="ptDel" data-id="${id}">Eliminar</button></div></div>
+      <p class="muted">${esc(p.fecha ? fmtFecha(p.fecha) : '')} · ${esc(p.coord || '')} · Facilitador: ${esc((p.fac || {}).nombre || '')}${(p.fac || {}).cedula ? ' · C.I. ' + esc(p.fac.cedula) : ''}</p>
+      <div class="list">${row('Control numérico', `${p.total || 0} asistentes · ${p.muj || 0} mujeres · ${p.hom || 0} hombres · personal técnico integrado: ${p.tecnico || '—'} · tope de ${AFORO}: ${p.aforo || '—'}`)}
+        ${row('Módulo o tema generador', p.modulo)}${row('Dinámicas ejecutadas', [...(p.dinamicas || []), p.otraDin].filter(Boolean).join(' · '))}${row('Participación y debate (1 al 5)', p.part ? String(p.part) : '')}
+        ${row('Síntesis del análisis de coyuntura', p.coyuntura)}${row('Nudos críticos, propuestas y compromisos', p.nudos)}${row('Novedades logísticas y turnos', p.novedades)}</div>
+      ${(p.fotos || []).length ? `<div class="row" style="margin-top:12px;gap:10px">${p.fotos.map(f => `<a href="${f}" target="_blank" rel="noopener"><img src="${f}" alt="Foto de evidencia" style="height:150px;border-radius:12px;display:block"></a>`).join('')}</div>` : ''}</section>`;
+  }
+  function parteCSV() {
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const csv = '﻿' + [['Fecha', 'N° encuentro', 'Generación', 'Coordinación', 'Facilitador', 'Cédula del facilitador', 'Asistentes', 'Mujeres', 'Hombres', 'Personal técnico', 'Tope de 70', 'Módulo', 'Dinámicas', 'Participación (1-5)', 'Análisis de coyuntura', 'Nudos y compromisos', 'Novedades', 'Fotos'].map(q).join(';'),
+      ...partesOrden().reverse().map(([, p]) => [p.fecha, p.enc, GENS[p.gen] ? GLBL(p.gen) : '', p.coord, (p.fac || {}).nombre, (p.fac || {}).cedula, p.total, p.muj, p.hom, p.tecnico, p.aforo, p.modulo, [...(p.dinamicas || []), p.otraDin].filter(Boolean).join(', '), p.part, p.coyuntura, p.nudos, p.novedades, (p.fotos || []).length].map(q).join(';'))].join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `Partes diarios ${new Date().toLocaleDateString('en-CA')}.csv`; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function parteQR() {
+    const ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:60;background:rgba(3,10,25,.8);display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML = `<div class="glass pad" style="background:#0F2C55;text-align:center;max-width:460px"><h2 style="margin-top:0">Parte Diario del facilitador</h2><p class="muted" style="margin-top:-6px">Coordinación Pedagógica · escanéalo al final de cada encuentro</p>
+      <div style="background:#fff;border-radius:18px;padding:14px;display:inline-block"><canvas id="ptCv" style="width:280px;height:280px;display:block"></canvas></div>
+      <p class="muted" style="font-size:13px;word-break:break-all">${esc(parteURL())}</p>
+      <div class="row" style="justify-content:center"><button class="btn sm blue" id="ptPrint">Imprimir</button><button class="btn sm" id="ptX">Cerrar</button></div></div>`;
+    document.body.appendChild(ov); drawQR($('#ptCv'), parteURL(), 10);
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); }); $('#ptX').onclick = () => ov.remove();
+    $('#ptPrint').onclick = () => { const w = window.open('', '_blank'); if (!w) return toast('Permite las ventanas emergentes'); const img = $('#ptCv').toDataURL('image/png');
+      w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>QR Parte Diario</title><style>body{font:16px system-ui;text-align:center;padding:40px;color:#0B1426}img.q{width:12cm}h1{font:700 30px Georgia,serif;margin:10px 0}p{color:#445066}</style></head><body>
+        <img src="${new URL('logo/mara-logo.svg', location.href).href}" style="height:90px" alt=""><h1>Parte Diario del Facilitador</h1><p>Plan de Formación Filosófico-Político · Coordinación Pedagógica</p><img class="q" src="${img}" alt="QR"><p>Escanea al final de cada encuentro para cargar el parte.</p></body></html>`);
+      w.document.close(); setTimeout(() => w.print(), 600); };
+  }
+  async function partePDF(id) {
+    const p = S.partes[id]; if (!p) return; toast('Generando PDF…');
+    const [{ jsPDF }, logo] = await Promise.all([loadJsPDF(), logoPNG()]);
+    const doc = new jsPDF({ unit: 'mm', format: 'letter' }), W = 215.9, H = 279.4, M = 14, IW = W - 2 * M, NAVY = [10, 35, 70], INK = [11, 20, 38], MUT = [90, 100, 120];
+    const clean = v => String(v == null ? '' : v).replace(/[   ]/g, ' ').replace(/\s*·\s*/g, '  -  ');
+    const _t = doc.text.bind(doc); doc.text = (t, ...a) => _t(Array.isArray(t) ? t.map(clean) : clean(t), ...a);
+    const font = (st, sz, c) => { doc.setFont('helvetica', st); doc.setFontSize(sz); doc.setTextColor(...(c || INK)); };
+    let y = M; [[30, 158, 79], [242, 193, 46], [47, 128, 237], [214, 40, 57]].forEach((c, i) => { doc.setFillColor(...c); doc.rect(M + i * IW / 4, y, IW / 4, 1.6, 'F'); });
+    y += 5; if (logo) doc.addImage(logo, 'PNG', M, y, 32, 32 * 228 / 488);
+    font('normal', 7, MUT); doc.text(doc.splitTextToSize('ALCALDÍA BOLIVARIANA DE MARA · DIRECCIÓN GENERAL · DIRECCIÓN DE PLANIFICACIÓN Y DESARROLLO · TALENTO HUMANO', IW - 37), M + 37, y + 4);
+    font('bold', 15, INK); doc.text('PARTE DIARIO DEL FACILITADOR', M + 37, y + 13);
+    y += 18; doc.setDrawColor(...NAVY); doc.setLineWidth(.5); doc.line(M, y, W - M, y); y += 7;
+    const sec = t => { if (y > H - 40) { doc.addPage(); y = M; } doc.setFillColor(...NAVY); doc.rect(M, y, IW, 7, 'F'); font('bold', 8.5, [255, 255, 255]); doc.text(t.toUpperCase(), M + 2.5, y + 4.8); y += 10; };
+    const kv = (k, v) => { font('bold', 9, MUT); const kl = doc.splitTextToSize(k, 48); doc.text(kl, M, y); font('normal', 9.5, INK); const l = doc.splitTextToSize(String(v || '—'), IW - 52); doc.text(l, M + 52, y); y += Math.max(5.5, l.length * 4.6 + 1.2, kl.length * 4.2 + 1.2); if (y > H - 20) { doc.addPage(); y = M; } };
+    sec('Sección A · Identificación');
+    kv('Facilitador(a)', (p.fac || {}).nombre); kv('Cédula', (p.fac || {}).cedula); kv('Fecha de la clase', p.fecha ? fmtFecha(p.fecha) : ''); kv('N° de encuentro', `${p.enc || ''} de ${ENCUENTROS}`); kv('Coordinación atendida', p.coord); kv('Generación protagonista', GENS[p.gen] ? GLBL(p.gen) : '');
+    sec('Sección B · Control numérico y aforo');
+    kv('Total de asistentes', p.total); kv('Mujeres / Hombres', `${p.muj || 0} / ${p.hom || 0}`); kv('Personal técnico y operativo', p.tecnico); kv(`Tope de ${AFORO} personas`, p.aforo === 'No' ? 'No (excedido)' : 'Sí');
+    sec('Sección C · Metodología aplicada');
+    kv('Módulo o tema generador', p.modulo); kv('Dinámicas ejecutadas', [...(p.dinamicas || []), p.otraDin].filter(Boolean).join(', ')); kv('Participación y debate', p.part ? `${p.part} de 5` : '');
+    sec('Sección D · Relatoría y evidencia');
+    kv('Análisis de coyuntura', p.coyuntura); kv('Nudos críticos, propuestas y compromisos', p.nudos); kv('Novedades logísticas y turnos', p.novedades);
+    const fotos = p.fotos || [];
+    if (fotos.length) { y += 2; const fw = (IW - 2 * 4) / 3, fh = fw * .72; if (y + fh > H - 20) { doc.addPage(); y = M; } fotos.slice(0, 3).forEach((f, i) => { try { doc.addImage(f, 'JPEG', M + i * (fw + 4), y, fw, fh, undefined, 'FAST'); } catch (e) {} }); y += fh + 6; }
+    if (y > H - 40) { doc.addPage(); y = M; }
+    y = Math.max(y + 14, H - 42); doc.setDrawColor(...INK); doc.setLineWidth(.3); const sw = (IW - 20) / 2;
+    [['Facilitador(a)', M], ['Coordinación Pedagógica', M + sw + 20]].forEach(([t, x]) => { doc.line(x, y, x + sw, y); font('normal', 8, INK); doc.text(t, x + sw / 2, y + 4.5, { align: 'center' }); });
+    font('normal', 7, [138, 147, 166]); doc.text(`Plan de Formación Filosófico-Político · Alcaldía Bolivariana de Mara · cargado el ${new Date(tsMs(p.creado) || Date.now()).toLocaleString('es-VE')}`, M, H - 8);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(doc.output('blob')); a.download = `Parte diario encuentro ${p.enc || ''} ${p.fecha || ''}.pdf`.normalize('NFD').replace(/[̀-ͯ]/g, ''); document.body.appendChild(a); a.click(); a.remove();
+    toast('PDF descargado');
+  }
+  function bindPartes() {
+    document.querySelectorAll('tr[data-pt]').forEach(tr => tr.onclick = () => { S.parteSel = tr.dataset.pt; $('#ptDet').innerHTML = parteDetalle(S.parteSel, S.partes[S.parteSel]); bindPartes(); $('#ptDet').scrollIntoView({ behavior: 'smooth' }); });
+    const b = id => document.getElementById(id);
+    if (b('ptQR')) b('ptQR').onclick = parteQR; if (b('ptXl')) b('ptXl').onclick = parteCSV;
+    if (b('ptPdf')) b('ptPdf').onclick = async e => { const id = e.currentTarget.dataset.id; e.currentTarget.disabled = true; try { await partePDF(id); } catch (err) { toast('No se pudo generar el PDF'); } if (b('ptPdf')) b('ptPdf').disabled = false; };
+    if (b('ptDel')) b('ptDel').onclick = e => { const id = e.currentTarget.dataset.id, btn = e.currentTarget;
+      if (btn.dataset.sure) { DB.deletePart(id).then(() => { S.parteSel = null; toast('Parte eliminado'); }).catch(() => toast('No se pudo eliminar')); } else { btn.dataset.sure = 1; btn.textContent = '¿Seguro? Toca otra vez'; setTimeout(() => { if (btn.isConnected) { delete btn.dataset.sure; btn.textContent = 'Eliminar'; } }, 3000); } };
   }
   function viewReportes() {
     const coords = Object.keys(PLANTILLA);
@@ -2391,7 +2526,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editSesion(b.dataset.edit));
     S.covOpen = S.covOpen || new Set();
     const covSet = (tr, op) => { tr.classList.toggle('open', op); document.querySelectorAll(`tr[data-covp="${tr.dataset.cov}"]`).forEach(x => x.hidden = !op); op ? S.covOpen.add(tr.dataset.cov) : S.covOpen.delete(tr.dataset.cov); };
-    bindReportes();
+    bindReportes(); bindPartes();
     document.querySelectorAll('tr[data-cov]').forEach(tr => { tr.onclick = () => covSet(tr, !tr.classList.contains('open')); if (S.covOpen.has(tr.dataset.cov)) covSet(tr, true); });
     document.querySelectorAll('[data-pdf]').forEach(b => b.onclick = async () => { b.disabled = true; try { await pdfList(b.dataset.pdf); } catch (e) { toast('No se pudo generar el PDF. Revisa el internet.'); } b.disabled = false; });
     document.querySelectorAll('[data-print]').forEach(b => b.onclick = () => printList(b.dataset.print));
@@ -2400,7 +2535,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       const nombre = $('#epN').value.replace(/\s+/g, ' ').trim(), edad = +$('#epE').value.replace(/\D/g, ''), coord = $('#epC').value, dir = $('#epD').value.replace(/\s+/g, ' ').trim().slice(0, 100);
       if (nombre.split(' ').length < 2) { $('#epM').textContent = 'Escribe nombre y apellido.'; return; }
       if (!(edad >= 15 && edad <= 110)) { $('#epM').textContent = 'Escribe una edad válida.'; return; }
-      try { await DB.updatePersona(ep.dataset.h, { nombre, edad, gen: genOf(edad), coord, dir }); document.activeElement && document.activeElement.blur(); toast('Datos corregidos'); render(); }
+      try { await DB.updatePersona(ep.dataset.h, Object.assign({ nombre, edad, gen: genOf(edad), coord, dir }, $('#epS').value ? { sexo: $('#epS').value } : {})); document.activeElement && document.activeElement.blur(); toast('Datos corregidos'); render(); }
       catch (err) { $('#epM').textContent = 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; }
     });
     const aC = $('#aC'); if (aC && !aC.dataset.b) aC.dataset.b = 1, aC.addEventListener('input', () => { const d = readDirAreas(); $('#aDirs').innerHTML = dirAreas(aC.value.split('\n').map(s => s.trim()).filter(Boolean), Object.assign({}, S.cfg.direcciones, d)); });
@@ -2610,6 +2745,100 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     $('#pr').innerHTML = ms.slice(0, 8).map(m => { const p = S.per[m.persona]; return p ? `<span>${esc(firstName(p.nombre))} ${esc((p.nombre.split(' ')[1] || '').slice(0, 1))}.</span>` : ''; }).join('');
   }
 
+  /* Parte Diario Electrónico: el facilitador lo carga desde su teléfono al final del encuentro */
+  async function parteForm() {
+    const shell = inner => { root.innerHTML = `<div class="wrap"><header class="top">${brand('Parte diario del facilitador')}</header><div class="glass pad" id="pc">${inner}</div></div>`; scrollTo(0, 0); };
+    shell('<p class="muted">Conectando…</p>');
+    let cfg = DEF_CFG, ses = {};
+    try { await new Promise((res, rej) => DB.start((u, e) => u ? res(u) : rej(e))); [cfg, ses] = await Promise.all([DB.getConfig(), DB.listSesiones()]); }
+    catch (e) { shell('<h2>Sin conexión</h2><p class="muted">No se pudo conectar. Revisa el internet y vuelve a escanear el código.</p>'); return; }
+    let saved = {}; try { saved = JSON.parse(localStorage.getItem('parte-fac') || '{}'); } catch (e) {}
+    const hoy = new Date().toLocaleDateString('en-CA');
+    const sesL = Object.entries(ses).sort((a, b) => (b[1].fecha || '').localeCompare(a[1].fecha || '')).slice(0, 20);
+    const sel = (id, opts, val, ph) => `<select id="${id}"><option value="">${ph}</option>${opts.map(([v, t]) => `<option value="${esc(v)}" ${String(v) === String(val) ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+    const radios = (name, opts) => `<div class="row" style="gap:8px">${opts.map(o => `<label class="btn sm" style="flex:1;margin:0;cursor:pointer"><input type="radio" name="${name}" value="${o}" style="width:auto;margin:0 6px 0 0;accent-color:#2BB673">${o}</label>`).join('')}</div>`;
+    const fotos = [];
+    shell(`<span class="eyebrow">Plan de Formación · Coordinación Pedagógica</span><h1 style="margin:6px 0 4px">Parte diario</h1><p class="muted" style="margin:0 0 12px">Cárgalo al terminar el encuentro. Toma unos 5 minutos.</p>
+      <form id="pf">
+      <h2 style="margin-top:18px">A · Identificación</h2>
+      <label for="pfN">Nombres y apellidos del facilitador</label><input id="pfN" maxlength="60" value="${esc(saved.nombre || '')}" required>
+      <label for="pfC">Cédula</label><input id="pfC" inputmode="numeric" maxlength="10" value="${esc(saved.cedula || '')}" required>
+      <div class="row" style="gap:10px"><div style="flex:1;min-width:140px"><label for="pfF">Fecha de la clase</label><input id="pfF" type="date" value="${hoy}" required></div>
+        <div style="flex:1;min-width:120px"><label for="pfE">N° de encuentro</label>${sel('pfE', Array.from({ length: ENCUENTROS }, (_, i) => [i + 1, `Encuentro ${i + 1}`]), '', 'Escoge…')}</div></div>
+      <label for="pfG">Generación protagonista</label>${sel('pfG', GENS.map((g, i) => [i, `${GLBL(i)} · ${g.r}`]), '', 'Escoge…')}
+      <label for="pfK">Coordinación de gestión atendida</label>${sel('pfK', [...cfg.coordinaciones.map(c => [c, c]), ['Varias coordinaciones', 'Varias coordinaciones']], '', 'Escoge…')}
+      <h2 style="margin-top:22px">B · Control numérico y aforo</h2>
+      <label for="pfS">Sesión de asistencia (opcional: llena los números sola)</label>${sel('pfS', sesL.map(([id, s]) => [id, `${s.fecha || ''} · ${s.modulo || ''}${s.coordinacion ? ' · ' + s.coordinacion : ''}`]), '', 'Sin sesión: los escribo yo')}
+      <p class="muted" id="pfSm" style="font-size:13px;margin:6px 0 0"></p>
+      <div class="row" style="gap:10px"><div style="flex:1;min-width:90px"><label for="pfT">Total en sala</label><input id="pfT" inputmode="numeric" maxlength="3" required></div>
+        <div style="flex:1;min-width:90px"><label for="pfM">Mujeres</label><input id="pfM" inputmode="numeric" maxlength="3" required></div>
+        <div style="flex:1;min-width:90px"><label for="pfH">Hombres</label><input id="pfH" inputmode="numeric" maxlength="3" required></div></div>
+      <label>¿Se integró el personal técnico, obrero y de soporte?</label>${radios('pfTec', ['Sí', 'Parcial', 'No'])}
+      <p class="muted" id="pfAf" style="font-size:14px;margin:10px 0 0">Tope de ${AFORO} personas: se calcula con el total.</p>
+      <h2 style="margin-top:22px">C · Metodología aplicada</h2>
+      <label for="pfMo">Módulo o tema generador</label><input id="pfMo" list="pfMods" maxlength="140" placeholder="Escoge o escribe el módulo" required><datalist id="pfMods"></datalist>
+      <label>Dinámicas lúdicas ejecutadas</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${DINAMICAS.map(d => `<label class="btn sm" style="margin:0;justify-content:flex-start;cursor:pointer;text-align:left"><input type="checkbox" value="${d}" class="pfD" style="width:auto;margin:0 8px 0 0;accent-color:#2BB673">${d}</label>`).join('')}</div>
+      <input id="pfOt" maxlength="80" placeholder="¿Cuál otra dinámica?" hidden style="margin-top:8px">
+      <label>Participación y debate crítico del grupo (1 = baja · 5 = excelente)</label>${radios('pfP', ['1', '2', '3', '4', '5'])}
+      <h2 style="margin-top:22px">D · Relatoría y evidencia</h2>
+      <label for="pfCo">Síntesis del análisis de coyuntura (ideas fuerza del debate)</label><textarea id="pfCo" maxlength="1500" required></textarea>
+      <label for="pfNu">Nudos críticos, propuestas de gestión y compromisos territoriales</label><textarea id="pfNu" maxlength="1500" required></textarea>
+      <label for="pfNo">Novedades logísticas y de turnos (opcional)</label><textarea id="pfNo" maxlength="800"></textarea>
+      <label for="pfPh">Fotos de evidencia (1 a 3)</label><input id="pfPh" type="file" accept="image/*" multiple>
+      <div class="row" id="pfThumbs" style="gap:8px;margin-top:8px"></div>
+      <button class="btn primary" type="submit">Enviar parte</button><div class="msg" id="pfMsg"></div></form>`);
+    const v = id => document.getElementById(id), num = id => { const n = parseInt(String(v(id).value).replace(/\D/g, ''), 10); return isNaN(n) ? null : n; };
+    document.querySelectorAll('#pf label.btn input[type=radio]').forEach(r => r.addEventListener('change', () => document.querySelectorAll(`input[name="${r.name}"]`).forEach(x => { const l = x.closest('label'); l.style.background = x.checked ? 'rgba(43,182,115,.35)' : ''; l.style.borderColor = x.checked ? '#2BB673' : ''; })));
+    document.querySelectorAll('.pfD').forEach(c => c.addEventListener('change', () => { const l = c.closest('label'); l.style.background = c.checked ? 'rgba(43,182,115,.35)' : ''; l.style.borderColor = c.checked ? '#2BB673' : ''; if (c.value === 'Otra') v('pfOt').hidden = !c.checked; }));
+    const mods = () => { const g = v('pfG').value; const L = g === '' ? MODS_GEN.flat() : MODS_GEN[+g].map((m, i) => `Módulo ${['I', 'II', 'III', 'IV', 'V'][i]} · ${m}`); v('pfMods').innerHTML = L.map(m => `<option value="${esc(m)}">`).join(''); };
+    v('pfG').onchange = mods; mods();
+    const aforo = () => { const t = num('pfT'); v('pfAf').innerHTML = t == null ? `Tope de ${AFORO} personas: se calcula con el total.` : t <= AFORO ? `Tope de ${AFORO} personas: <b style="color:#2BB673">cumplido</b> (${t}).` : `Tope de ${AFORO} personas: <b style="color:#FF6B78">excedido</b> (${t}).`; };
+    ['pfT', 'pfM', 'pfH'].forEach(id => v(id).addEventListener('input', aforo));
+    v('pfS').onchange = async () => {
+      const id = v('pfS').value; if (!id) { v('pfSm').textContent = ''; return; }
+      v('pfSm').textContent = 'Contando asistentes…';
+      try { const c = await DB.countSesion(id), s = ses[id] || {}; v('pfT').value = c.total; v('pfM').value = c.muj; v('pfH').value = c.hom;
+        if (s.fecha) v('pfF').value = s.fecha; if (s.coordinacion && [...v('pfK').options].some(o => o.value === s.coordinacion)) v('pfK').value = s.coordinacion;
+        v('pfSm').textContent = `${c.total} marcaron asistencia en esa sesión${c.sin ? ` · ${c.sin} sin sexo registrado: súmalos a mano en Mujeres u Hombres` : ''}.`; aforo(); }
+      catch (e) { v('pfSm').textContent = 'No se pudieron contar los asistentes. Escríbelos a mano.'; }
+    };
+    v('pfPh').onchange = async () => {
+      const files = [...v('pfPh').files].slice(0, 3 - fotos.length);
+      for (const f of files) { try { fotos.push(await shrinkPhoto(f)); } catch (e) {} }
+      v('pfPh').value = '';
+      v('pfThumbs').innerHTML = fotos.map((f, i) => `<div style="position:relative"><img src="${f}" alt="" style="height:84px;border-radius:10px;display:block"><button type="button" data-rm="${i}" aria-label="Quitar foto" style="position:absolute;top:-8px;right:-8px;width:26px;height:26px;border-radius:50%;border:0;background:#D62839;color:#fff;font-weight:800">×</button></div>`).join('');
+      v('pfThumbs').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { fotos.splice(+b.dataset.rm, 1); v('pfPh').dispatchEvent(new Event('change')); });
+      v('pfPh').disabled = fotos.length >= 3;
+    };
+    v('pf').addEventListener('submit', async e => {
+      e.preventDefault(); const msg = t => { v('pfMsg').textContent = t; };
+      const nombre = v('pfN').value.replace(/\s+/g, ' ').trim(), cedula = v('pfC').value.replace(/\D/g, '');
+      const enc = +v('pfE').value, gen = v('pfG').value === '' ? -1 : +v('pfG').value, coord = v('pfK').value;
+      const total = num('pfT'), muj = num('pfM'), hom = num('pfH'), tec = (document.querySelector('input[name=pfTec]:checked') || {}).value, part = +((document.querySelector('input[name=pfP]:checked') || {}).value || 0);
+      const dinamicas = [...document.querySelectorAll('.pfD:checked')].map(c => c.value).filter(x => x !== 'Otra'), otraDin = v('pfOt').hidden ? '' : v('pfOt').value.trim();
+      if (nombre.split(' ').length < 2) return msg('Escribe tu nombre y apellido.');
+      if (cedula.length < 5) return msg('Escribe tu cédula.');
+      if (!enc) return msg('Escoge el número de encuentro.'); if (gen < 0) return msg('Escoge la generación.'); if (!coord) return msg('Escoge la coordinación.');
+      if (total == null || muj == null || hom == null) return msg('Escribe el total de asistentes, mujeres y hombres.');
+      if (muj + hom !== total) return msg(`Mujeres + hombres (${muj + hom}) debe ser igual al total (${total}).`);
+      if (!tec) return msg('Indica si se integró el personal técnico.');
+      if (!v('pfMo').value.trim()) return msg('Escribe el módulo o tema generador.');
+      if (!dinamicas.length && !otraDin) return msg('Marca al menos una dinámica.');
+      if (!part) return msg('Indica la participación del grupo (1 al 5).');
+      if (v('pfCo').value.trim().length < 10 || v('pfNu').value.trim().length < 10) return msg('Completa la relatoría: análisis de coyuntura y compromisos.');
+      if (!fotos.length) return msg('Agrega al menos una foto de evidencia.');
+      const data = { fac: { nombre, cedula }, fecha: v('pfF').value, enc, gen, coord, ses: v('pfS').value || '', total, muj, hom, tecnico: tec, aforo: total <= AFORO ? 'Sí' : 'No',
+        modulo: v('pfMo').value.trim(), dinamicas, otraDin, part, coyuntura: v('pfCo').value.trim(), nudos: v('pfNu').value.trim(), novedades: v('pfNo').value.trim(), fotos };
+      if (JSON.stringify(data).length > 950000) return msg('Las fotos pesan demasiado. Quita una e intenta de nuevo.');
+      e.submitter && (e.submitter.disabled = true); msg('Enviando…');
+      try { await DB.savePart(data); try { localStorage.setItem('parte-fac', JSON.stringify({ nombre, cedula })); } catch (err) {}
+        shell(`<div class="ok"><div class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h1>¡Parte cargado!</h1>
+          <p class="muted">Encuentro N° ${enc} · ${esc(GLBL(gen))} · ${total} asistentes</p><button class="btn" id="pfAgain" style="margin-top:18px">Cargar otro parte</button></div>`);
+        v('pfAgain').onclick = parteForm; }
+      catch (err) { console.error(err); msg('No se pudo enviar. Revisa el internet e intenta de nuevo.'); e.submitter && (e.submitter.disabled = false); }
+    });
+  }
+
   /* verificación pública de una constancia (QR impreso en la constancia) */
   async function verificar(h) {
     const shell = inner => { root.innerHTML = `<div class="wrap"><header class="top">${brand('Verificación de constancia')}</header><div class="glass pad">${inner}</div></div>`; };
@@ -2628,7 +2857,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <p class="muted" style="font-size:13px;margin-top:14px;text-align:center">Datos del registro de asistencia del Plan de Formación · Alcaldía Bolivariana de Mara</p>`);
   }
 
-  if (ADMIN) admin(); else if (P.get('verificar')) verificar(P.get('verificar')); else if (SID) participant(); else if (P.has('constancia')) constancia();
+  if (ADMIN) admin(); else if (P.has('parte')) parteForm(); else if (P.get('verificar')) verificar(P.get('verificar')); else if (SID) participant(); else if (P.has('constancia')) constancia();
   else root.innerHTML = `<div class="wrap"><header class="top">${brand('Registro de asistencia')}</header><div class="glass pad"><h2>Escanea el código QR</h2><p class="muted">Para marcar tu asistencia, escanea el código QR que proyecta el facilitador en la sesión.</p></div></div>`;
 })();
 </script>
