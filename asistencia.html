@@ -1850,6 +1850,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       watchPersonas: cb => watch(s => s.personas, cb),
       watchMarcas: cb => watch(s => s.marcas, cb),
       async deleteMarca(id) { const s = st(); delete s.marcas[id]; save(s); },
+      async deleteSesion(id) { const s = st(); Object.keys(s.marcas).forEach(k => { if (s.marcas[k].sesion === id) delete s.marcas[k]; }); delete s.sesiones[id]; save(s); },
       async updatePersona(h, d) { const s = st(); if (!s.personas[h]) throw { code: 'not-found' }; Object.assign(s.personas[h], d); if (s.ids[h]) s.ids[h].n = firstName(d.nombre); save(s); },
     };
   }
@@ -1933,6 +1934,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       watchPersonas: cb => F.onSnapshot(F.collection(db, 'asist_personas'), q => cb(snapMap(q)), e => toast('Sin permiso para leer formados')),
       watchMarcas: cb => F.onSnapshot(F.collection(db, 'asist_marcas'), q => cb(snapMap(q)), e => toast('Sin permiso para leer asistencias')),
       async deleteMarca(id) { await F.deleteDoc(F.doc(db, 'asist_marcas', id)); },
+      async deleteSesion(id) {
+        await init(); const qs = await F.getDocs(F.query(F.collection(db, 'asist_marcas'), F.where('sesion', '==', id)));
+        await Promise.all(qs.docs.map(d => F.deleteDoc(d.ref)));   // primero las asistencias de esa sesión
+        await F.deleteDoc(F.doc(db, 'asist_sesiones', id));
+      },
       async updatePersona(h, d) {
         await F.updateDoc(F.doc(db, 'asist_personas', h), d);
         try { await F.updateDoc(F.doc(db, 'asist_ids', h), { n: firstName(d.nombre).slice(0, 30) }); } catch (e) {}
@@ -2185,7 +2191,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <div class="t"><b>${esc(s.modulo)}</b><span>${esc(fmtFecha(s.fecha))} · ${esc(s.coordinacion || '')}${s.lugar ? ' · ' + esc(s.lugar) : ''}</span></div>
       <span class="badge ${s.abierta ? 'b-open' : 'b-closed'}">${s.abierta ? 'Abierta' : 'Cerrada'}</span>
       <b class="num" style="min-width:90px">${(bySes[id] || []).length} asistentes</b>
-      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm" data-edit="${id}" title="Cambiar fecha, formación, coordinación o lugar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-pdf="${id}" title="Descargar el listado en PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/><path d="M12 12v6"/><path d="m9 15 3 3 3-3"/></svg> Descargar PDF</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
+      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm" data-delses="${id}" title="Borrar esta sesión y sus asistencias">Eliminar</button><button class="btn sm" data-edit="${id}" title="Cambiar fecha, formación, coordinación o lugar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-pdf="${id}" title="Descargar el listado en PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/><path d="M12 12v6"/><path d="m9 15 3 3 3-3"/></svg> Descargar PDF</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
   }
   function viewSesiones() {
     const coordOpts = S.cfg.coordinaciones.map(c => `<option>${esc(c)}</option>`).join('');
@@ -2523,6 +2529,11 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const q = $('#q'); if (q && !q.dataset.b) q.dataset.b = 1, q.addEventListener('input', () => { S.q = q.value; render(); });
     document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); bind(); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
+    document.querySelectorAll('[data-delses]').forEach(b => b.onclick = async () => {
+      const id = b.dataset.delses, s = S.ses[id] || {}, n = Object.values(S.mar).filter(m => m.sesion === id).length;
+      if (!confirm(`¿Eliminar la sesión del ${s.fecha || ''} (${s.modulo || ''})?\nSe borrarán también sus ${n} asistencias. No se puede deshacer.`)) return;
+      try { await DB.deleteSesion(id); toast('Sesión eliminada'); } catch (e) { toast('No se pudo eliminar (¿reglas de Firestore?)'); }
+    });
     document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editSesion(b.dataset.edit));
     S.covOpen = S.covOpen || new Set();
     const covSet = (tr, op) => { tr.classList.toggle('open', op); document.querySelectorAll(`tr[data-covp="${tr.dataset.cov}"]`).forEach(x => x.hidden = !op); op ? S.covOpen.add(tr.dataset.cov) : S.covOpen.delete(tr.dataset.cov); };
