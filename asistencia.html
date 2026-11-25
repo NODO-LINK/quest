@@ -1576,6 +1576,19 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return `<select id="${id}"><option value="" disabled ${!val ? 'selected' : ''}>Elige tu dirección</option>${L.map(d => `<option ${d === val ? 'selected' : ''}>${esc(d)}</option>`).join('')}<option value="__otra" ${!inL ? 'selected' : ''}>Otra (escribirla)</option></select>
       <input id="${id}x" maxlength="100" autocomplete="off" placeholder="Escribe el nombre de tu dirección" ${inL ? 'hidden' : ''} value="${inL ? '' : esc(val)}" style="margin-top:8px">`;
   }
+  // guarda dirección y sexo con reintentos (antes un fallo se ignoraba y la persona quedaba sin dirección)
+  async function saveExtra(h, upd) {
+    if (!upd || !Object.keys(upd).length) return true;
+    for (let i = 0; i < 4; i++) {
+      try { await DB.setFields(h, upd); return true; } catch (e) { await new Promise(r => setTimeout(r, 800 * (i + 1))); }
+    }
+    return false;
+  }
+  function retryExtra(box, h, upd, then) {
+    box.innerHTML = `<p style="margin:10px 0 6px"><b>Tu asistencia quedó marcada, pero no se guardó tu dirección.</b> Revisa el internet y toca el botón.</p><button class="btn primary" type="button" id="rxB">Guardar mi dirección</button>`;
+    const b = document.getElementById('rxB');
+    b.onclick = async () => { b.disabled = true; b.textContent = 'Guardando…'; if (await saveExtra(h, upd)) then(); else { b.disabled = false; b.textContent = 'Reintentar'; } };
+  }
   const dirRead = id => { const el = document.getElementById(id); if (!el || el.disabled) return ''; const v = el.value === '__otra' ? (document.getElementById(id + 'x') || {}).value : el.value; return String(v || '').replace(/\s+/g, ' ').trim().slice(0, 100); };
   const dirBind = id => { const el = document.getElementById(id); if (el && el.tagName === 'SELECT') el.addEventListener('change', () => { const x = document.getElementById(id + 'x'); if (!x) return; x.hidden = el.value !== '__otra'; if (!x.hidden) x.focus(); }); };
   /* ---------- animated cartoon scenes for the waiting screen (SVG + SMIL, all share one clock) ---------- */
@@ -1972,7 +1985,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         e.submitter && (e.submitter.disabled = true);
         try {
           const h = await hashCed(ced), info = await DB.idInfo(h);
-          let per = null; if (info) { try { per = await DB.getPersona(h); } catch (e) {} }
+          let per = null; if (info) { for (let i = 0; i < 2 && !per; i++) { try { per = await DB.getPersona(h); } catch (e) {} } }
           info ? stepMark(h, info, per && (!per.dir || !SEXOS.includes(per.sexo)) ? per : null) : stepReg(h, ced);
         } catch (err) { $('#m1').textContent = 'No se pudo consultar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
       });
@@ -1992,9 +2005,9 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         if (fDir && dir.length < 3) { $('#m2').textContent = 'Escribe o elige tu dirección.'; return; }
         $('#go').disabled = true;
         const upd = Object.assign({}, dir ? { dir } : {}, sexo ? { sexo } : {});
-        const saveDir = () => Object.keys(upd).length ? DB.setFields(h, upd).catch(() => {}) : null;
-        try { await DB.marcar(h, SID); await saveDir(); done(info.n, false, h); }
-        catch (e) { if (String(e && e.code).includes('permission')) { await saveDir(); done(info.n, true, h); } else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
+        const fin = async already => { if (await saveExtra(h, upd)) done(info.n, already, h); else retryExtra($('#m2'), h, upd, () => done(info.n, already, h)); };
+        try { await DB.marcar(h, SID); await fin(false); }
+        catch (e) { if (String(e && e.code).includes('permission')) { await fin(true); } else { $('#m2').textContent = 'No se pudo marcar. Revisa el internet e intenta de nuevo.'; $('#go').disabled = false; } }
       };
     };
     const stepReg = (h, ced) => {
@@ -2022,8 +2035,10 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
         const dir = dirRead('dir');
         if (dir.length < 3) { $('#m3').textContent = 'Escribe o elige la dirección a la que perteneces.'; return; }
         e.submitter && (e.submitter.disabled = true);
-        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); await DB.setFields(h, { dir, sexo }).catch(() => {}); done(firstName(nombre), false, h); }
-        catch (err) { $('#m3').textContent = String(err && err.code).includes('permission') ? 'Esta cédula ya está registrada o la sesión se cerró. Vuelve a intentarlo.' : 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); }
+        try { await DB.registrarYMarcar(h, { nombre, cedula: ced, coord, edad, gen: genOf(edad) }, SID); }
+        catch (err) { $('#m3').textContent = String(err && err.code).includes('permission') ? 'Esta cédula ya está registrada o la sesión se cerró. Vuelve a intentarlo.' : 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; e.submitter && (e.submitter.disabled = false); return; }
+        if (await saveExtra(h, { dir, sexo })) done(firstName(nombre), false, h);
+        else retryExtra($('#m3'), h, { dir, sexo }, () => done(firstName(nombre), false, h));
       });
     };
     const watching = new Set();
