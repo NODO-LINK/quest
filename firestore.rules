@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // sin clave: cualquiera conectado (también los anónimos) puede administrar
+    function esPresentador() { return request.auth != null; }
+    function conectado() { return request.auth != null; }
+
+    match /asist_config/{id} {
+      allow read: if conectado();
+      allow write: if esPresentador();
+    }
+    match /asist_sesiones/{id} {
+      allow read: if conectado();
+      allow write: if esPresentador();
+    }
+    // huella de la cédula -> solo el primer nombre (para saludar)
+    match /asist_ids/{h} {
+      allow get: if conectado();
+      allow list: if esPresentador();
+      allow create: if conectado() && !exists(/databases/$(database)/documents/asist_ids/$(h))
+        && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n is string && request.resource.data.n.size() <= 30;
+      allow update, delete: if esPresentador();
+    }
+    // datos completos del formado (con la cédula)
+    match /asist_personas/{h} {
+      allow read: if esPresentador();
+      allow create: if conectado() && !exists(/databases/$(database)/documents/asist_personas/$(h))
+        && request.resource.data.keys().hasOnly(['nombre','cedula','coord','edad','gen','creado','uid'])
+        && request.resource.data.nombre is string && request.resource.data.nombre.size() > 2 && request.resource.data.nombre.size() <= 60
+        && request.resource.data.cedula is string && request.resource.data.cedula.size() >= 5 && request.resource.data.cedula.size() <= 10
+        && request.resource.data.coord is string && request.resource.data.coord.size() <= 120
+        && request.resource.data.edad is int && request.resource.data.edad >= 15 && request.resource.data.edad <= 110
+        && request.resource.data.gen is int && request.resource.data.gen >= 0 && request.resource.data.gen <= 4
+        && request.resource.data.uid == request.auth.uid && request.resource.data.creado == request.time;
+      allow update, delete: if esPresentador();
+    }
+    // una marca por persona y sesión; solo en sesiones abiertas
+    match /asist_marcas/{id} {
+      allow read: if esPresentador();
+      allow create: if conectado()
+        && request.resource.data.keys().hasOnly(['sesion','persona','uid','t'])
+        && id == request.resource.data.sesion + '_' + request.resource.data.persona
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.t == request.time
+        && get(/databases/$(database)/documents/asist_sesiones/$(request.resource.data.sesion)).data.abierta == true
+        && existsAfter(/databases/$(database)/documents/asist_ids/$(request.resource.data.persona));
+      allow update: if false;
+      allow delete: if esPresentador();
+    }
+
+    // penitencias: a quien escoge el presentador para bailar
+    match /asist_penitencias/{id} {
+      allow read: if conectado();
+      allow create: if conectado() && request.resource.data.keys().hasOnly(['n','p','sesion','t'])
+        && request.resource.data.n is string && request.resource.data.n.size() <= 30
+        && request.resource.data.p is string && request.resource.data.p.size() <= 64
+        && request.resource.data.sesion is string && request.resource.data.sesion.size() <= 40
+        && request.resource.data.t == request.time;
+      allow update: if false;
+      allow delete: if esPresentador();
+    }
+
+    match /msg/{g}/items/{id} {
+      allow read: if conectado();
+      allow create: if conectado() && g in ['precursora', 'fundadora', 'intermedia', 'oro', 'genial']
+        && request.resource.data.keys().hasOnly(['t', 'n', 'at', 'uid'])
+        && request.resource.data.t is string && request.resource.data.t.size() >= 2 && request.resource.data.t.size() <= 90
+        && request.resource.data.n is string && request.resource.data.n.size() <= 20
+        && request.resource.data.uid == request.auth.uid && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if esPresentador();
+    }
+
+    // trivia, control remoto y estado en vivo de las presentaciones
+    match /trivia/{sala} {
+      allow read, write: if conectado();
+      match /jugadores/{uid} {
+        allow read: if conectado();
+        allow create: if conectado() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['nombre', 'gen', 'puntos', 'aciertos', 'creado'])
+          && request.resource.data.gen is int
+          && request.resource.data.gen >= 0
+          && request.resource.data.gen <= 4
+          && request.resource.data.nombre is string && request.resource.data.nombre.size() > 0 && request.resource.data.nombre.size() <= 24
+          && request.resource.data.puntos == 0 && request.resource.data.aciertos == 0;
+        allow update, delete: if conectado();
+      }
+      match /votos/{votoId} {
+        allow read: if conectado();
+        allow create: if conectado() && request.resource.data.keys().hasOnly(['q', 'opcion', 'uid', 't'])
+          && request.resource.data.uid == request.auth.uid && request.resource.data.q is int
+          && votoId == string(request.resource.data.q) + '_' + request.auth.uid
+          && request.resource.data.opcion is int && request.resource.data.opcion >= 0 && request.resource.data.opcion < 4
+          && request.resource.data.t == request.time
+          && get(/databases/$(database)/documents/trivia/$(sala)).data.fase == 'votando'
+          && get(/databases/$(database)/documents/trivia/$(sala)).data.q == request.resource.data.q;
+        allow update: if false;
+        allow delete: if conectado();
+      }
+    }
+  }
+}
