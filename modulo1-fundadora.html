@@ -2968,8 +2968,72 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
   const DECK = ((location.pathname.split('/').pop() || '').replace(/\.html$/, '')) || 'presentacion';
   let rT;
   function rtoast(t) { const el = $('rtoast'); el.textContent = ' ' + t; el.insertAdjacentHTML('afterbegin', ICO.phone); el.classList.add('show'); clearTimeout(rT); rT = setTimeout(() => el.classList.remove('show'), 1400); }
+/* ---------- semáforo de las emociones ---------- */
+  var semOpen = false, semEl = null, semHist = [];
+  const SEM_EMO = [['😀','Alegría'],['😢','Tristeza'],['😡','Rabia'],['😨','Miedo'],['😴','Cansancio'],['😍','Cariño'],['🤔','Duda'],['😎','Confianza'],['🥳','Entusiasmo'],['😤','Frustración'],['🤗','Gratitud'],['😱','Sorpresa'],['🤢','Rechazo'],['😌','Calma'],['😬','Nervios'],['🙄','Fastidio'],['😅','Alivio'],['😇','Paz'],['😞','Desánimo'],['😳','Vergüenza'],['🥺','Ternura'],['😏','Orgullo'],['🤯','Agobio'],['😭','Pena']];
+  const SEM_COL = [['Amarilla', '#F2C12E', '#B8860B', '#1a1300'], ['Roja', '#E23B4E', '#8E1424', '#fff'], ['Azul', '#3B8CF5', '#1A4FA3', '#fff']];
+  function semStyle() {
+    if (document.getElementById('semCss')) return;
+    const s = document.createElement('style'); s.id = 'semCss';
+    s.textContent = `#semaforo{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3.2vh;background:radial-gradient(80vmax 60vmax at 50% 110%,rgba(242,193,46,.18),transparent 60%),linear-gradient(170deg,#0A1630,#150A24);color:#fff;font-family:var(--body,system-ui,sans-serif)}
+#semaforo.open{display:flex}
+#semaforo h2{margin:0;font-family:var(--head,Georgia,serif);font-size:5.4vh;letter-spacing:.01em}
+#semaforo .sub{font-size:2.6vh;color:#cdd6e6;margin-top:-2vh}
+#semaforo .cards{display:flex;gap:3vw;perspective:1800px}
+#semaforo .card{width:24vw;height:58vh;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,1.3,.5,1);cursor:pointer;border:0;background:none;padding:0;color:inherit;font:inherit}
+#semaforo .card.up{transform:rotateY(180deg)}
+#semaforo .face{position:absolute;inset:0;border-radius:2.2vh;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2.4vh 6vh rgba(0,0,0,.5),inset 0 .25vh 0 rgba(255,255,255,.45)}
+#semaforo .front{background:linear-gradient(160deg,var(--c1),var(--c2));color:var(--tx)}
+#semaforo .front .dot{width:15vh;height:15vh;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.75),rgba(255,255,255,0) 45%),rgba(0,0,0,.18);box-shadow:inset 0 0 0 .8vh rgba(255,255,255,.55)}
+#semaforo .front b{font-family:var(--head,Georgia,serif);font-size:5vh;margin-top:3vh}
+#semaforo .front i{font-style:normal;font-size:7vh;opacity:.55;margin-top:1vh;font-weight:800}
+#semaforo .back{transform:rotateY(180deg);background:#fff;color:#14203a;border:1vh solid var(--c1)}
+#semaforo .back .em{font-size:21vh;line-height:1;filter:drop-shadow(0 1vh 1.2vh rgba(0,0,0,.25))}
+#semaforo .back .nm{font-family:var(--head,Georgia,serif);font-size:4.6vh;margin-top:3vh;display:none;font-weight:700}
+#semaforo.names .back .nm{display:block}
+#semaforo .hint{font-size:2.2vh;color:#9fb0cc}`;
+    document.head.appendChild(s);
+  }
+  function semBuild() {
+    if (semEl) return;
+    semStyle();
+    semEl = document.createElement('div'); semEl.id = 'semaforo'; semEl.setAttribute('role', 'dialog'); semEl.setAttribute('aria-label', 'El semáforo de las emociones');
+    semEl.innerHTML = '<h2>El semáforo de las emociones</h2><div class="sub">Elige una carta y descubre qué emoción te tocó</div><div class="cards">' +
+      SEM_COL.map((c, i) => `<button class="card" type="button" data-i="${i}" aria-label="Carta ${c[0].toLowerCase()}" style="--c1:${c[1]};--c2:${c[2]};--tx:${c[3]}"><div class="face front"><div class="dot"></div><b>${c[0]}</b><i>?</i></div><div class="face back"><div class="em"></div><div class="nm"></div></div></button>`).join('') +
+      '</div><div class="hint">Toca una carta para voltearla · Esc para cerrar</div>';
+    document.body.appendChild(semEl);
+    semEl.addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('.card'); if (b) semFlip(+b.dataset.i); });
+    semEl.addEventListener('keydown', e => { if (e.key === 'Escape') closeSem(); });
+  }
+  function semDeal() {   // 3 distinct emojis, none repeated from the previous round
+    const pool = SEM_EMO.filter(e => !semHist.includes(e[0])); const src = pool.length >= 3 ? pool : SEM_EMO;
+    const pick = []; const cp = src.slice();
+    while (pick.length < 3) pick.push(cp.splice(Math.floor(Math.random() * cp.length), 1)[0]);
+    semHist = pick.map(e => e[0]);
+    semEl.querySelectorAll('.card').forEach((c, i) => { c.querySelector('.em').textContent = pick[i][0]; c.querySelector('.nm').textContent = pick[i][1]; });
+  }
+  function semShuffle() {
+    semBuild(); const cards = semEl.querySelectorAll('.card'); const wasUp = [...cards].some(c => c.classList.contains('up'));
+    cards.forEach(c => c.classList.remove('up'));
+    setTimeout(() => semDeal(), wasUp ? 450 : 0);   // change the emojis only once the cards are face down, so nobody sees them swap
+    try { SHOW.play('redoble'); } catch (e) {}
+  }
+  function openSem() { semBuild(); semOpen = true; try { music.pause(); } catch (e) {} semEl.classList.add('open'); semDeal(); semEl.querySelectorAll('.card').forEach(c => c.classList.remove('up')); }
+  function closeSem() { if (!semOpen) return; semOpen = false; semEl.classList.remove('open'); try { startMusic(); } catch (e) {} }
+  function semFlip(i) { if (!semOpen) openSem(); const c = semEl.querySelectorAll('.card')[i]; if (!c) return; c.classList.toggle('up'); try { c.classList.contains('up') ? SHOW.play('tadan') : 0; } catch (e) {} }
+  function semaforo(arg) {
+    arg = String(arg || 'open');
+    if (arg === 'close') { closeSem(); return 'Semáforo cerrado'; }
+    if (arg === 'open') { openSem(); return 'Semáforo de las emociones'; }
+    if (arg === 'shuffle') { if (!semOpen) { openSem(); } else semShuffle(); return 'Cartas barajadas'; }
+    if (arg === 'names') { semBuild(); semEl.classList.toggle('names'); return semEl.classList.contains('names') ? 'Mostrando el nombre de la emoción' : 'Solo emojis'; }
+    if (arg === 'all') { if (!semOpen) openSem(); const cs = [...semEl.querySelectorAll('.card')]; const allUp = cs.every(c => c.classList.contains('up')); cs.forEach((c, i) => setTimeout(() => c.classList.toggle('up', !allUp), i * 250)); return allUp ? 'Cartas boca abajo' : 'Todas reveladas'; }
+    const m = /^flip:([0-2])$/.exec(arg); if (m) { semFlip(+m[1]); return `Carta ${SEM_COL[+m[1]][0].toLowerCase()}`; }
+    return '';
+  }
+  addEventListener('keydown', e => { if (semOpen && e.key === 'Escape') closeSem(); });
   function remote(cmd, arg) {
-    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); closePrensa(); closeAsis(); };
+    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); closePrensa(); closeAsis(); closeSem(); };
     switch (cmd) {
       case 'next': calm(); next(); rtoast('Siguiente'); break;
       case 'prev': calm(); prev(); rtoast('Anterior'); break;
@@ -2999,6 +3063,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'trivia': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openTrivia(); rtoast(arg === 'close' ? 'Volviendo de la trivia' : 'Trivia'); break;
       case 'juego': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openJuego(); rtoast(arg === 'close' ? 'Volviendo del juego' : 'Juego final'); break;
       case 'aplauso': closePick(); arg === 'close' ? closeAplauso() : openAplauso(); rtoast('Aplausómetro'); break;
+      case 'semaforo': { const m = semaforo(arg); if (m) rtoast(m); break; }
       case 'sound': setSound(arg !== 'off'); rtoast(arg === 'off' ? 'Sonido apagado' : 'Sonido activado'); break;
     }
   }

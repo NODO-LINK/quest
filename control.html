@@ -67,6 +67,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .btn{font:700 15px var(--font);color:#fff;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);border-radius:18px;min-height:52px;padding:0 14px;flex:1 1 auto;transition:transform .08s}
 .btn.red{background:linear-gradient(160deg,#F0485C,#D7263D 60%,#B81D33)}
 .btn.green{background:linear-gradient(160deg,#2BB673,#1E9E4F 60%,#16803F)}
+.btn.yellow{background:linear-gradient(160deg,#F7D154,#F2C12E 60%,#C99A0E);color:#1a1300;border-color:rgba(0,0,0,.2)}
+.btn.blue{background:linear-gradient(160deg,#4C97F7,#2F80ED 60%,#1F5FBF)}
 .btn.vid{flex:1 1 0;min-width:0;font-size:19px}
 .vid:nth-child(1){box-shadow:inset 0 -4px 0 #1E9E4F}.vid:nth-child(2){box-shadow:inset 0 -4px 0 #2A64B4}.vid:nth-child(3){box-shadow:inset 0 -4px 0 #F4C20D}
 .vid:nth-child(4){box-shadow:inset 0 -4px 0 #D7263D}.vid:nth-child(5){box-shadow:inset 0 -4px 0 #19C3E6}.vid:nth-child(6){box-shadow:inset 0 -4px 0 #C8743A}
@@ -153,6 +155,22 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn" type="button" data-cmd="closeReveal">Cerrar resultado</button>
           <button class="btn" type="button" data-cmd="ruleta">Ir a la ruleta</button>
           <button class="btn" type="button" data-cmd="salirRuleta">↩ Salir de la ruleta</button>
+        </div>
+      </section>
+      <section class="sec glass"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="2" width="8" height="20" rx="4"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/></svg> Semáforo de las emociones</h2>
+        <div class="row">
+          <button class="btn green" type="button" data-cmd="semaforo" data-arg="open">Abrir semáforo</button>
+          <button class="btn" type="button" data-cmd="semaforo" data-arg="shuffle">Barajar de nuevo</button>
+          <button class="btn" type="button" data-cmd="semaforo" data-arg="close">Cerrar</button>
+        </div>
+        <div class="row">
+          <button class="btn yellow" type="button" data-cmd="semaforo" data-arg="flip:0">Voltear amarilla</button>
+          <button class="btn red" type="button" data-cmd="semaforo" data-arg="flip:1">Voltear roja</button>
+          <button class="btn blue" type="button" data-cmd="semaforo" data-arg="flip:2">Voltear azul</button>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" data-cmd="semaforo" data-arg="all">Revelar / ocultar todas</button>
+          <button class="btn" type="button" data-cmd="semaforo" data-arg="names">Mostrar nombre de la emoción</button>
         </div>
       </section>
       <section class="sec glass"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.8 2.7L16 9.5"/></svg> QR de asistencia</h2>
@@ -283,7 +301,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   };
   const DEMO = new URLSearchParams(location.search).has('demo');
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
-    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', juego: 'Juego final', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
+    video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', juego: 'Juego final', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', semaforo: 'Semáforo de las emociones', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos', 'modulo1-precursora', 'modulo1-fundadora', 'modulo1-intermedia', 'modulo1-oro', 'modulo1-genial'];
   const THUMBV = '1795615371';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
