@@ -285,7 +285,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', juego: 'Juego final', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos', 'modulo1-precursora', 'modulo1-fundadora', 'modulo1-intermedia', 'modulo1-oro', 'modulo1-genial'];
-  const THUMBV = '1794709543';
+  const THUMBV = '1795615371';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
