@@ -157,6 +157,12 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
           <button class="btn" type="button" data-cmd="salirRuleta">↩ Salir de la ruleta</button>
         </div>
       </section>
+      <section class="sec glass" id="secSdn" hidden><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/></svg> Soberanía y Defensa Nacional</h2>
+        <div class="row">
+          <button class="btn yellow" type="button" id="sdnGo">Saltar a Soberanía y Defensa</button>
+        </div>
+        <div class="row" id="sdnList"></div>
+      </section>
       <section class="sec glass"><h2><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="2" width="8" height="20" rx="4"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/></svg> Semáforo de las emociones</h2>
         <div class="row">
           <button class="btn green" type="button" data-cmd="semaforo" data-arg="open">Abrir semáforo</button>
@@ -303,7 +309,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
   const LABEL = { next: 'Siguiente ▶', prev: '◀ Anterior', go: 'Ir a la diapositiva', spin: 'Girar ruleta', closeReveal: 'Cerrar resultado', ruleta: 'Ir a la ruleta',
     video: 'Video', closeVideo: 'Cerrar video', trivia: 'Trivia', juego: 'Juego final', aplauso: 'Aplausómetro', sound: 'Sonido', salirRuleta: '↩ Salir de la ruleta', equipo: 'Pantalla de espera', semaforo: 'Semáforo de las emociones', bien: 'Bienvenida', prensa: 'Periódicos', penit: '¡Penitencia enviada!', constancia: 'QR de constancia', sfx: 'Efecto enviado', creditos: 'Créditos', asis: 'QR de asistencia' };
   const DECKS = ['presentacion', 'diagnostico', 'periodicos', 'modulo1-precursora', 'modulo1-fundadora', 'modulo1-intermedia', 'modulo1-oro', 'modulo1-genial'];
-  const THUMBV = '1795615371';
+  const THUMBV = '1795702426';
   let deck = DECKS.includes(new URLSearchParams(location.search).get('d')) ? new URLSearchParams(location.search).get('d') : 'presentacion';
   try { const saved = localStorage.getItem('remote-deck'); if (!new URLSearchParams(location.search).get('d') && DECKS.includes(saved)) deck = saved; } catch (e) {}
   let names = [], notes = [], pos = -1, send = null, beforeRul = -1, sendLaser = null;
@@ -322,7 +328,20 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
     } catch (e) { names = []; }
     renderList(); renderNow();
   }
+  // acceso directo al bloque «Soberanía y Defensa Nacional» (solo aparece si la presentación lo trae)
+  function renderSdn() {
+    const start = names.indexOf('Soberanía y Defensa Nacional'), box = $('sdnList');
+    $('secSdn').hidden = start < 0; box.innerHTML = '';
+    if (start < 0) return;
+    $('sdnGo').onclick = () => command('go', start);
+    names.forEach((n, i) => {
+      if (!n.startsWith('SDN · ')) return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = n.slice(6);
+      b.addEventListener('click', () => command('go', i)); box.appendChild(b);
+    });
+  }
   function renderList() {
+    renderSdn();
     const L = $('list'); L.innerHTML = '';
     names.forEach((n, i) => {
       const b = document.createElement('button'); b.type = 'button';
