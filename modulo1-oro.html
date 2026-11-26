@@ -3056,7 +3056,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     setTimeout(() => semDeal(), wasUp ? 450 : 0);   // change the emojis only once the cards are face down, so nobody sees them swap
     try { SHOW.play('redoble'); } catch (e) {}
   }
-  function openSem() { semBuild(); semOpen = true; try { music.pause(); } catch (e) {} semEl.classList.add('open'); semDeal(); semEl.querySelectorAll('.card').forEach(c => c.classList.remove('up')); }
+  function openSem() { closeLuz(); semBuild(); semOpen = true; try { music.pause(); } catch (e) {} semEl.classList.add('open'); semDeal(); semEl.querySelectorAll('.card').forEach(c => c.classList.remove('up')); }
   function closeSem() { if (!semOpen) return; semOpen = false; semEl.classList.remove('open'); try { startMusic(); } catch (e) {} }
   function semFlip(i) { if (!semOpen) openSem(); const c = semEl.querySelectorAll('.card')[i]; if (!c) return; c.classList.toggle('up'); try { c.classList.contains('up') ? SHOW.play('tadan') : 0; } catch (e) {} }
   function semaforo(arg) {
@@ -3070,8 +3070,71 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     return '';
   }
   addEventListener('keydown', e => { if (semOpen && e.key === 'Escape') closeSem(); });
+  /* semáforo giratorio: suelta un color al azar */
+  var luzOpen = false, luzEl = null, luzT = 0, luzBusy = false, luzAzul = false, luzAt = -1;
+  const LUZ = () => [['ROJO', '#FF3B4E'], ['AMARILLO', '#FFCC1F'], luzAzul ? ['AZUL', '#2F8CFF'] : ['VERDE', '#22D36B']];
+  function luzBuild() {
+    if (luzEl) return;
+    const s = document.createElement('style');
+    s.textContent = `#luz{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;gap:7vw;background:radial-gradient(80vmax 60vmax at 50% 50%,var(--glow,rgba(80,110,180,.18)),transparent 65%),linear-gradient(170deg,#0A1630,#120A20);color:#fff;font-family:var(--body,system-ui,sans-serif);transition:background .3s}
+#luz.open{display:flex}
+#luz .poste{display:flex;flex-direction:column;gap:2.4vh;padding:3.2vh;border-radius:6vh;background:linear-gradient(160deg,#2b3140,#0d1018);box-shadow:0 3vh 8vh rgba(0,0,0,.6),inset 0 .3vh 0 rgba(255,255,255,.22)}
+#luz .foco{width:23vh;height:23vh;border-radius:50%;background:var(--c);filter:brightness(.22) saturate(.7);box-shadow:inset 0 0 4vh rgba(0,0,0,.6);transition:filter .08s,box-shadow .08s}
+#luz .foco.on{filter:none;box-shadow:0 0 7vh 1.4vh var(--c),inset 0 0 5vh rgba(255,255,255,.45)}
+#luz .info{width:46vw;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4vh}
+#luz h2{margin:0;font-family:var(--head,Georgia,serif);font-size:5.6vh}
+#luz .res{min-height:15vh;font-weight:900;font-size:12vh;line-height:1.2;letter-spacing:.02em;font-family:var(--head,Georgia,serif)}
+#luz .res.pop{animation:luzPop .6s cubic-bezier(.3,1.7,.5,1)}
+@keyframes luzPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+#luz button{font:800 3.4vh var(--body,system-ui,sans-serif);color:#14203a;background:#fff;border:0;border-radius:6vh;padding:2.2vh 6vh;cursor:pointer;box-shadow:0 1.4vh 3vh rgba(0,0,0,.4)}
+#luz button:disabled{opacity:.45;cursor:default}
+#luz .hint{font-size:2.2vh;color:#9fb0cc}`;
+    document.head.appendChild(s);
+    luzEl = document.createElement('div'); luzEl.id = 'luz'; luzEl.setAttribute('role', 'dialog'); luzEl.setAttribute('aria-label', 'Semáforo al azar');
+    luzEl.innerHTML = '<div class="poste"><div class="foco"></div><div class="foco"></div><div class="foco"></div></div><div class="info"><h2>El semáforo de las emociones</h2><div class="res" aria-live="polite"></div><button type="button">GIRAR</button><div class="hint">Esc para cerrar</div></div>';
+    document.body.appendChild(luzEl);
+    luzEl.addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('button'); if (b) { b.blur(); luzSpin(); } });
+  }
+  function luzPaint(i) {
+    luzAt = i;
+    luzEl.querySelectorAll('.foco').forEach((f, k) => { f.style.setProperty('--c', LUZ()[k][1]); f.classList.toggle('on', k === i); });
+    luzEl.style.setProperty('--glow', i < 0 ? 'rgba(80,110,180,.18)' : LUZ()[i][1] + '40');
+  }
+  function luzReset() { clearTimeout(luzT); luzBusy = false; luzEl.querySelector('button').disabled = false; luzEl.querySelector('.res').textContent = ''; luzPaint(-1); }
+  function luzBeep(f) {
+    try { if (!soundOn()) return; const ac = sfx.ctx(), o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime; o.type = 'square'; o.frequency.value = f; g.gain.setValueAtTime(.05, t); g.gain.exponentialRampToValueAtTime(.0001, t + .09); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .1); } catch (e) {}
+  }
+  function openLuz() { closeSem(); luzBuild(); luzOpen = true; try { music.pause(); } catch (e) {} luzEl.classList.add('open'); luzReset(); }
+  function closeLuz() { if (!luzOpen) return; luzReset(); luzOpen = false; luzEl.classList.remove('open'); try { startMusic(); } catch (e) {} }
+  function luzSpin() {
+    if (!luzOpen) openLuz();
+    if (luzBusy) return;
+    luzBusy = true; const res = luzEl.querySelector('.res'), btn = luzEl.querySelector('button');
+    btn.disabled = true; res.textContent = ''; res.classList.remove('pop');
+    const r = new Uint32Array(1); crypto.getRandomValues(r); const win = r[0] % 3;
+    const total = 24 + win;   // the light starts on 0, so after (24 + win) lit steps it stops exactly on the winner
+    let n = 0;
+    const step = () => {
+      const i = n % 3; luzPaint(i); luzBeep([520, 660, 820][i]);
+      if (n >= total) {
+        luzT = setTimeout(() => { luzBusy = false; btn.disabled = false; res.textContent = '¡' + LUZ()[win][0] + '!'; res.style.color = LUZ()[win][1]; void res.offsetWidth; res.classList.add('pop'); try { SHOW.play('tadan'); } catch (e) {} }, 350);
+        return;
+      }
+      n++; luzT = setTimeout(step, 70 + Math.pow(n / total, 3) * 430);
+    };
+    step();
+  }
+  function semaforoLuz(arg) {
+    arg = String(arg || 'open');
+    if (arg === 'close') { closeLuz(); return 'Semáforo cerrado'; }
+    if (arg === 'open') { openLuz(); return 'Semáforo al azar'; }
+    if (arg === 'spin') { luzSpin(); return 'Girando el semáforo'; }
+    if (arg === 'third') { luzBuild(); luzAzul = !luzAzul; if (!luzOpen) openLuz(); else luzReset(); return 'Tercer color: ' + (luzAzul ? 'azul' : 'verde'); }
+    return '';
+  }
+  addEventListener('keydown', e => { if (luzOpen && e.key === 'Escape') closeLuz(); });
   function remote(cmd, arg) {
-    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); closePrensa(); closeAsis(); closeSem(); };
+    const calm = () => { closePick(); closeAplauso(); closeVideo(); closeTrivia(); closeEquipo(); closeBien(); closePrensa(); closeAsis(); closeSem(); closeLuz(); };
     switch (cmd) {
       case 'next': calm(); next(); rtoast('Siguiente'); break;
       case 'prev': calm(); prev(); rtoast('Anterior'); break;
@@ -3102,6 +3165,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       case 'juego': closePick(); closeAplauso(); closeVideo(); arg === 'close' ? closeTrivia() : openJuego(); rtoast(arg === 'close' ? 'Volviendo del juego' : 'Juego final'); break;
       case 'aplauso': closePick(); arg === 'close' ? closeAplauso() : openAplauso(); rtoast('Aplausómetro'); break;
       case 'semaforo': { const m = semaforo(arg); if (m) rtoast(m); break; }
+      case 'luz': { const m = semaforoLuz(arg); if (m) rtoast(m); break; }
       case 'sound': setSound(arg !== 'off'); rtoast(arg === 'off' ? 'Sonido apagado' : 'Sonido activado'); break;
     }
   }
