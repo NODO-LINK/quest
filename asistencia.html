@@ -2206,7 +2206,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       <div class="t"><b>${esc(s.modulo)}</b><span>${esc(fmtFecha(s.fecha))} · ${esc(s.coordinacion || '')}${s.lugar ? ' · ' + esc(s.lugar) : ''}</span></div>
       <span class="badge ${s.abierta ? 'b-open' : 'b-closed'}">${s.abierta ? 'Abierta' : 'Cerrada'}</span>
       <b class="num" style="min-width:90px">${(bySes[id] || []).length} asistentes</b>
-      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm" data-delses="${id}" title="Borrar esta sesión y sus asistencias">Eliminar</button><button class="btn sm" data-edit="${id}" title="Cambiar fecha, formación, coordinación o lugar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-pdf="${id}" title="Descargar el listado en PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/><path d="M12 12v6"/><path d="m9 15 3 3 3-3"/></svg> Descargar PDF</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
+      <div class="row"><button class="btn sm blue" data-proj="${id}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="8" cy="12.5" r="3"/><path d="M15 11h4"/><path d="M15 14h2"/><path d="M6 18v2"/><path d="M18 18v2"/></svg> Proyectar QR</button><button class="btn sm" data-toggle="${id}">${s.abierta ? 'Cerrar' : 'Abrir'}</button><button class="btn sm" data-copy="${id}">Copiar enlace</button><button class="btn sm" data-lista="${id}" title="Corregir los datos de los asistentes o quitar a alguien de la lista">Editar lista</button><button class="btn sm" data-delses="${id}" title="Borrar esta sesión y sus asistencias">Eliminar</button><button class="btn sm" data-edit="${id}" title="Cambiar fecha, formación, coordinación o lugar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editar</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-print="${id}" title="Listado de asistentes para imprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir listado</button><button class="btn sm${s.abierta ? '' : ' blue'}" data-pdf="${id}" title="Descargar el listado en PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/><path d="M12 12v6"/><path d="m9 15 3 3 3-3"/></svg> Descargar PDF</button></div></div>`).join('') || '<p class="muted">Aún no hay sesiones. Crea la primera.</p>';
   }
   function viewSesiones() {
     const coordOpts = S.cfg.coordinaciones.map(c => `<option>${esc(c)}</option>`).join('');
@@ -2544,6 +2544,7 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
     const q = $('#q'); if (q && !q.dataset.b) q.dataset.b = 1, q.addEventListener('input', () => { S.q = q.value; render(); });
     document.querySelectorAll('[data-per]').forEach(r => r.onclick = () => { S.det = r.dataset.per; $('#det').innerHTML = detalle(S.det); bind(); $('#det').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.querySelectorAll('[data-delm]').forEach(b => b.onclick = async () => { if (!confirm('¿Quitar esta asistencia?')) return; try { await DB.deleteMarca(b.dataset.delm); toast('Asistencia quitada'); } catch (e) { toast('No se pudo quitar'); } });
+    document.querySelectorAll('[data-lista]').forEach(b => b.onclick = () => editLista(b.dataset.lista));
     document.querySelectorAll('[data-delses]').forEach(b => b.onclick = async () => {
       const id = b.dataset.delses, s = S.ses[id] || {}, n = Object.values(S.mar).filter(m => m.sesion === id).length;
       if (!confirm(`¿Eliminar la sesión del ${s.fecha || ''} (${s.modulo || ''})?\nSe borrarán también sus ${n} asistencias. No se puede deshacer.`)) return;
@@ -2571,6 +2572,64 @@ window.QRCodeLib={QRCode:R('index'),QRErrorCorrectLevel:R('QRErrorCorrectLevel')
       const d = readDirAreas(); c.coordinaciones.forEach(k => { if (d[k]) c.direcciones[k] = d[k]; });
       try { await DB.setConfig(c); S.cfg = c; toast('Ajustes guardados'); } catch (err) { toast('No se pudo guardar'); }
     });
+  }
+  // editar la lista de una sesión: corregir datos de quien se equivocó o quitarlo de la lista
+  function editLista(sid) {
+    const s = S.ses[sid]; if (!s) return;
+    const ov = document.createElement('div'); let q = '', open = null;
+    ov.style.cssText = 'position:fixed;inset:0;z-index:60;background:rgba(3,10,25,.78);display:flex;align-items:center;justify-content:center;padding:12px';
+    ov.innerHTML = `<div class="glass pad" role="dialog" aria-label="Editar lista" style="width:min(820px,100%);background:#0F2C55;max-height:94vh;display:flex;flex-direction:column;gap:10px">
+      <div class="row" style="justify-content:space-between;gap:10px"><h2 style="margin:0">Editar lista · <span id="elN"></span></h2><button class="btn sm" type="button" id="elX">Cerrar</button></div>
+      <p class="muted" style="margin:0;font-size:14px">${esc(s.fecha ? fmtFecha(s.fecha) : '')} · ${esc(s.modulo || '')}</p>
+      <input id="elQ" placeholder="Buscar por nombre, cédula o dirección">
+      <div id="elL" class="list" style="overflow:auto;min-height:120px"></div></div>`;
+    document.body.appendChild(ov);
+    const el = sel => ov.querySelector(sel), close = () => ov.remove();
+    const filas = () => Object.entries(S.mar).filter(([, m]) => m.sesion === sid).map(([mid, m]) => ({ mid, m, h: m.persona, p: S.per[m.persona] || {} }))
+      .sort((a, b) => String(a.p.nombre || '').localeCompare(String(b.p.nombre || ''), 'es'));
+    const dirs = () => [...new Set([...Object.values(S.cfg.direcciones || {}).flat(), ...Object.values(S.per).map(x => x.dir)].filter(Boolean))].sort();
+    const form = (h, p) => {
+      const coords = [...new Set([...S.cfg.coordinaciones, p.coord].filter(Boolean))];
+      return `<form data-elf="${h}" style="width:100%;margin-top:10px">
+        <label>Nombre y apellido</label><input name="n" maxlength="60" value="${esc(p.nombre || '')}">
+        <div class="row" style="gap:10px"><div style="flex:1"><label>Edad</label><input name="e" inputmode="numeric" maxlength="3" value="${esc(p.edad || '')}"></div>
+        <div style="flex:1"><label>Sexo</label><select name="s"><option value="">—</option>${SEXOS.map(x => `<option ${p.sexo === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div></div>
+        <label>Coordinación</label><select name="c">${coords.map(c => `<option ${c === p.coord ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
+        <label>Dirección</label><input name="d" list="elDirs" maxlength="100" value="${esc(p.dir || '')}" placeholder="Sin dirección"><datalist id="elDirs">${dirs().map(d => `<option value="${esc(d)}">`).join('')}</datalist>
+        <div class="row" style="gap:10px;margin-top:12px"><button class="btn primary" type="submit" style="flex:1;margin:0">Guardar</button><button class="btn" type="button" data-elc="1" style="flex:1">Cancelar</button></div>
+        <div class="msg" data-elm></div></form>`;
+    };
+    const draw = () => {
+      const all = filas(), norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(), k = norm(q);
+      el('#elN').textContent = all.length === 1 ? '1 asistente' : all.length + ' asistentes';
+      const rows = all.filter(r => !k || norm([r.p.nombre, r.p.cedula, r.p.dir].join(' ')).includes(k));
+      el('#elL').innerHTML = rows.map(r => `<div class="item" style="flex-wrap:wrap"><div class="t"><b>${esc(r.p.nombre || 'Sin datos')}</b><span>C.I. ${esc(r.p.cedula || '—')} · ${r.p.dir ? esc(r.p.dir) : '<em style="color:#FFC94D;font-style:normal;font-weight:700">Sin dirección</em>'} · ${hora(tsMs(r.m.t))}</span></div>
+        <div class="row">${S.per[r.h] ? `<button class="btn sm blue" type="button" data-ele="${r.h}">Corregir</button>` : ''}<button class="btn sm" type="button" data-elq="${r.mid}">Quitar</button></div>${open === r.h ? form(r.h, r.p) : ''}</div>`).join('') || '<p class="muted">Nadie en la lista.</p>';
+    };
+    el('#elX').onclick = close;
+    el('#elQ').oninput = e => { q = e.target.value; open = null; draw(); };
+    el('#elL').addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.ele) { open = open === b.dataset.ele ? null : b.dataset.ele; draw(); }
+      else if (b.dataset.elc) { open = null; draw(); }
+      else if (b.dataset.elq) {
+        const m = S.mar[b.dataset.elq] || {}, p = S.per[m.persona] || {};
+        if (!confirm(`¿Quitar a ${p.nombre || 'esta persona'} de la lista de esta sesión?\nSus datos de registro no se borran.`)) return;
+        try { await DB.deleteMarca(b.dataset.elq); delete S.mar[b.dataset.elq]; toast('Quitado de la lista'); draw(); } catch (err) { toast('No se pudo quitar'); }
+      }
+    });
+    el('#elL').addEventListener('submit', async e => {
+      e.preventDefault();
+      const f = e.target, h = f.dataset.elf, v = n => f.elements[n].value.replace(/\s+/g, ' ').trim(), msg = f.querySelector('[data-elm]');
+      const nombre = v('n'), edad = +v('e').replace(/\D/g, '');
+      if (nombre.split(' ').length < 2) { msg.textContent = 'Escribe nombre y apellido.'; return; }
+      if (!(edad >= 15 && edad <= 110)) { msg.textContent = 'Escribe una edad válida.'; return; }
+      const d = Object.assign({ nombre, edad, gen: genOf(edad), coord: f.elements.c.value, dir: v('d').slice(0, 100) }, f.elements.s.value ? { sexo: f.elements.s.value } : {});
+      msg.textContent = 'Guardando…';
+      try { await DB.updatePersona(h, d); S.per[h] = Object.assign({}, S.per[h], d); open = null; toast('Datos corregidos'); draw(); }
+      catch (err) { msg.textContent = 'No se pudo guardar. Revisa el internet e intenta de nuevo.'; }
+    });
+    draw();
   }
   // grouped, searchable module list in the Alcaldía style; free text still allowed
   function modulePicker(inp) {
